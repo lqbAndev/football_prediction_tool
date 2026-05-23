@@ -1,6 +1,17 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Lock, Trophy, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Lock, Trophy, BarChart3, FolderHeart } from 'lucide-react';
+
+// Logos
 import wc26Logo from '../img/tournaments_fifa-world-cup-2026--white_128x128.football-logos.cc.png';
+import uclLogo from '../img/CUP COMPETITION/UCL/tournaments_uefa-champions-league--no-text-white_64x64.football-logos.cc.png';
+import uelLogo from '../img/CUP COMPETITION/UEL/tournaments_uefa-europa-league_64x64.football-logos.cc.png';
+import uclcLogo from '../img/CUP COMPETITION/Conference/tournaments_uefa-conference-league_64x64.football-logos.cc.png';
+
+import eplLogo from '../img/LEAGUE COMPETITION/EPL/england_english-premier-league--no-text-white_64x64.football-logos.cc.png';
+import laligaLogo from '../img/LEAGUE COMPETITION/LALIGA/spain_la-liga_64x64.football-logos.cc.png';
+import bundesligaLogo from '../img/LEAGUE COMPETITION/Bundesliga/germany_bundesliga_64x64.football-logos.cc.png';
+import serieaLogo from '../img/LEAGUE COMPETITION/SerieA/italy_serie-a_64x64.football-logos.cc.png';
+import ligue1Logo from '../img/LEAGUE COMPETITION/League1/france_ligue-1--white_64x64.football-logos.cc.png';
 
 /* ─────────────────────────────────────────────
    Competition Card
@@ -93,7 +104,14 @@ export default function CompetitionHub() {
           Competition Hub
         </h1>
 
-        <div className="hub-header__spacer" />
+        <button
+          type="button"
+          onClick={() => navigate('/saves')}
+          className="flex items-center gap-2 rounded-xl border border-indigo-500/25 bg-indigo-500/10 px-4 py-2 text-sm font-semibold text-indigo-300 transition hover:-translate-y-0.5 hover:bg-indigo-500/20 active:scale-95 shadow-[0_0_15px_rgba(99,102,241,0.15)]"
+        >
+          <FolderHeart size={18} className="text-indigo-400" />
+          <span>Saved Simulations</span>
+        </button>
       </header>
 
       {/* ── Main content ── */}
@@ -109,7 +127,7 @@ export default function CompetitionHub() {
             <CompetitionCard
               title="FIFA World Cup 2026"
               subtitle="PREDICT THE FIFA WORLD CUP 2026"
-              icon={<img src={wc26Logo} alt="WC26" style={{ width: 48, height: 48, objectFit: 'contain' }} />}
+              icon={<img src={wc26Logo} alt="WC26" style={{ width: 44, height: 44, objectFit: 'contain' }} />}
               gradient="linear-gradient(135deg, rgba(34,79,151,0.35), rgba(24,115,91,0.25), rgba(165,52,72,0.2))"
               borderColor="rgba(248,214,109,0.3)"
               onClick={() => navigate('/competition/wc26')}
@@ -132,11 +150,27 @@ export default function CompetitionHub() {
             <CompetitionCard
               title="UEFA Champions League"
               subtitle="Europe's Premier Club Competition"
-              icon={
-                <div style={{ fontSize: 32, lineHeight: 1 }}>🏆</div>
-              }
+              icon={<img src={uclLogo} alt="UCL" style={{ width: 44, height: 44, objectFit: 'contain' }} />}
               gradient="linear-gradient(135deg, rgba(30,64,175,0.3), rgba(99,102,241,0.2))"
               borderColor="rgba(99,102,241,0.25)"
+              locked
+            />
+
+            <CompetitionCard
+              title="UEFA Europa League"
+              subtitle="European Secondary Club Competition"
+              icon={<img src={uelLogo} alt="UEL" style={{ width: 44, height: 44, objectFit: 'contain' }} />}
+              gradient="linear-gradient(135deg, rgba(239,104,22,0.25), rgba(146,64,14,0.15))"
+              borderColor="rgba(239,104,22,0.2)"
+              locked
+            />
+
+            <CompetitionCard
+              title="UEFA Conference League"
+              subtitle="European Tertiary Club Competition"
+              icon={<img src={uclcLogo} alt="Conference" style={{ width: 44, height: 44, objectFit: 'contain' }} />}
+              gradient="linear-gradient(135deg, rgba(16,185,129,0.25), rgba(6,95,70,0.15))"
+              borderColor="rgba(16,185,129,0.2)"
               locked
             />
 
@@ -164,9 +198,7 @@ export default function CompetitionHub() {
             <CompetitionCard
               title="Premier League"
               subtitle="English Premier League"
-              icon={
-                <div style={{ fontSize: 32, lineHeight: 1 }}>🦁</div>
-              }
+              icon={<img src={eplLogo} alt="EPL" style={{ width: 44, height: 44, objectFit: 'contain' }} />}
               gradient="linear-gradient(135deg, rgba(147,51,234,0.3), rgba(79,70,229,0.2))"
               borderColor="rgba(147,51,234,0.25)"
               locked
@@ -175,11 +207,36 @@ export default function CompetitionHub() {
             <CompetitionCard
               title="La Liga"
               subtitle="Spanish First Division"
-              icon={
-                <div style={{ fontSize: 32, lineHeight: 1 }}>🇪🇸</div>
-              }
+              icon={<img src={laligaLogo} alt="La Liga" style={{ width: 44, height: 44, objectFit: 'contain' }} />}
               gradient="linear-gradient(135deg, rgba(239,68,68,0.3), rgba(249,115,22,0.2))"
               borderColor="rgba(239,68,68,0.25)"
+              locked
+            />
+
+            <CompetitionCard
+              title="Bundesliga"
+              subtitle="German First Division"
+              icon={<img src={bundesligaLogo} alt="Bundesliga" style={{ width: 44, height: 44, objectFit: 'contain' }} />}
+              gradient="linear-gradient(135deg, rgba(220,38,38,0.35), rgba(127,29,29,0.2))"
+              borderColor="rgba(220,38,38,0.2)"
+              locked
+            />
+
+            <CompetitionCard
+              title="Serie A"
+              subtitle="Italian First Division"
+              icon={<img src={serieaLogo} alt="Serie A" style={{ width: 44, height: 44, objectFit: 'contain' }} />}
+              gradient="linear-gradient(135deg, rgba(59,130,246,0.3), rgba(30,58,138,0.2))"
+              borderColor="rgba(59,130,246,0.2)"
+              locked
+            />
+
+            <CompetitionCard
+              title="Ligue 1"
+              subtitle="French First Division"
+              icon={<img src={ligue1Logo} alt="Ligue 1" style={{ width: 44, height: 44, objectFit: 'contain' }} />}
+              gradient="linear-gradient(135deg, rgba(14,116,144,0.3), rgba(21,94,117,0.2))"
+              borderColor="rgba(14,116,144,0.2)"
               locked
             />
 
@@ -213,7 +270,7 @@ export default function CompetitionHub() {
 
       {/* ── Footer ── */}
       <footer className="hub-footer">
-        <p>Football Prediction Tool v2.3 — Multi-tournament simulation platform</p>
+        <p>Football Prediction Tool v2.3.0 — Multi-tournament simulation platform</p>
       </footer>
     </div>
   );

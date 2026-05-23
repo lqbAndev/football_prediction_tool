@@ -672,7 +672,7 @@ body::before {
 /* Card grid */
 .hub-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 1.25rem;
 }
 
@@ -757,9 +757,7 @@ body::before {
   font-weight: 700;
   color: #e2e8f0;
   margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.25;
 }
 
 .hub-card__text p {
@@ -849,4 +847,20 @@ body::before {
   .landing-headline--sub {
     font-size: clamp(1.4rem, 5vw, 2.5rem);
   }
+}
+
+/* Toast Animations */
+@keyframes slideInUp {
+  from {
+    transform: translateY(100px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-toast-in {
+  animation: slideInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, CalendarDays, ChevronDown, Orbit, RotateCcw, Swords, Trophy, Users, Zap } from 'lucide-react';
+import { ArrowLeft, CalendarDays, ChevronDown, Orbit, RotateCcw, Swords, Trophy, Users, Zap, Save } from 'lucide-react';
 import { BackToTopButton } from '../components/BackToTopButton';
 import { BestThirdTable } from '../components/BestThirdTable';
 import { ChampionCup, TriondaBall, WorldCupLogo } from '../components/BrandAssets';
@@ -19,6 +19,9 @@ import { CompetitionProvider } from '../hooks/CompetitionContext';
 import { useTournament } from '../hooks/useTournament';
 
 import { calculateTournamentStats } from '../utils/recapStats';
+import { SaveModal } from '../components/SaveModal';
+import { Toast } from '../components/Toast';
+import { saveSimulation } from '../utils/saveManager';
 
 const SLOGAN = 'WE ARE 26';
 
@@ -40,6 +43,31 @@ export default function WC26App() {
   } = useTournament();
 
   const [showResetModal, setShowResetModal] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const handleSaveSimulation = (name: string) => {
+    const payload = {
+      version: 2,
+      core: coreState,
+      derived: {
+        standingsByGroup: derivedState.standingsByGroup,
+        thirdPlaceTable: derivedState.thirdPlaceTable,
+        topScorers: derivedState.topScorers,
+        seasonMOTM: derivedState.seasonMOTM,
+        qualifiedTeamIds: derivedState.qualifiedTeamIds,
+        groupStageComplete: derivedState.groupStageComplete,
+        knockoutReady: derivedState.knockoutReady,
+        knockoutTeamOrigins: derivedState.knockoutTeamOrigins,
+        championTeamId: derivedState.championTeamId,
+        championName: derivedState.championName,
+      },
+      updatedAt: new Date().toISOString(),
+    };
+    saveSimulation(name, 'wc26', 'cup', payload);
+    setShowSaveModal(false);
+    setToastMessage('Save successful!');
+  };
   const [showChampionModal, setShowChampionModal] = useState(false);
   const [scenarioOpen, setScenarioOpen] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
@@ -205,6 +233,14 @@ export default function WC26App() {
                     ) : null}
 
 
+
+                    <button
+                      type="button"
+                      onClick={() => setShowSaveModal(true)}
+                      className="flex items-center gap-1.5 whitespace-nowrap rounded-xl border border-indigo-500/25 bg-indigo-500/10 px-3.5 py-2.5 text-xs font-semibold text-host-ice transition hover:-translate-y-0.5 hover:bg-indigo-500/15 sm:text-sm shadow-[0_0_12px_rgba(99,102,241,0.2)]"
+                    >
+                      <Save className="h-4 w-4" /> Save Process
+                    </button>
 
                     <button
                       type="button"
@@ -428,6 +464,15 @@ export default function WC26App() {
       </div>
 
       <ResetModal isOpen={showResetModal} onClose={() => setShowResetModal(false)} onConfirm={confirmReset} />
+
+      <SaveModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        onSave={handleSaveSimulation}
+        defaultSaveName="WC26 - Ngựa ô lên ngôi"
+      />
+
+      {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
 
       <ChampionModal
         isOpen={showChampionModal}

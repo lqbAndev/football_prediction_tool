@@ -15,6 +15,10 @@ import TitleRaceChart from '../components/league/TitleRaceChart';
 import LeagueRecap from '../components/league/LeagueRecap';
 import LeagueChampionModal from '../components/league/LeagueChampionModal';
 import type { LeagueMatch } from '../types/leagueConfig';
+import { Save } from 'lucide-react';
+import { SaveModal } from '../components/SaveModal';
+import { Toast } from '../components/Toast';
+import { saveSimulation } from '../utils/saveManager';
 
 export default function LeagueApp() {
   const [fixtures, setFixtures] = useState<LeagueMatch[]>([]);
@@ -25,14 +29,61 @@ export default function LeagueApp() {
   const [isChampionModalOpen, setIsChampionModalOpen] = useState(false);
   const [hasShownChampionModal, setHasShownChampionModal] = useState(false);
 
-  // Initialize fixtures on mount
+  // Manual save state
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Initialize fixtures on mount (read from auto-save first)
   useEffect(() => {
     if (!isInitialized) {
+      try {
+        const raw = window.localStorage.getItem('vibe-test-league-state');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.fixtures)) {
+            setFixtures(parsed.fixtures);
+            setSelectedMatchweek(parsed.selectedMatchweek || 1);
+            setHasShownChampionModal(parsed.hasShownChampionModal || false);
+            setIsInitialized(true);
+            return;
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load league auto-save", e);
+      }
+
       const initialFixtures = generateRoundRobinFixtures(TEST_LEAGUE_TEAMS, testLeagueConfig);
       setFixtures(initialFixtures);
       setIsInitialized(true);
     }
   }, [isInitialized]);
+
+  // Auto-save state changes
+  useEffect(() => {
+    if (isInitialized && fixtures.length > 0) {
+      const payload = {
+        version: 2,
+        fixtures,
+        selectedMatchweek,
+        hasShownChampionModal,
+        updatedAt: new Date().toISOString(),
+      };
+      window.localStorage.setItem('vibe-test-league-state', JSON.stringify(payload));
+    }
+  }, [fixtures, selectedMatchweek, hasShownChampionModal, isInitialized]);
+
+  const handleSaveSimulation = (name: string) => {
+    const payload = {
+      version: 2,
+      fixtures,
+      selectedMatchweek,
+      hasShownChampionModal,
+      updatedAt: new Date().toISOString(),
+    };
+    saveSimulation(name, 'test-league', 'league', payload);
+    setShowSaveModal(false);
+    setToastMessage('Save successful!');
+  };
 
   // Calculate standings
   const standings = useMemo(() => {
@@ -137,6 +188,7 @@ export default function LeagueApp() {
 
   // Handle reset
   const handleReset = () => {
+    window.localStorage.removeItem('vibe-test-league-state');
     const initialFixtures = generateRoundRobinFixtures(TEST_LEAGUE_TEAMS, testLeagueConfig);
     setFixtures(initialFixtures);
     setSelectedMatchweek(1);
@@ -170,6 +222,12 @@ export default function LeagueApp() {
               </p>
             </div>
             <div className="flex gap-3">
+              <button
+                onClick={() => setShowSaveModal(true)}
+                className="px-4 py-2 bg-indigo-500/20 text-white font-bold rounded-xl hover:bg-indigo-500/35 border border-indigo-500/30 transition-all active:scale-95 text-sm flex items-center gap-1.5 shadow-[0_0_12px_rgba(99,102,241,0.25)]"
+              >
+                <Save className="h-4 w-4" /> Save Process
+              </button>
               <button
                 onClick={handleReset}
                 className="px-4 py-2 bg-rose-500/10 text-rose-300 font-bold rounded-xl hover:bg-rose-500/20 border border-rose-500/25 transition-all active:scale-95 text-sm"
@@ -379,6 +437,15 @@ export default function LeagueApp() {
           }}
         />
       )}
+
+      <SaveModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        onSave={handleSaveSimulation}
+        defaultSaveName="Vibe League - My Season"
+      />
+
+      {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
     </div>
   );
 }
