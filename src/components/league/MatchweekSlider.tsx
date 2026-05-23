@@ -66,16 +66,14 @@ function LeagueMatchCard({
               <span className="text-xs font-bold uppercase tracking-[0.18em]">Match Timeline</span>
             </span>
             <ChevronDown
-              className={`h-4 w-4 text-emerald-400/45 transition-transform duration-200 ${
-                expanded ? 'rotate-180' : ''
-              }`}
+              className={`h-4 w-4 text-emerald-400/45 transition-transform duration-200 ${expanded ? 'rotate-180' : ''
+                }`}
             />
           </button>
 
           <div
-            className={`overflow-hidden transition-all duration-300 ease-in-out ${
-              expanded ? 'mt-2 max-h-[300px] opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
-            }`}
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${expanded ? 'mt-2 max-h-[300px] opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
+              }`}
           >
             <div className="grid gap-2 grid-cols-2">
               {/* Home scorers */}
@@ -161,7 +159,7 @@ function LeagueMatchCard({
           }}
           className="mt-1 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-xs font-black uppercase tracking-wider text-emerald-300 hover:text-white hover:bg-emerald-500/25 active:scale-[0.98] transition-all duration-200"
         >
-          <Zap className="h-3.5 w-3.5 text-emerald-400 animate-pulse" /> Predict Match
+          Predict Match
         </button>
       )}
     </div>
@@ -202,12 +200,12 @@ export default function MatchweekSlider({
             onClick={onSimulateMatchweek}
             className="px-6 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all shadow-lg hover:shadow-xl active:scale-95 border border-emerald-400/25 flex items-center gap-2"
           >
-            <Zap className="h-4 w-4 text-emerald-100" /> Simulate Matchweek {currentMatchweek}
+            Simulate Matchweek {currentMatchweek}
           </button>
         )}
         {isMatchweekCompleted && (
           <span className="px-4 py-2 bg-emerald-500/20 text-emerald-300 font-semibold rounded-xl border border-emerald-500/30">
-            ✓ Completed
+            Completed
           </span>
         )}
       </div>
@@ -233,13 +231,12 @@ export default function MatchweekSlider({
                 <button
                   key={mw}
                   onClick={() => onMatchweekChange(mw)}
-                  className={`px-3.5 py-2 rounded-lg font-bold transition-all text-sm shrink-0 border ${
-                    isCurrent
-                      ? 'bg-emerald-500 text-emerald-950 border-emerald-400 shadow-md shadow-emerald-500/20 scale-105'
-                      : isCompleted
+                  className={`px-3.5 py-2 rounded-lg font-bold transition-all text-sm shrink-0 border ${isCurrent
+                    ? 'bg-emerald-500 text-emerald-950 border-emerald-400 shadow-md shadow-emerald-500/20 scale-105'
+                    : isCompleted
                       ? 'bg-emerald-950/40 text-emerald-300 border-emerald-500/20 hover:bg-emerald-900/30'
                       : 'bg-white/5 text-white/50 border-white/5 hover:bg-white/10 hover:text-white'
-                  }`}
+                    }`}
                 >
                   {mw}
                 </button>

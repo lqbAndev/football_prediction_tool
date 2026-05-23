@@ -40,11 +40,10 @@ export const MatchCard = ({ match, onPredict }: MatchCardProps) => {
 
         <div className="flex flex-col items-end gap-2">
           <span
-            className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${
-              isCompleted
+            className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${isCompleted
                 ? 'border border-emerald-300/20 bg-emerald-400/10 text-emerald-100'
                 : 'border border-amber-300/20 bg-amber-300/10 text-amber-100'
-            }`}
+              }`}
           >
             {isCompleted ? 'Completed' : 'Pending'}
           </span>
@@ -80,16 +79,14 @@ export const MatchCard = ({ match, onPredict }: MatchCardProps) => {
               <span className="text-xs uppercase tracking-[0.18em]">Match Timeline</span>
             </span>
             <ChevronDown
-              className={`h-4 w-4 text-white/40 transition-transform duration-200 ${
-                expanded ? 'rotate-180' : ''
-              }`}
+              className={`h-4 w-4 text-white/40 transition-transform duration-200 ${expanded ? 'rotate-180' : ''
+                }`}
             />
           </button>
 
           <div
-            className={`timeline-collapse overflow-hidden transition-all duration-300 ease-in-out ${
-              expanded ? 'mt-2 max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
-            }`}
+            className={`timeline-collapse overflow-hidden transition-all duration-300 ease-in-out ${expanded ? 'mt-2 max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+              }`}
           >
             <div className="grid gap-2 md:grid-cols-2">
               {/* Home scorers */}
@@ -166,18 +163,15 @@ export const MatchCard = ({ match, onPredict }: MatchCardProps) => {
         </div>
       ) : null}
 
-      <button
-        type="button"
-        onClick={() => onPredict(match.id)}
-        disabled={isCompleted}
-        className={`mt-4 inline-flex w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold transition ${
-          isCompleted
-            ? 'cursor-not-allowed border border-white/10 bg-white/5 text-white/35'
-            : 'border border-emerald-300/20 bg-emerald-400/15 text-emerald-50 hover:-translate-y-0.5 hover:bg-emerald-400/20'
-        }`}
-      >
-        {isCompleted ? '' : 'Predict'}
-      </button>
+      {!isCompleted && (
+        <button
+          type="button"
+          onClick={() => onPredict(match.id)}
+          className="mt-5 inline-flex w-full items-center justify-center gap-2.5 rounded-2xl border border-emerald-400/25 bg-gradient-to-r from-emerald-500/20 via-teal-500/15 to-emerald-500/20 px-5 py-4 text-sm font-bold tracking-widest text-emerald-100 shadow-[0_4px_24px_rgba(52,211,153,0.08)] transition-all duration-200 hover:-translate-y-1 hover:border-emerald-400/45 hover:from-emerald-500/30 hover:via-teal-500/25 hover:to-emerald-500/30 hover:shadow-[0_8px_32px_rgba(52,211,153,0.18)] active:translate-y-0"
+        >
+          PREDICT MATCH
+        </button>
+      )}
     </article>
   );
 };
