@@ -216,15 +216,9 @@ export default function LandingPage() {
           </button>
         </div>
 
-        <p className="landing-hint">
-          KICK OFF
-        </p>
-      </div>
-
-      {/* ── version footer ── */}
-      <div className="landing-footer">
-        Football Prediction Tool · v2.0
+        <p className="landing-hint">KICK OFF</p>
       </div>
     </div>
+
   );
 }
