@@ -159,7 +159,7 @@ export default function CompetitionHub() {
             <CompetitionCard
               title="UEFA Europa League"
               subtitle="European Secondary Club Competition"
-              icon={<img src={uelLogo} alt="UEL" style={{ width: 44, height: 44, objectFit: 'contain' }} />}
+              icon={<img src={uelLogo} alt="UEL" style={{ width: 64, height: 64, objectFit: 'contain', filter: 'invert(1) hue-rotate(180deg)' }} />}
               gradient="linear-gradient(135deg, rgba(239,104,22,0.25), rgba(146,64,14,0.15))"
               borderColor="rgba(239,104,22,0.2)"
               locked
@@ -168,20 +168,9 @@ export default function CompetitionHub() {
             <CompetitionCard
               title="UEFA Conference League"
               subtitle="European Tertiary Club Competition"
-              icon={<img src={uclcLogo} alt="Conference" style={{ width: 44, height: 44, objectFit: 'contain' }} />}
+              icon={<img src={uclcLogo} alt="Conference" style={{ width: 64, height: 64, objectFit: 'contain', filter: 'invert(1) hue-rotate(180deg)' }} />}
               gradient="linear-gradient(135deg, rgba(16,185,129,0.25), rgba(6,95,70,0.15))"
               borderColor="rgba(16,185,129,0.2)"
-              locked
-            />
-
-            <CompetitionCard
-              title="Copa America 2028"
-              subtitle="South American Championship"
-              icon={
-                <div style={{ fontSize: 32, lineHeight: 1 }}>🌎</div>
-              }
-              gradient="linear-gradient(135deg, rgba(16,185,129,0.3), rgba(5,150,105,0.2))"
-              borderColor="rgba(16,185,129,0.25)"
               locked
             />
           </div>
@@ -237,17 +226,6 @@ export default function CompetitionHub() {
               icon={<img src={ligue1Logo} alt="Ligue 1" style={{ width: 44, height: 44, objectFit: 'contain' }} />}
               gradient="linear-gradient(135deg, rgba(14,116,144,0.3), rgba(21,94,117,0.2))"
               borderColor="rgba(14,116,144,0.2)"
-              locked
-            />
-
-            <CompetitionCard
-              title="V.League"
-              subtitle="Vietnamese First Division"
-              icon={
-                <div style={{ fontSize: 32, lineHeight: 1 }}>🇻🇳</div>
-              }
-              gradient="linear-gradient(135deg, rgba(239,68,68,0.3), rgba(250,204,21,0.2))"
-              borderColor="rgba(250,204,21,0.25)"
               locked
             />
 

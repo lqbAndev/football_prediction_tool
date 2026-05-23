@@ -681,6 +681,7 @@ body::before {
   position: relative;
   display: block;
   width: 100%;
+  height: 100%;
   text-align: left;
   border: none;
   padding: 0;
@@ -735,6 +736,7 @@ body::before {
   );
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  height: 100%;
 }
 
 .hub-card__icon {
