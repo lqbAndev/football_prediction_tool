@@ -3,13 +3,16 @@ import type { LeagueStanding, QualificationZone } from '../../types/leagueConfig
 interface LeagueTableProps {
   standings: LeagueStanding[];
   qualificationZones: QualificationZone[];
+  showAllZones?: boolean;
 }
 
-export default function LeagueTable({ standings, qualificationZones }: LeagueTableProps) {
-  // Filter out Champions League and Europa League zones as requested
-  const activeZones = qualificationZones.filter(
-    (zone) => zone.id !== 'champions-league' && zone.id !== 'europa-league'
-  );
+export default function LeagueTable({ standings, qualificationZones, showAllZones = false }: LeagueTableProps) {
+  // Filter out Champions League and Europa League zones as requested for test league
+  const activeZones = showAllZones
+    ? qualificationZones
+    : qualificationZones.filter(
+        (zone) => zone.id !== 'champions-league' && zone.id !== 'europa-league'
+      );
 
   const getZoneForPosition = (position: number): QualificationZone | undefined => {
     return activeZones.find(

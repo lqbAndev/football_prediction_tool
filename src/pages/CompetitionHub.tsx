@@ -7,7 +7,7 @@ import uclLogo from '../img/CUP COMPETITION/UCL/tournaments_uefa-champions-leagu
 import uelLogo from '../img/CUP COMPETITION/UEL/tournaments_uefa-europa-league_64x64.football-logos.cc.png';
 import uclcLogo from '../img/CUP COMPETITION/Conference/tournaments_uefa-conference-league_64x64.football-logos.cc.png';
 
-import eplLogo from '../img/LEAGUE COMPETITION/EPL/england_english-premier-league--no-text-white_64x64.football-logos.cc.png';
+import eplLogo from '../img/LEAGUE COMPETITION/EPL/england_english-premier-league.football-logos.cc.svg';
 import laligaLogo from '../img/LEAGUE COMPETITION/LALIGA/spain_la-liga_64x64.football-logos.cc.png';
 import bundesligaLogo from '../img/LEAGUE COMPETITION/Bundesliga/germany_bundesliga_64x64.football-logos.cc.png';
 import serieaLogo from '../img/LEAGUE COMPETITION/SerieA/italy_serie-a_64x64.football-logos.cc.png';
@@ -187,10 +187,14 @@ export default function CompetitionHub() {
             <CompetitionCard
               title="Premier League"
               subtitle="English Premier League"
-              icon={<img src={eplLogo} alt="EPL" style={{ width: 44, height: 44, objectFit: 'contain' }} />}
+              icon={
+                <div className="bg-white p-1 rounded-xl shadow-md flex items-center justify-center w-12 h-12 border border-[#00ff87]/30">
+                  <img src={eplLogo} alt="EPL" style={{ width: 34, height: 34, objectFit: 'contain' }} />
+                </div>
+              }
               gradient="linear-gradient(135deg, rgba(147,51,234,0.3), rgba(79,70,229,0.2))"
               borderColor="rgba(147,51,234,0.25)"
-              locked
+              onClick={() => navigate('/competition/epl')}
             />
 
             <CompetitionCard

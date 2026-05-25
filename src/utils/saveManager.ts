@@ -26,6 +26,7 @@ export const getCompetitionName = (competitionId: string, competitionType: 'cup'
   if (competitionId === 'wc26') return 'FIFA World Cup 2026';
   if (competitionId === 'test-cup') return 'Vibe Test Cup';
   if (competitionId === 'test-league') return 'Vibe Test League';
+  if (competitionId === 'epl') return 'Premier League';
   return competitionId.toUpperCase();
 };
 

@@ -1,7 +1,7 @@
 {
   "name": "football-prediction-tool",
   "private": true,
-  "version": "2.3.0",
+  "version": "2.5.0",
   "type": "module",
   "homepage": "https://lqbandev.github.io/football_prediction_tool",
   "scripts": {

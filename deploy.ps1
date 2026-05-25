@@ -1,6 +1,6 @@
 $ProjectRoot   = "e:\Study\vibe-antigravity\football_prediction_tool"
-$BranchName    = "platform/phase-4-saves-and-polish"
-$CommitMessage = "feat: Phase 4 - Saved Simulations & Hub Polish (v2.3.0)"
+$BranchName    = "feature/recap-chart-upgrade"
+$CommitMessage = "feat: Richer League Recap & Interactive Title Race Chart (v2.5.0)"
 
 $env:GIT_PAGER = ""
 
