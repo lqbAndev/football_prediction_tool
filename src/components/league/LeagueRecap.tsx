@@ -18,15 +18,18 @@ import {
   ChevronRight,
   Sparkle,
   Smile,
-  Heart
+  Heart,
+  Star
 } from 'lucide-react';
 import type { LeagueStanding, LeagueMatch } from '../../types/leagueConfig';
+import type { LeagueMOTS } from '../../utils/motm';
 
 interface LeagueRecapProps {
   standings: LeagueStanding[];
   fixtures: LeagueMatch[];
   logoMap?: Record<string, string>;
   leagueLogo?: string;
+  mots?: LeagueMOTS;
 }
 
 const StatCard = ({
@@ -345,7 +348,7 @@ const ZoneList = ({
   );
 };
 
-export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo }: LeagueRecapProps) {
+export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, mots }: LeagueRecapProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'awards' | 'streaks' | 'highlights'>('overview');
 
   const completedMatches = fixtures.filter((f) => f.status === 'completed');
@@ -353,7 +356,7 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo }
 
   if (!isComplete || standings.length < 3) {
     return (
-      <div className="relative overflow-hidden rounded-2xl border border-emerald-500/10 bg-emerald-950/5 p-6 sm:p-8 backdrop-blur-md">
+      <div className="relative overflow-hidden rounded-2xl border border-[#e11d8f]/10 bg-[#e11d8f]/5 p-6 sm:p-8 backdrop-blur-md">
         <div className="flex items-center gap-3 text-white/40">
           {leagueLogo ? (
             <div className="bg-white/10 p-1.5 rounded-lg flex items-center justify-center h-8 w-8 shrink-0">
@@ -363,7 +366,7 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo }
             <Trophy className="h-8 w-8" />
           )}
           <div>
-            <p className="text-[10px] uppercase tracking-[0.25em] text-[#00ff87]/50">Season Recap</p>
+            <p className="text-[10px] uppercase tracking-[0.25em] text-[#e11d8f]/50">Season Recap</p>
             <h3 className="mt-1 text-lg font-bold text-white/50">
               Complete all {fixtures.length} matches to view the league recap
             </h3>
@@ -615,13 +618,13 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo }
   return (
     <div className="space-y-6">
       {/* Ambient header */}
-      <div className="relative overflow-hidden rounded-3xl border border-[#00ff87]/15 bg-gradient-to-b from-[#1c0524] to-[#0a020d] p-6 sm:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,255,135,0.12),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(245,158,11,0.05),transparent_45%)] pointer-events-none" />
+      <div className="relative overflow-hidden rounded-3xl border border-[#e11d8f]/15 bg-gradient-to-b from-[#1c0524] to-[#0a020d] p-6 sm:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(225,29,143,0.12),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(245,158,11,0.05),transparent_45%)] pointer-events-none" />
         <div className="relative z-10">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
               {leagueLogo ? (
-                <div className="bg-white p-1 rounded-xl flex items-center justify-center h-10 w-10 border border-[#00ff87]/30 shrink-0">
+                <div className="bg-white p-1 rounded-xl flex items-center justify-center h-10 w-10 border border-[#e11d8f]/30 shrink-0">
                   <img
                     src={leagueLogo}
                     alt="League Logo"
@@ -634,7 +637,7 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo }
                 </div>
               )}
               <div>
-                <p className="text-[10px] uppercase tracking-[0.25em] text-[#00ff87]/60">Season Summary</p>
+                <p className="text-[10px] uppercase tracking-[0.25em] text-[#e11d8f]/60">Season Summary</p>
                 <h2 className="text-2xl font-black text-white sm:text-3xl">League Recap</h2>
               </div>
             </div>
@@ -642,11 +645,11 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo }
             {/* Quick Stats Banner */}
             <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 text-xs font-semibold backdrop-blur-md">
               <div className="text-white/60">
-                Goals: <span className="font-black text-[#00ff87] text-sm">{totalGoals}</span>
+                Goals: <span className="font-black text-[#e11d8f] text-sm">{totalGoals}</span>
               </div>
               <div className="h-4 w-px bg-white/20" />
               <div className="text-white/60">
-                Avg Goals/Match: <span className="font-black text-[#00ff87] text-sm">{goalsPerMatch}</span>
+                Avg Goals/Match: <span className="font-black text-[#e11d8f] text-sm">{goalsPerMatch}</span>
               </div>
             </div>
           </div>
@@ -657,7 +660,7 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo }
               onClick={() => setActiveTab('overview')}
               className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-all ${
                 activeTab === 'overview'
-                  ? 'bg-[#00ff87]/12 text-[#00ff87] border border-[#00ff87]/25 shadow-[0_0_12px_rgba(0,255,135,0.15)]'
+                  ? 'bg-[#e11d8f]/12 text-[#e11d8f] border border-[#e11d8f]/25 shadow-[0_0_12px_rgba(225,29,143,0.15)]'
                   : 'text-white/50 hover:text-white hover:bg-white/5 border border-transparent'
               }`}
             >
@@ -667,7 +670,7 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo }
               onClick={() => setActiveTab('awards')}
               className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-all ${
                 activeTab === 'awards'
-                  ? 'bg-[#00ff87]/12 text-[#00ff87] border border-[#00ff87]/25 shadow-[0_0_12px_rgba(0,255,135,0.15)]'
+                  ? 'bg-[#e11d8f]/12 text-[#e11d8f] border border-[#e11d8f]/25 shadow-[0_0_12px_rgba(225,29,143,0.15)]'
                   : 'text-white/50 hover:text-white hover:bg-white/5 border border-transparent'
               }`}
             >
@@ -677,7 +680,7 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo }
               onClick={() => setActiveTab('streaks')}
               className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-all ${
                 activeTab === 'streaks'
-                  ? 'bg-[#00ff87]/12 text-[#00ff87] border border-[#00ff87]/25 shadow-[0_0_12px_rgba(0,255,135,0.15)]'
+                  ? 'bg-[#e11d8f]/12 text-[#e11d8f] border border-[#e11d8f]/25 shadow-[0_0_12px_rgba(225,29,143,0.15)]'
                   : 'text-white/50 hover:text-white hover:bg-white/5 border border-transparent'
               }`}
             >
@@ -687,7 +690,7 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo }
               onClick={() => setActiveTab('highlights')}
               className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-all ${
                 activeTab === 'highlights'
-                  ? 'bg-[#00ff87]/12 text-[#00ff87] border border-[#00ff87]/25 shadow-[0_0_12px_rgba(0,255,135,0.15)]'
+                  ? 'bg-[#e11d8f]/12 text-[#e11d8f] border border-[#e11d8f]/25 shadow-[0_0_12px_rgba(225,29,143,0.15)]'
                   : 'text-white/50 hover:text-white hover:bg-white/5 border border-transparent'
               }`}
             >
@@ -698,15 +701,43 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo }
           {/* Tab 1: Overview & Podium */}
           {activeTab === 'overview' && (
             <div className="space-y-8 animate-fadeIn">
-              <Podium
-                champion={champion.teamName}
-                championId={champion.teamId}
-                runnerUp={runnerUp.teamName}
-                runnerUpId={runnerUp.teamId}
-                thirdPlace={thirdPlace.teamName}
-                thirdPlaceId={thirdPlace.teamId}
-                logoMap={logoMap}
-              />
+              <div className="flex flex-col lg:flex-row gap-6 items-center justify-center">
+                <div className="flex-1 w-full">
+                  <Podium
+                    champion={champion.teamName}
+                    championId={champion.teamId}
+                    runnerUp={runnerUp.teamName}
+                    runnerUpId={runnerUp.teamId}
+                    thirdPlace={thirdPlace.teamName}
+                    thirdPlaceId={thirdPlace.teamId}
+                    logoMap={logoMap}
+                  />
+                </div>
+                {mots && (
+                  <div className="w-full lg:w-[320px] shrink-0 rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-[#e11d8f]/5 to-transparent p-5 backdrop-blur-md flex items-center gap-4 relative overflow-hidden shadow-lg">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(225,29,143,0.1),transparent_50%)] pointer-events-none" />
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-amber-400 to-[#e11d8f] p-0.5 shadow-[0_0_12px_rgba(245,158,11,0.25)]">
+                      <div className="flex h-full w-full items-center justify-center rounded-full bg-[#1b0024]">
+                        <Star className="h-5 w-5 text-amber-300 animate-pulse" />
+                      </div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-400">Man of the Season</div>
+                      <div className="text-base font-black text-white truncate mt-0.5">{mots.playerName}</div>
+                      <div className="flex items-center gap-1.5 text-xs text-white/60 font-semibold truncate mt-0.5">
+                        {logoMap && mots.teamId && logoMap[mots.teamId] && (
+                          <img src={logoMap[mots.teamId]} alt="" className="h-4 w-4 object-contain bg-white rounded p-0.5 shrink-0" />
+                        )}
+                        <span className="truncate">{mots.teamName}</span>
+                      </div>
+                    </div>
+                    <div className="shrink-0 flex flex-col items-center justify-center bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 min-w-[70px]">
+                      <span className="text-[8px] font-bold uppercase tracking-wider text-white/55">MOTM</span>
+                      <span className="text-lg font-black text-amber-300">{mots.motmCount}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Zones Layout */}
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -744,61 +775,94 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo }
 
           {/* Tab 2: Team Awards */}
           {activeTab === 'awards' && (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-fadeIn">
-              <StatCard
-                label="Best Attack"
-                value={bestAttack.teamName}
-                sub={`Scored ${bestAttack.goalsFor} goals`}
-                accent="amber"
-                teamInitials={bestAttack.teamName.slice(0, 2).toUpperCase()}
-                teamId={bestAttack.teamId}
-                logoMap={logoMap}
-              />
-              <StatCard
-                label="Best Defense"
-                value={bestDefence.teamName}
-                sub={`Conceded only ${bestDefence.goalsAgainst} goals`}
-                accent="emerald"
-                teamInitials={bestDefence.teamName.slice(0, 2).toUpperCase()}
-                teamId={bestDefence.teamId}
-                logoMap={logoMap}
-              />
-              <StatCard
-                label="Worst Defense"
-                value={worstDefence.teamName}
-                sub={`Conceded ${worstDefence.goalsAgainst} goals`}
-                accent="rose"
-                teamInitials={worstDefence.teamName.slice(0, 2).toUpperCase()}
-                teamId={worstDefence.teamId}
-                logoMap={logoMap}
-              />
-              <StatCard
-                label="Home Fortress"
-                value={bestHome.teamName}
-                sub={`Best home record: ${bestHome.points} Pts (${bestHome.wins}W - ${bestHome.draws}D - ${bestHome.losses}L)`}
-                accent="sky"
-                teamInitials={bestHome.teamName.slice(0, 2).toUpperCase()}
-                teamId={bestHome.teamId}
-                logoMap={logoMap}
-              />
-              <StatCard
-                label="Road Warriors"
-                value={bestAway.teamName}
-                sub={`Best away record: ${bestAway.points} Pts (${bestAway.wins}W - ${bestAway.draws}D - ${bestAway.losses}L)`}
-                accent="violet"
-                teamInitials={bestAway.teamName.slice(0, 2).toUpperCase()}
-                teamId={bestAway.teamId}
-                logoMap={logoMap}
-              />
-              <StatCard
-                label="Champion's Record"
-                value={`${champion.wins} W - ${champion.draws} D - ${champion.losses} L`}
-                sub={`Total of ${champion.points} points with GD ${champion.goalDifference > 0 ? '+' : ''}${champion.goalDifference}`}
-                accent="amber"
-                teamInitials={champion.teamName.slice(0, 2).toUpperCase()}
-                teamId={champion.teamId}
-                logoMap={logoMap}
-              />
+            <div className="space-y-6 animate-fadeIn">
+              {mots && (
+                <div className="relative overflow-hidden rounded-[32px] border border-transparent bg-gradient-to-r from-amber-500/10 via-[#e11d8f]/10 to-[#e11d8f]/5 p-6 sm:p-8 shadow-[0_8px_32px_rgba(225,29,143,0.12)] backdrop-blur-md flex flex-col md:flex-row items-center justify-between gap-6 before:absolute before:inset-0 before:p-px before:bg-gradient-to-r before:from-amber-400 before:to-[#e11d8f] before:rounded-[32px] before:-z-10 [mask-image:linear-gradient(white,white)_padding-box,linear-gradient(white,white)_border-box] [mask-composite:intersect]">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(225,29,143,0.15),transparent_50%)] pointer-events-none" />
+                  <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
+                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-amber-400 to-[#e11d8f] p-1.5 shadow-[0_0_24px_rgba(245,158,11,0.4)]">
+                      <div className="flex h-full w-full items-center justify-center rounded-full bg-[#1b0024]">
+                        <Star className="h-9 w-9 text-amber-300" />
+                      </div>
+                    </div>
+                    <div className="text-center md:text-left">
+                      <div className="flex items-center justify-center md:justify-start gap-2 text-xs font-black uppercase tracking-[0.25em] text-amber-400">
+                        <span>⭐ Man of the Season</span>
+                      </div>
+                      <h3 className="mt-2 text-3xl font-black text-white tracking-tight sm:text-4xl">
+                        {mots.playerName}
+                      </h3>
+                      <div className="mt-2 flex items-center justify-center md:justify-start gap-2 text-slate-300 font-bold">
+                        {logoMap && mots.teamId && logoMap[mots.teamId] && (
+                          <img src={logoMap[mots.teamId]} alt="" className="h-6 w-6 object-contain bg-white rounded p-0.5" />
+                        )}
+                        <span>{mots.teamName}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="shrink-0 flex flex-col items-center justify-center bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-center min-w-[140px] relative z-10 backdrop-blur-md">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#e11d8f]">MOTM Awards</span>
+                    <span className="mt-1 text-4xl font-black text-white">{mots.motmCount}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <StatCard
+                  label="Best Attack"
+                  value={bestAttack.teamName}
+                  sub={`Scored ${bestAttack.goalsFor} goals`}
+                  accent="amber"
+                  teamInitials={bestAttack.teamName.slice(0, 2).toUpperCase()}
+                  teamId={bestAttack.teamId}
+                  logoMap={logoMap}
+                />
+                <StatCard
+                  label="Best Defense"
+                  value={bestDefence.teamName}
+                  sub={`Conceded only ${bestDefence.goalsAgainst} goals`}
+                  accent="emerald"
+                  teamInitials={bestDefence.teamName.slice(0, 2).toUpperCase()}
+                  teamId={bestDefence.teamId}
+                  logoMap={logoMap}
+                />
+                <StatCard
+                  label="Worst Defense"
+                  value={worstDefence.teamName}
+                  sub={`Conceded ${worstDefence.goalsAgainst} goals`}
+                  accent="rose"
+                  teamInitials={worstDefence.teamName.slice(0, 2).toUpperCase()}
+                  teamId={worstDefence.teamId}
+                  logoMap={logoMap}
+                />
+                <StatCard
+                  label="Home Fortress"
+                  value={bestHome.teamName}
+                  sub={`Best home record: ${bestHome.points} Pts (${bestHome.wins}W - ${bestHome.draws}D - ${bestHome.losses}L)`}
+                  accent="sky"
+                  teamInitials={bestHome.teamName.slice(0, 2).toUpperCase()}
+                  teamId={bestHome.teamId}
+                  logoMap={logoMap}
+                />
+                <StatCard
+                  label="Road Warriors"
+                  value={bestAway.teamName}
+                  sub={`Best away record: ${bestAway.points} Pts (${bestAway.wins}W - ${bestAway.draws}D - ${bestAway.losses}L)`}
+                  accent="violet"
+                  teamInitials={bestAway.teamName.slice(0, 2).toUpperCase()}
+                  teamId={bestAway.teamId}
+                  logoMap={logoMap}
+                />
+                <StatCard
+                  label="Champion's Record"
+                  value={`${champion.wins} W - ${champion.draws} D - ${champion.losses} L`}
+                  sub={`Total of ${champion.points} points with GD ${champion.goalDifference > 0 ? '+' : ''}${champion.goalDifference}`}
+                  accent="amber"
+                  teamInitials={champion.teamName.slice(0, 2).toUpperCase()}
+                  teamId={champion.teamId}
+                  logoMap={logoMap}
+                />
+              </div>
             </div>
           )}
 

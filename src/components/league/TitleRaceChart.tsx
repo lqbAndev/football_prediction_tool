@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import { Trophy, TrendingUp, HelpCircle } from 'lucide-react';
 import type { LeagueStanding, LeagueMatch } from '../../types/leagueConfig';
 
@@ -40,16 +40,17 @@ const CLUB_COLORS: Record<string, string> = {
   'everton': '#003399',       // Everton Blue
 };
 
-// Fallback colors if ID doesn't match
+// Fallback colors if ID doesn't match (cycle through 20 distinct hues)
 const CHART_COLORS = [
-  '#00ff87', // Premier League Green
-  '#ff007f', // Neon Pink
-  '#38bdf8', // Light Blue
-  '#fbbf24', // Gold
+  '#00ff87', '#ff007f', '#38bdf8', '#fbbf24', '#a78bfa',
+  '#fb923c', '#34d399', '#f87171', '#60a5fa', '#e879f9',
+  '#facc15', '#2dd4bf', '#818cf8', '#fb7185', '#4ade80',
+  '#c084fc', '#fcd34d', '#67e8f9', '#f472b6', '#a3e635',
 ];
 
 export default function TitleRaceChart({ standings, fixtures, totalRounds, logoMap }: TitleRaceChartProps) {
   const [hoveredMw, setHoveredMw] = useState<number | null>(null);
+  const [hoveredTeam, setHoveredTeam] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -62,12 +63,11 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
   }, [completedMatches]);
 
   const chartData = useMemo(() => {
-    // Get top 4 teams in standings
-    const top4 = standings.slice(0, 4);
-    if (top4.length === 0) return [];
+    // Use ALL teams from standings (not just top 4)
+    if (standings.length === 0) return [];
 
     // Calculate points history for each team
-    const history: TeamPointsHistory[] = top4.map((standing, index) => {
+    const history: TeamPointsHistory[] = standings.map((standing, index) => {
       const pointsHistory: number[] = [0]; // Week 0: 0 points
 
       // Calculate cumulative points after each matchweek
@@ -121,7 +121,7 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
 
   // Chart dimensions
   const width = 1000;
-  const height = 450;
+  const height = 480;
   const padding = { top: 30, right: 60, bottom: 50, left: 60 };
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
@@ -189,6 +189,20 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
     setTooltipPos(null);
   };
 
+  // Determine line opacity and width based on hover state
+  const getLineStyle = (teamId: string) => {
+    if (hoveredTeam === null) {
+      // No team hovered — all lines subtle
+      return { opacity: 0.3, strokeWidth: 1.8, filter: '' };
+    }
+    if (hoveredTeam === teamId) {
+      // This team is hovered — full highlight
+      return { opacity: 1, strokeWidth: 3.5, filter: 'url(#neon-glow)' };
+    }
+    // Other teams — fade out
+    return { opacity: 0.06, strokeWidth: 1, filter: '' };
+  };
+
   // Sort teams by points at the hovered matchweek for tooltip display
   const hoveredMwData = hoveredMw !== null
     ? chartData
@@ -199,6 +213,7 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
           points: team.points[hoveredMw] !== undefined ? team.points[hoveredMw] : 0,
         }))
         .sort((a, b) => b.points - a.points)
+        .slice(0, 6) // Show top 6 in tooltip for readability
     : [];
 
   // Generate Y-axis grid values
@@ -222,17 +237,17 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
       {/* Title Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#00ff87]/10 border border-[#00ff87]/20 text-[#00ff87]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#e11d8f]/10 border border-[#e11d8f]/20 text-[#e11d8f]">
             <TrendingUp className="h-5 w-5" />
           </div>
           <div>
             <h2 className="text-xl font-black uppercase tracking-widest text-white sm:text-2xl">Title Race</h2>
-            <p className="text-xs text-white/50">Tracking the points progression of the top 4 teams</p>
+            <p className="text-xs text-white/50">Full points progression for all {standings.length} teams • Hover lines or legend to highlight</p>
           </div>
         </div>
         <div className="flex items-center gap-1.5 rounded-full border border-white/5 bg-white/5 px-3 py-1 text-xs text-white/60 font-semibold backdrop-blur-md">
-          <HelpCircle className="h-3.5 w-3.5 text-[#00ff87]" />
-          <span>Hover chart to inspect rounds</span>
+          <HelpCircle className="h-3.5 w-3.5 text-[#e11d8f]" />
+          <span>Hover to inspect</span>
         </div>
       </div>
 
@@ -319,103 +334,128 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
                   y1={0}
                   x2={xScale(hoveredMw)}
                   y2={chartHeight}
-                  stroke="#00ff87"
+                  stroke="#e11d8f"
                   strokeWidth={1.5}
                   strokeDasharray="3 3"
                   className="opacity-75"
                 />
               )}
 
-              {/* Main Paths (Lines) for each team */}
-              {chartData.map((team) => (
-                <path
-                  key={team.teamId}
-                  d={generatePath(team.points)}
-                  fill="none"
-                  stroke={team.color}
-                  strokeWidth={3}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  filter="url(#neon-glow)"
-                  className="transition-all duration-300 hover:stroke-width-5"
-                />
-              ))}
-
-              {/* Circles / Dots on hover points */}
-              {hoveredMw !== null &&
-                chartData.map((team) => {
-                  const pts = team.points[hoveredMw] !== undefined ? team.points[hoveredMw] : 0;
-                  return (
-                    <g key={`hover-pt-${team.teamId}`}>
-                      <circle
-                        cx={xScale(hoveredMw)}
-                        cy={yScale(pts)}
-                        r={6}
-                        fill={team.color}
-                        stroke="white"
-                        strokeWidth={2}
-                      />
-                      <circle
-                        cx={xScale(hoveredMw)}
-                        cy={yScale(pts)}
-                        r={12}
-                        fill="transparent"
-                        stroke={team.color}
-                        strokeWidth={1}
-                        className="animate-ping"
-                      />
-                    </g>
-                  );
-                })}
-
-              {/* End of Line logo markers */}
+              {/* Main Paths (Lines) for ALL teams — with hover highlight */}
               {chartData.map((team) => {
-                const lastIdx = team.points.length - 1;
-                const lastPts = team.points[lastIdx];
-                const logo = logoMap?.[team.teamId];
-
+                const style = getLineStyle(team.teamId);
                 return (
-                  <g key={`end-${team.teamId}`} transform={`translate(${xScale(lastIdx)}, ${yScale(lastPts)})`}>
-                    {logo ? (
-                      <g>
-                        {/* Ambient glow circle behind logo */}
-                        <circle cx={0} cy={0} r={12} fill="white" stroke={team.color} strokeWidth={2} />
-                        <image
-                          href={logo}
-                          x={-8}
-                          y={-8}
-                          height={16}
-                          width={16}
-                        />
-                      </g>
-                    ) : (
-                      <circle cx={0} cy={0} r={5} fill={team.color} stroke="white" strokeWidth={1.5} />
-                    )}
+                  <g key={team.teamId}>
+                    {/* Invisible wider hit area for easier hover targeting */}
+                    <path
+                      d={generatePath(team.points)}
+                      fill="none"
+                      stroke="transparent"
+                      strokeWidth={14}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="cursor-pointer"
+                      onMouseEnter={() => setHoveredTeam(team.teamId)}
+                      onMouseLeave={() => setHoveredTeam(null)}
+                    />
+                    {/* Visible line */}
+                    <path
+                      d={generatePath(team.points)}
+                      fill="none"
+                      stroke={team.color}
+                      strokeWidth={style.strokeWidth}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      filter={style.filter}
+                      opacity={style.opacity}
+                      className="transition-all duration-200 pointer-events-none"
+                    />
                   </g>
                 );
               })}
+
+              {/* Circles / Dots on hover points (show only for hovered team or top 4 if no team hovered) */}
+              {hoveredMw !== null &&
+                chartData
+                  .filter((team) => hoveredTeam === null ? chartData.indexOf(team) < 4 : team.teamId === hoveredTeam)
+                  .map((team) => {
+                    const pts = team.points[hoveredMw] !== undefined ? team.points[hoveredMw] : 0;
+                    return (
+                      <g key={`hover-pt-${team.teamId}`}>
+                        <circle
+                          cx={xScale(hoveredMw)}
+                          cy={yScale(pts)}
+                          r={6}
+                          fill={team.color}
+                          stroke="white"
+                          strokeWidth={2}
+                        />
+                        {hoveredTeam === team.teamId && (
+                          <circle
+                            cx={xScale(hoveredMw)}
+                            cy={yScale(pts)}
+                            r={12}
+                            fill="transparent"
+                            stroke={team.color}
+                            strokeWidth={1}
+                            className="animate-ping"
+                          />
+                        )}
+                      </g>
+                    );
+                  })}
+
+              {/* End of Line logo markers — show for highlighted team or top 4 */}
+              {chartData
+                .filter((team) => hoveredTeam === null ? chartData.indexOf(team) < 4 : team.teamId === hoveredTeam)
+                .map((team) => {
+                  const lastIdx = team.points.length - 1;
+                  const lastPts = team.points[lastIdx];
+                  const logo = logoMap?.[team.teamId];
+
+                  return (
+                    <g key={`end-${team.teamId}`} transform={`translate(${xScale(lastIdx)}, ${yScale(lastPts)})`}>
+                      {logo ? (
+                        <g>
+                          {/* Ambient glow circle behind logo */}
+                          <circle cx={0} cy={0} r={12} fill="white" stroke={team.color} strokeWidth={2} />
+                          <image
+                            href={logo}
+                            x={-8}
+                            y={-8}
+                            height={16}
+                            width={16}
+                          />
+                        </g>
+                      ) : (
+                        <circle cx={0} cy={0} r={5} fill={team.color} stroke="white" strokeWidth={1.5} />
+                      )}
+                    </g>
+                  );
+                })}
             </g>
           </svg>
 
           {/* Floating Custom HTML Tooltip inside chart area */}
           {hoveredMw !== null && tooltipPos && (
             <div
-              className="absolute z-50 pointer-events-none rounded-xl border border-[#00ff87]/30 bg-[#15001a]/95 p-3.5 shadow-2xl backdrop-blur-md transition-all duration-75 flex flex-col gap-2 min-w-[200px]"
+              className="absolute z-50 pointer-events-none rounded-xl border border-[#e11d8f]/30 bg-[#15001a]/95 p-3.5 shadow-2xl backdrop-blur-md transition-all duration-75 flex flex-col gap-2 min-w-[200px]"
               style={{
                 left: `${tooltipPos.x}px`,
                 top: `${tooltipPos.y}px`,
               }}
             >
               <div className="flex items-center justify-between border-b border-[#38003c]/20 pb-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#00ff87]">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#e11d8f]">
                   {hoveredMw === 0 ? 'Before Season' : `Matchweek ${hoveredMw}`}
                 </span>
               </div>
               <div className="space-y-1.5">
                 {hoveredMwData.map((t) => {
                   const logo = logoMap?.[t.teamId];
+                  const isHighlighted = hoveredTeam === t.teamId;
                   return (
-                    <div key={t.teamId} className="flex items-center justify-between gap-3 text-xs font-bold">
+                    <div key={t.teamId} className={`flex items-center justify-between gap-3 text-xs font-bold ${isHighlighted ? 'bg-white/10 -mx-1 px-1 rounded' : ''}`}>
                       <div className="flex items-center gap-2 min-w-0">
                         {logo ? (
                           <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-white p-0.5 border border-slate-200">
@@ -435,36 +475,50 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
                     </div>
                   );
                 })}
+                {hoveredMwData.length < chartData.length && (
+                  <div className="text-[10px] text-white/30 text-center pt-1 border-t border-white/5">
+                    + {chartData.length - hoveredMwData.length} more teams
+                  </div>
+                )}
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Legend below the chart */}
-      <div className="flex flex-wrap gap-4 justify-center items-center py-2">
+      {/* Legend below the chart — all teams in scrollable grid */}
+      <div className="flex flex-wrap gap-2.5 justify-center items-center py-2 max-h-[180px] overflow-y-auto">
         {chartData.map((team) => {
           const logo = logoMap?.[team.teamId];
           const lastPts = team.points[team.points.length - 1];
+          const isHighlighted = hoveredTeam === team.teamId;
 
           return (
             <div
               key={team.teamId}
-              className="flex items-center gap-2.5 rounded-full border border-white/5 bg-white/5 hover:bg-white/10 transition-colors px-4 py-2 text-xs font-bold"
+              className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-bold cursor-pointer transition-all duration-200 ${
+                isHighlighted
+                  ? 'border-white/30 bg-white/15 scale-105 shadow-lg'
+                  : hoveredTeam === null
+                    ? 'border-white/5 bg-white/5 hover:bg-white/10'
+                    : 'border-white/3 bg-white/2 opacity-40'
+              }`}
+              onMouseEnter={() => setHoveredTeam(team.teamId)}
+              onMouseLeave={() => setHoveredTeam(null)}
             >
               {logo ? (
-                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-white p-0.5 border border-slate-200 shadow-sm">
+                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-white p-0.5 border border-slate-200 shadow-sm">
                   <img src={logo} alt="" className="h-full w-full object-contain" />
                 </div>
               ) : (
                 <div
-                  className="w-3.5 h-3.5 rounded-full"
+                  className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: team.color }}
                 />
               )}
-              <span className="text-white">{team.teamName}</span>
-              <div className="h-3.5 w-px bg-white/20" />
-              <span className="font-black text-[#00ff87]">{lastPts} pts</span>
+              <span className="text-white whitespace-nowrap">{team.teamName}</span>
+              <div className="h-3 w-px bg-white/20" />
+              <span className="font-black text-[#e11d8f]">{lastPts} pts</span>
             </div>
           );
         })}

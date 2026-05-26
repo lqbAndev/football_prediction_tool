@@ -360,6 +360,37 @@ const generateScorersForTeam = (team: Team, minutes: number[]) => {
 
 /* ═══════════════════ TIMELINE BUILDERS ═══════════════════ */
 
+/**
+ * Deduplicate displayMinute values in a timeline.
+ * If two events share the same displayMinute, shift the later one forward.
+ * E.g. two goals at "45+2'" → first stays "45+2'", second becomes "45+3'".
+ */
+const deduplicateDisplayMinutes = (timeline: TimelineEvent[]): void => {
+  const seen = new Map<string, number>();
+  for (const event of timeline) {
+    const key = event.displayMinute;
+    const count = seen.get(key) || 0;
+    if (count > 0) {
+      // Parse and increment the display minute
+      const stoppageMatch = key.match(/^(\d+)\+(\d+)'$/);
+      if (stoppageMatch) {
+        // Stoppage time format: "45+2'" → "45+3'", "45+4'", etc.
+        const base = parseInt(stoppageMatch[1], 10);
+        const added = parseInt(stoppageMatch[2], 10);
+        event.displayMinute = `${base}+${added + count}'`;
+      } else {
+        // Normal format: "67'" → "68'", "69'", etc.
+        const normalMatch = key.match(/^(\d+)'$/);
+        if (normalMatch) {
+          const minute = parseInt(normalMatch[1], 10);
+          event.displayMinute = `${minute + count}'`;
+        }
+      }
+    }
+    seen.set(key, count + 1);
+  }
+};
+
 export const buildRegulationTimeline = (
   homeTeam: Team,
   awayTeam: Team,
@@ -402,6 +433,7 @@ export const buildRegulationTimeline = (
   });
 
   timeline.sort((a, b) => a.sortMinute - b.sortMinute);
+  deduplicateDisplayMinutes(timeline);
 
   return {
     scorers: { home: homeScorers, away: awayScorers },
@@ -482,6 +514,7 @@ const buildKnockoutTimeline = (
   });
 
   const allTimeline = [...regTimeline, ...etTimeline].sort((a, b) => a.sortMinute - b.sortMinute);
+  deduplicateDisplayMinutes(allTimeline);
 
   return {
     scorers: { home: homeScorers, away: awayScorers },

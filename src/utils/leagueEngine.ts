@@ -3,6 +3,7 @@
  */
 
 import { buildRegulationTimeline } from './random';
+import { computeLeagueMatchMOTM } from './motm';
 import type { Team } from '../types/tournament';
 import type { LeagueConfig, LeagueMatch, LeagueStanding, HeadToHeadRecord } from '../types/leagueConfig';
 
@@ -15,7 +16,13 @@ export const generateRoundRobinFixtures = (teams: Team[], config: LeagueConfig):
   const fixtures: LeagueMatch[] = [];
   let matchId = 0;
 
-  const teamIds = teams.map((t) => t.id);
+  // Shuffle team order for randomized fixtures each season
+  const shuffledIds = [...teams.map((t) => t.id)];
+  for (let i = shuffledIds.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffledIds[i], shuffledIds[j]] = [shuffledIds[j], shuffledIds[i]];
+  }
+  const teamIds = shuffledIds;
   const rotatingIds = teamIds.slice(1);
 
   // Generate first leg (rounds 1 to teamCount-1)
@@ -105,13 +112,14 @@ const generateLeagueScoreline = (
   awayTeam: Team,
   homeAdvantageEnabled: boolean,
 ): { homeGoals: number; awayGoals: number } => {
-  // Home advantage: 7-10% boost
-  const homeBoost = homeAdvantageEnabled ? 1.07 + Math.random() * 0.03 : 1.0;
+  // Home advantage: 5-10% boost (widened from 7-10%)
+  const homeBoost = homeAdvantageEnabled ? 1.05 + Math.random() * 0.05 : 1.0;
   const adjustedHomeRating = homeTeam.rating * homeBoost;
 
   // Simple rating-influenced generation
   const ratingDiff = adjustedHomeRating - awayTeam.rating;
-  const homeBias = Math.max(-0.15, Math.min(0.15, ratingDiff / 100));
+  // Wider tier gap influence: divisor 80 (was 100), clamp ±0.25 (was ±0.15)
+  const homeBias = Math.max(-0.25, Math.min(0.25, ratingDiff / 80));
 
   let homeGoals = sampleGoals();
   let awayGoals = sampleGoals();
@@ -140,7 +148,7 @@ export const simulateLeagueMatch = (
 ): LeagueMatch => {
   const { homeGoals, awayGoals } = generateLeagueScoreline(homeTeam, awayTeam, homeAdvantageEnabled);
   const { scorers, timeline } = buildRegulationTimeline(homeTeam, awayTeam, homeGoals, awayGoals);
-  return {
+  const completedMatch: LeagueMatch = {
     ...match,
     homeScore: homeGoals,
     awayScore: awayGoals,
@@ -148,7 +156,12 @@ export const simulateLeagueMatch = (
     predictedAt: new Date().toISOString(),
     scorers,
     timeline,
+    motm: null,
   };
+
+  // Compute MOTM for the completed league match
+  completedMatch.motm = computeLeagueMatchMOTM(completedMatch);
+  return completedMatch;
 };
 
 export const simulateMatchweek = (

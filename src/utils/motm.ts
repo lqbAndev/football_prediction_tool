@@ -8,6 +8,7 @@ import type {
   SeasonMOTM,
   Team,
 } from '../types/tournament';
+import type { LeagueMatch } from '../types/leagueConfig';
 
 type CompletedMatch = GroupMatch | KnockoutMatch;
 
@@ -353,4 +354,130 @@ export const buildSeasonMOTM = (
     ...seasonWinner,
     motmScore: Number(seasonWinner.motmScore.toFixed(2)),
   };
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  LEAGUE-MODE MOTM & MOTS (Man Of The Season)
+// ═══════════════════════════════════════════════════════════════
+
+export interface LeagueMOTS {
+  playerId: string;
+  playerName: string;
+  teamId: string;
+  teamName: string;
+  motmCount: number;
+}
+
+/**
+ * Computes MOTM for a league match using the same goal-based algorithm.
+ * Adapts the tournament computeMatchMOTM for LeagueMatch shape.
+ */
+export const computeLeagueMatchMOTM = (
+  match: LeagueMatch,
+): { playerId: string; playerName: string; teamId: string; teamName: string; reason: string } | null => {
+  if (match.status !== 'completed') return null;
+
+  const goalEvents: MatchGoalEvent[] = [];
+
+  if (match.timeline?.length) {
+    for (const event of match.timeline) {
+      goalEvents.push({
+        playerId: event.playerId,
+        playerName: event.playerName,
+        teamId: event.teamId,
+        side: event.side,
+        sortMinute: event.sortMinute,
+      });
+    }
+  } else if (match.scorers) {
+    for (const s of match.scorers.home) {
+      goalEvents.push({ playerId: s.playerId, playerName: s.playerName, teamId: s.teamId, side: 'home', sortMinute: s.minute });
+    }
+    for (const s of match.scorers.away) {
+      goalEvents.push({ playerId: s.playerId, playerName: s.playerName, teamId: s.teamId, side: 'away', sortMinute: s.minute });
+    }
+  }
+
+  if (!goalEvents.length) {
+    // No goals — no MOTM for league matches (no fallback needed)
+    return null;
+  }
+
+  goalEvents.sort((a, b) => a.sortMinute - b.sortMinute);
+  const candidates = buildCandidates(goalEvents);
+  if (!candidates.length) return null;
+
+  const maxGoals = Math.max(...candidates.map((c) => c.goals));
+  const topCandidates = candidates.filter((c) => c.goals === maxGoals);
+
+  if (topCandidates.length === 1) {
+    const c = topCandidates[0];
+    return { playerId: c.playerId, playerName: c.playerName, teamId: c.teamId, teamName: c.teamName, reason: 'top-goals' };
+  }
+
+  // Decisive goal check
+  const winnerTeamId = match.homeScore !== null && match.awayScore !== null && match.homeScore !== match.awayScore
+    ? (match.homeScore > match.awayScore ? match.homeTeamId : match.awayTeamId)
+    : null;
+
+  if (winnerTeamId) {
+    const loserGoals = Math.min(match.homeScore!, match.awayScore!);
+    const decisiveOrder = loserGoals + 1;
+    let winnerGoalCount = 0;
+    let decisiveScorer: MatchGoalEvent | null = null;
+    for (const event of goalEvents) {
+      if (event.teamId === winnerTeamId) {
+        winnerGoalCount++;
+        if (winnerGoalCount === decisiveOrder) { decisiveScorer = event; break; }
+      }
+    }
+    if (decisiveScorer) {
+      const dc = topCandidates.find((c) => c.playerId === decisiveScorer!.playerId && c.teamId === decisiveScorer!.teamId);
+      if (dc) return { playerId: dc.playerId, playerName: dc.playerName, teamId: dc.teamId, teamName: dc.teamName, reason: 'decisive-goal' };
+    }
+
+    // Winner priority
+    const winnerCandidates = topCandidates.filter((c) => c.teamId === winnerTeamId);
+    if (winnerCandidates.length === 1) {
+      const c = winnerCandidates[0];
+      return { playerId: c.playerId, playerName: c.playerName, teamId: c.teamId, teamName: c.teamName, reason: 'winner-priority' };
+    }
+    if (winnerCandidates.length > 1) {
+      const seed = `${match.id}|${match.homeScore}|${match.awayScore}|${match.predictedAt}`;
+      const c = pickByHash(winnerCandidates, seed);
+      return { playerId: c.playerId, playerName: c.playerName, teamId: c.teamId, teamName: c.teamName, reason: 'controlled-random' };
+    }
+  }
+
+  // Draw or no winner candidates — hash pick from all top
+  const seed = `${match.id}|${match.homeScore}|${match.awayScore}|${match.predictedAt}|top`;
+  const c = pickByHash(topCandidates, seed);
+  return { playerId: c.playerId, playerName: c.playerName, teamId: c.teamId, teamName: c.teamName, reason: 'controlled-random' };
+};
+
+/**
+ * Builds the Man Of The Season (MOTS) for league mode.
+ * Simply counts total MOTM awards across all completed matches.
+ */
+export const buildLeagueSeasonMOTM = (fixtures: LeagueMatch[]): LeagueMOTS | null => {
+  const aggregate = new Map<string, LeagueMOTS>();
+
+  for (const match of fixtures) {
+    if (match.status !== 'completed' || !match.motm) continue;
+    const { playerId, playerName, teamId, teamName } = match.motm;
+    const key = `${teamId}::${playerId}`;
+    const current = aggregate.get(key);
+    if (current) {
+      current.motmCount += 1;
+    } else {
+      aggregate.set(key, { playerId, playerName, teamId, teamName, motmCount: 1 });
+    }
+  }
+
+  const leaderboard = Array.from(aggregate.values()).sort((a, b) => {
+    if (b.motmCount !== a.motmCount) return b.motmCount - a.motmCount;
+    return a.playerName.localeCompare(b.playerName);
+  });
+
+  return leaderboard.length > 0 ? leaderboard[0] : null;
 };

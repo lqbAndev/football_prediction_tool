@@ -78,6 +78,13 @@ export interface LeagueMatch {
     side: 'home' | 'away';
     isPenalty?: boolean;
   }>;
+  motm?: {
+    playerId: string;
+    playerName: string;
+    teamId: string;
+    teamName: string;
+    reason: string;
+  } | null;
 }
 
 /**

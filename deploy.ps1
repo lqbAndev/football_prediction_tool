@@ -1,6 +1,6 @@
 $ProjectRoot   = "e:\Study\vibe-antigravity\football_prediction_tool"
-$BranchName    = "feature/recap-chart-upgrade"
-$CommitMessage = "feat: Richer League Recap & Interactive Title Race Chart (v2.5.0)"
+$BranchName    = "feature/epl-fixes-and-ui"
+$CommitMessage = "feat: EPL Core Fixes & UI Overhaul (v2.4.1)"
 
 $env:GIT_PAGER = ""
 
