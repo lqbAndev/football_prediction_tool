@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Trophy, TrendingUp, HelpCircle } from 'lucide-react';
 import type { LeagueStanding, LeagueMatch } from '../../types/leagueConfig';
 
@@ -9,11 +9,11 @@ interface TitleRaceChartProps {
   logoMap?: Record<string, string>;
 }
 
-interface TeamPointsHistory {
+interface TeamPositionHistory {
   teamId: string;
   teamName: string;
   color: string;
-  points: number[];
+  positions: number[]; // position per matchweek (index 0 = MW1, index 1 = MW2, etc.)
 }
 
 // Official primary colors for Premier League clubs (25/26)
@@ -48,6 +48,13 @@ const CHART_COLORS = [
   '#c084fc', '#fcd34d', '#67e8f9', '#f472b6', '#a3e635',
 ];
 
+/** Returns ordinal suffix string, e.g. 1 → '1st', 2 → '2nd', 13 → '13th' */
+function ordinal(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
 export default function TitleRaceChart({ standings, fixtures, totalRounds, logoMap }: TitleRaceChartProps) {
   const [hoveredMw, setHoveredMw] = useState<number | null>(null);
   const [hoveredTeam, setHoveredTeam] = useState<string | null>(null);
@@ -55,59 +62,83 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
   const svgRef = useRef<SVGSVGElement>(null);
 
   const completedMatches = useMemo(() => fixtures.filter((f) => f.status === 'completed'), [fixtures]);
-  
+
   // Highest matchweek that has completed matches
   const currentMaxMw = useMemo(() => {
     if (completedMatches.length === 0) return 0;
     return Math.max(...completedMatches.map((f) => f.matchweek));
   }, [completedMatches]);
 
+  const numTeams = standings.length || 20;
+
   const chartData = useMemo(() => {
-    // Use ALL teams from standings (not just top 4)
-    if (standings.length === 0) return [];
+    if (standings.length === 0 || currentMaxMw === 0) return [];
 
-    // Calculate points history for each team
-    const history: TeamPointsHistory[] = standings.map((standing, index) => {
-      const pointsHistory: number[] = [0]; // Week 0: 0 points
+    // For each matchweek, calculate cumulative stats for all teams and derive positions
+    // Build a map: teamId → { teamName, color, positions[] }
+    const teamColorMap: Record<string, string> = {};
+    standings.forEach((s, idx) => {
+      teamColorMap[s.teamId] = CLUB_COLORS[s.teamId] || CHART_COLORS[idx % CHART_COLORS.length];
+    });
 
-      // Calculate cumulative points after each matchweek
-      for (let mw = 1; mw <= totalRounds; mw++) {
-        // Only show up to the current completed matchweek
-        if (mw > currentMaxMw) break;
+    // positions[teamId] = number[] where index i corresponds to MW (i+1)
+    const positionsByTeam: Record<string, number[]> = {};
+    standings.forEach((s) => {
+      positionsByTeam[s.teamId] = [];
+    });
 
+    for (let mw = 1; mw <= currentMaxMw; mw++) {
+      // Calculate cumulative points, GD, GF for ALL teams up to this MW
+      const teamStats: { teamId: string; points: number; gd: number; gf: number }[] = standings.map((s) => {
         const teamMatches = completedMatches.filter(
-          (f) =>
-            f.matchweek <= mw &&
-            (f.homeTeamId === standing.teamId || f.awayTeamId === standing.teamId)
+          (f) => f.matchweek <= mw && (f.homeTeamId === s.teamId || f.awayTeamId === s.teamId)
         );
 
-        let totalPoints = 0;
+        let points = 0;
+        let gf = 0;
+        let ga = 0;
         for (const match of teamMatches) {
-          const isHome = match.homeTeamId === standing.teamId;
+          const isHome = match.homeTeamId === s.teamId;
           const teamScore = isHome ? match.homeScore! : match.awayScore!;
           const opponentScore = isHome ? match.awayScore! : match.homeScore!;
 
-          if (teamScore > opponentScore) totalPoints += 3;
-          else if (teamScore === opponentScore) totalPoints += 1;
+          gf += teamScore;
+          ga += opponentScore;
+
+          if (teamScore > opponentScore) points += 3;
+          else if (teamScore === opponentScore) points += 1;
         }
 
-        pointsHistory.push(totalPoints);
-      }
+        return { teamId: s.teamId, points, gd: gf - ga, gf };
+      });
 
-      return {
-        teamId: standing.teamId,
-        teamName: standing.teamName,
-        color: CLUB_COLORS[standing.teamId] || CHART_COLORS[index % CHART_COLORS.length],
-        points: pointsHistory,
-      };
-    });
+      // Sort by points desc, GD desc, GF desc
+      teamStats.sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        if (b.gd !== a.gd) return b.gd - a.gd;
+        return b.gf - a.gf;
+      });
+
+      // Assign positions 1..N
+      teamStats.forEach((ts, idx) => {
+        positionsByTeam[ts.teamId].push(idx + 1);
+      });
+    }
+
+    // Build final chart data
+    const history: TeamPositionHistory[] = standings.map((s) => ({
+      teamId: s.teamId,
+      teamName: s.teamName,
+      color: teamColorMap[s.teamId],
+      positions: positionsByTeam[s.teamId],
+    }));
 
     return history;
-  }, [standings, completedMatches, totalRounds, currentMaxMw]);
+  }, [standings, completedMatches, currentMaxMw]);
 
   if (chartData.length === 0 || currentMaxMw === 0) {
     return (
-      <div className="relative overflow-hidden rounded-[32px] border border-[#38003c]/30 bg-[#15001a]/40 p-8 backdrop-blur-md">
+      <div className="relative overflow-hidden rounded-[32px] border border-[#1e1e2e]/50 bg-[#111118]/40 p-8 backdrop-blur-md">
         <div className="flex items-center gap-3 text-white/40 mb-4">
           <Trophy className="h-6 w-6" />
           <h2 className="text-xl font-black uppercase tracking-widest text-white">Title Race Progression</h2>
@@ -126,19 +157,18 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
 
-  // Calculate scales
-  const maxPoints = Math.max(...chartData.flatMap((d) => d.points), 10);
-  // Pad the max points to leave space at the top of the chart
-  const yAxisMax = Math.ceil((maxPoints + 5) / 10) * 10; 
+  // Y-axis: position 1 at TOP, position numTeams at BOTTOM (inverted)
+  const yScale = (position: number) => ((position - 1) / (numTeams - 1)) * chartHeight;
 
-  const xScale = (mw: number) => (mw / currentMaxMw) * chartWidth;
-  const yScale = (pts: number) => chartHeight - (pts / yAxisMax) * chartHeight;
+  // X-axis: MW 1 to currentMaxMw
+  const xScale = (mw: number) => ((mw - 1) / Math.max(currentMaxMw - 1, 1)) * chartWidth;
 
-  // Generate SVG path for a team
-  const generatePath = (points: number[]) => {
-    const pathParts = points.map((p, i) => {
-      const x = xScale(i);
-      const y = yScale(p);
+  // Generate SVG path for a team's position history
+  const generatePath = (positions: number[]) => {
+    const pathParts = positions.map((pos, i) => {
+      const mw = i + 1; // positions[0] = MW1, positions[1] = MW2, ...
+      const x = xScale(mw);
+      const y = yScale(pos);
       return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
     });
     return pathParts.join(' ');
@@ -148,7 +178,7 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
   const handleMouseMove = (e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
     if (!svgRef.current) return;
     const rect = svgRef.current.getBoundingClientRect();
-    
+
     // Scale factor between SVG viewbox coordinate space and actual client bounding rect
     const scaleX = width / rect.width;
     const scaleY = height / rect.height;
@@ -160,16 +190,17 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
     // Position of cursor relative to the chart drawing area in SVG coordinate space
     const chartX = mouseX - padding.left;
 
-    // Convert X position to closest matchweek
-    const mw = Math.round((chartX / chartWidth) * currentMaxMw);
+    // Convert X position to closest matchweek (MW starts at 1)
+    const mwFloat = 1 + (chartX / chartWidth) * Math.max(currentMaxMw - 1, 1);
+    const mw = Math.round(Math.max(1, Math.min(currentMaxMw, mwFloat)));
 
-    if (mw >= 0 && mw <= currentMaxMw) {
+    if (mw >= 1 && mw <= currentMaxMw) {
       setHoveredMw(mw);
-      
+
       // Calculate tooltip position in SVG coordinate space
       const tooltipX = xScale(mw) + padding.left;
       const tooltipOffset = tooltipX > width - 200 ? -220 : 20;
-      
+
       // Convert tooltip position back to physical pixels for absolute positioning of HTML div
       const tooltipXPhysical = (tooltipX + tooltipOffset) / scaleX;
       const tooltipYPhysical = mouseY / scaleY;
@@ -203,27 +234,33 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
     return { opacity: 0.06, strokeWidth: 1, filter: '' };
   };
 
-  // Sort teams by points at the hovered matchweek for tooltip display
+  // Get position for a team at a specific matchweek (mw is 1-indexed)
+  const getPositionAt = (team: TeamPositionHistory, mw: number): number | undefined => {
+    const idx = mw - 1; // positions array is 0-indexed (index 0 = MW1)
+    return team.positions[idx];
+  };
+
+  // Sort teams by position at the hovered matchweek for tooltip display (best = lowest position first)
   const hoveredMwData = hoveredMw !== null
     ? chartData
         .map((team) => ({
           teamId: team.teamId,
           teamName: team.teamName,
           color: team.color,
-          points: team.points[hoveredMw] !== undefined ? team.points[hoveredMw] : 0,
+          position: getPositionAt(team, hoveredMw) ?? numTeams,
         }))
-        .sort((a, b) => b.points - a.points)
+        .sort((a, b) => a.position - b.position)
         .slice(0, 6) // Show top 6 in tooltip for readability
     : [];
 
-  // Generate Y-axis grid values
-  const yGridValues = Array.from({ length: 6 }, (_, i) => Math.round((i * yAxisMax) / 5));
+  // Y-axis grid lines at positions 1, 5, 10, 15, 20
+  const yGridPositions = [1, 5, 10, 15, 20].filter((p) => p <= numTeams);
 
   // Generate X-axis matchweek ticks (show up to 15 ticks)
   const xGridValues = (() => {
-    const ticks = [];
+    const ticks: number[] = [];
     const step = Math.max(1, Math.ceil(currentMaxMw / 12));
-    for (let i = 0; i <= currentMaxMw; i += step) {
+    for (let i = 1; i <= currentMaxMw; i += step) {
       ticks.push(i);
     }
     if (ticks[ticks.length - 1] !== currentMaxMw) {
@@ -237,22 +274,22 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
       {/* Title Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#e11d8f]/10 border border-[#e11d8f]/20 text-[#e11d8f]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 border border-[#1e1e2e] text-slate-200">
             <TrendingUp className="h-5 w-5" />
           </div>
           <div>
             <h2 className="text-xl font-black uppercase tracking-widest text-white sm:text-2xl">Title Race</h2>
-            <p className="text-xs text-white/50">Full points progression for all {standings.length} teams • Hover lines or legend to highlight</p>
+            <p className="text-xs text-white/50">Position progression for all {standings.length} teams • Hover lines or legend to highlight</p>
           </div>
         </div>
         <div className="flex items-center gap-1.5 rounded-full border border-white/5 bg-white/5 px-3 py-1 text-xs text-white/60 font-semibold backdrop-blur-md">
-          <HelpCircle className="h-3.5 w-3.5 text-[#e11d8f]" />
+          <HelpCircle className="h-3.5 w-3.5 text-slate-400" />
           <span>Hover to inspect</span>
         </div>
       </div>
 
       {/* SVG Chart Wrapper */}
-      <div className="relative overflow-hidden rounded-2xl border border-[#38003c]/20 bg-[#15001a]/40 p-4 backdrop-blur-md">
+      <div className="relative overflow-hidden rounded-2xl border border-[#1e1e2e] bg-[#111118]/45 p-4 backdrop-blur-md">
         <div className="relative overflow-x-auto">
           <svg
             ref={svgRef}
@@ -275,21 +312,21 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
             </defs>
 
             <g transform={`translate(${padding.left}, ${padding.top})`}>
-              {/* Horizontal Y-Grid lines */}
-              {yGridValues.map((pts) => (
-                <g key={pts} className="opacity-40 transition-opacity hover:opacity-100">
+              {/* Horizontal Y-Grid lines at key positions */}
+              {yGridPositions.map((pos) => (
+                <g key={pos} className="opacity-40 transition-opacity hover:opacity-100">
                   <line
                     x1={0}
-                    y1={yScale(pts)}
+                    y1={yScale(pos)}
                     x2={chartWidth}
-                    y2={yScale(pts)}
+                    y2={yScale(pos)}
                     stroke="rgba(255, 255, 255, 0.08)"
                     strokeWidth={1}
                     strokeDasharray="4 4"
                   />
                   <text
                     x={-12}
-                    y={yScale(pts)}
+                    y={yScale(pos)}
                     fill="rgba(255, 255, 255, 0.55)"
                     fontSize={11}
                     fontFamily="monospace"
@@ -297,7 +334,7 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
                     textAnchor="end"
                     dominantBaseline="middle"
                   >
-                    {pts} pts
+                    {ordinal(pos)}
                   </text>
                 </g>
               ))}
@@ -314,7 +351,6 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
                     strokeWidth={1}
                   />
                   <text
-                    key={`text-${mw}`}
                     x={xScale(mw)}
                     y={chartHeight + 20}
                     fill="rgba(255, 255, 255, 0.5)"
@@ -322,7 +358,7 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
                     fontWeight="bold"
                     textAnchor="middle"
                   >
-                    {mw === 0 ? 'Start' : `W${mw}`}
+                    {`W${mw}`}
                   </text>
                 </g>
               ))}
@@ -334,7 +370,7 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
                   y1={0}
                   x2={xScale(hoveredMw)}
                   y2={chartHeight}
-                  stroke="#e11d8f"
+                  stroke="#475569"
                   strokeWidth={1.5}
                   strokeDasharray="3 3"
                   className="opacity-75"
@@ -348,7 +384,7 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
                   <g key={team.teamId}>
                     {/* Invisible wider hit area for easier hover targeting */}
                     <path
-                      d={generatePath(team.points)}
+                      d={generatePath(team.positions)}
                       fill="none"
                       stroke="transparent"
                       strokeWidth={14}
@@ -360,7 +396,7 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
                     />
                     {/* Visible line */}
                     <path
-                      d={generatePath(team.points)}
+                      d={generatePath(team.positions)}
                       fill="none"
                       stroke={team.color}
                       strokeWidth={style.strokeWidth}
@@ -374,17 +410,18 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
                 );
               })}
 
-              {/* Circles / Dots on hover points (show only for hovered team or top 4 if no team hovered) */}
+              {/* Circles / Dots on hover points */}
               {hoveredMw !== null &&
                 chartData
                   .filter((team) => hoveredTeam === null ? chartData.indexOf(team) < 4 : team.teamId === hoveredTeam)
                   .map((team) => {
-                    const pts = team.points[hoveredMw] !== undefined ? team.points[hoveredMw] : 0;
+                    const pos = getPositionAt(team, hoveredMw);
+                    if (pos === undefined) return null;
                     return (
                       <g key={`hover-pt-${team.teamId}`}>
                         <circle
                           cx={xScale(hoveredMw)}
-                          cy={yScale(pts)}
+                          cy={yScale(pos)}
                           r={6}
                           fill={team.color}
                           stroke="white"
@@ -393,7 +430,7 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
                         {hoveredTeam === team.teamId && (
                           <circle
                             cx={xScale(hoveredMw)}
-                            cy={yScale(pts)}
+                            cy={yScale(pos)}
                             r={12}
                             fill="transparent"
                             stroke={team.color}
@@ -409,12 +446,14 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
               {chartData
                 .filter((team) => hoveredTeam === null ? chartData.indexOf(team) < 4 : team.teamId === hoveredTeam)
                 .map((team) => {
-                  const lastIdx = team.points.length - 1;
-                  const lastPts = team.points[lastIdx];
+                  const lastIdx = team.positions.length - 1;
+                  if (lastIdx < 0) return null;
+                  const lastPos = team.positions[lastIdx];
+                  const lastMw = lastIdx + 1;
                   const logo = logoMap?.[team.teamId];
 
                   return (
-                    <g key={`end-${team.teamId}`} transform={`translate(${xScale(lastIdx)}, ${yScale(lastPts)})`}>
+                    <g key={`end-${team.teamId}`} transform={`translate(${xScale(lastMw)}, ${yScale(lastPos)})`}>
                       {logo ? (
                         <g>
                           {/* Ambient glow circle behind logo */}
@@ -439,15 +478,15 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
           {/* Floating Custom HTML Tooltip inside chart area */}
           {hoveredMw !== null && tooltipPos && (
             <div
-              className="absolute z-50 pointer-events-none rounded-xl border border-[#e11d8f]/30 bg-[#15001a]/95 p-3.5 shadow-2xl backdrop-blur-md transition-all duration-75 flex flex-col gap-2 min-w-[200px]"
+              className="absolute z-50 pointer-events-none rounded-xl border border-[#1e1e2e] bg-[#0c0c16]/95 p-3.5 shadow-2xl backdrop-blur-md transition-all duration-75 flex flex-col gap-2 min-w-[200px]"
               style={{
                 left: `${tooltipPos.x}px`,
                 top: `${tooltipPos.y}px`,
               }}
             >
-              <div className="flex items-center justify-between border-b border-[#38003c]/20 pb-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#e11d8f]">
-                  {hoveredMw === 0 ? 'Before Season' : `Matchweek ${hoveredMw}`}
+              <div className="flex items-center justify-between border-b border-[#1e1e2e] pb-1">
+                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">
+                  {`Matchweek ${hoveredMw}`}
                 </span>
               </div>
               <div className="space-y-1.5">
@@ -471,7 +510,7 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
                           {t.teamName}
                         </span>
                       </div>
-                      <span className="font-black text-white shrink-0">{t.points} pts</span>
+                      <span className="font-black text-white shrink-0">{ordinal(t.position)}</span>
                     </div>
                   );
                 })}
@@ -490,7 +529,7 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
       <div className="flex flex-wrap gap-2.5 justify-center items-center py-2 max-h-[180px] overflow-y-auto">
         {chartData.map((team) => {
           const logo = logoMap?.[team.teamId];
-          const lastPts = team.points[team.points.length - 1];
+          const lastPos = team.positions.length > 0 ? team.positions[team.positions.length - 1] : numTeams;
           const isHighlighted = hoveredTeam === team.teamId;
 
           return (
@@ -518,7 +557,7 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
               )}
               <span className="text-white whitespace-nowrap">{team.teamName}</span>
               <div className="h-3 w-px bg-white/20" />
-              <span className="font-black text-[#e11d8f]">{lastPts} pts</span>
+              <span className="font-black text-slate-200">{ordinal(lastPos)}</span>
             </div>
           );
         })}

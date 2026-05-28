@@ -1,6 +1,6 @@
 $ProjectRoot   = "e:\Study\vibe-antigravity\football_prediction_tool"
-$BranchName    = "feature/epl-fixes-and-ui"
-$CommitMessage = "feat: EPL Core Fixes & UI Overhaul (v2.4.1)"
+$BranchName    = "feature/epl-final-polish"
+$CommitMessage = "feat: EPL Final Polish - Dark Theme, Title Race Rank Chart, Recap Enhancements (v2.6.0)"
 
 $env:GIT_PAGER = ""
 
