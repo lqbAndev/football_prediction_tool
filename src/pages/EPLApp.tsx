@@ -40,16 +40,16 @@ import eplLogoNoTextWhite from '../img/LEAGUE COMPETITION/EPL/england_english-pr
 
 const sampleGoals = (): number => {
   const r = Math.random() * 100;
-  if (r < 24) return 0;
-  if (r < 54) return 1;
-  if (r < 77) return 2;
-  if (r < 90) return 3;
-  if (r < 94.5) return 4;
-  if (r < 97) return 5;
-  if (r < 98.2) return 6;
-  if (r < 98.9) return 7;
-  if (r < 99.35) return 8;
-  if (r < 99.45) return 9;
+  if (r < 20) return 0;
+  if (r < 50) return 1;
+  if (r < 75) return 2;
+  if (r < 87) return 3;
+  if (r < 92) return 4;
+  if (r < 96) return 5;
+  if (r < 98) return 6;
+  if (r < 99.2) return 7;
+  if (r < 99.7) return 8;
+  if (r < 99.95) return 9;
   return 10;
 };
 
@@ -128,7 +128,7 @@ const simulateEPLMatch = (match: LeagueMatch, homeTeam: Team, awayTeam: Team): L
     motm: null,
   };
 
-  completedMatch.motm = computeLeagueMatchMOTM(completedMatch);
+  completedMatch.motm = computeLeagueMatchMOTM(completedMatch, homeTeam, awayTeam);
   return completedMatch;
 };
 
@@ -285,6 +285,7 @@ export default function EPLApp() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [earlyChampionName, setEarlyChampionName] = useState<string | null>(null);
   const [selectedTeamForRoster, setSelectedTeamForRoster] = useState<Team | null>(null);
   const [expandedMatches, setExpandedMatches] = useState<Record<string, boolean>>({});
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -353,8 +354,8 @@ export default function EPLApp() {
 
   const mots = useMemo(() => {
     if (fixtures.length === 0) return null;
-    return buildLeagueSeasonMOTM(fixtures);
-  }, [fixtures]);
+    return buildLeagueSeasonMOTM(fixtures, standings);
+  }, [fixtures, standings]);
 
   const completedMatchweeksCount = useMemo(() => {
     let count = 0;
@@ -415,6 +416,20 @@ export default function EPLApp() {
       setHasShownChampionModal(true);
     }
   }, [isSeasonFinished, hasShownChampionModal]);
+
+  // Early Title Winner detection
+  useEffect(() => {
+    if (isSeasonFinished || standings.length < 2 || completedMatchweeksCount === 0) return;
+    const leader = standings[0];
+    const second = standings[1];
+    const remainingMatches = epl2526Config.rounds - completedMatchweeksCount;
+    const maxPossiblePoints = remainingMatches * 3;
+    
+    if (leader.points - second.points > maxPossiblePoints && !earlyChampionName) {
+      setEarlyChampionName(leader.teamName);
+      setToastMessage(`🏆 ${leader.teamName} have clinched the Premier League title with ${remainingMatches} matches to spare!`);
+    }
+  }, [standings, completedMatchweeksCount, isSeasonFinished, earlyChampionName]);
 
   const handleSimulateMatchweek = () => {
     const updatedFixtures = fixtures.map((match) => {
@@ -510,12 +525,14 @@ export default function EPLApp() {
             </div>
           </div>
           <div className="flex gap-2">
+            {/* Save Process temporarily hidden to prevent localStorage overflow
             <button
               onClick={() => setShowSaveModal(true)}
               className="px-4 py-2 bg-indigo-500/8 text-indigo-300 font-extrabold rounded-xl hover:bg-indigo-500/15 border border-indigo-500/20 transition-all text-base flex items-center gap-1.5"
             >
               <Save className="h-5 w-5" /> Save Process
             </button>
+            */}
             <button
               onClick={() => setShowResetModal(true)}
               className="px-4 py-2 bg-rose-500/8 text-rose-300 font-extrabold rounded-xl hover:bg-rose-500/15 border border-rose-500/20 transition-all text-base"
@@ -930,7 +947,7 @@ export default function EPLApp() {
 
         {/* Season Recap Card */}
         <section id="league-recap-section" className="bg-[#111118]/70 backdrop-blur-xl rounded-[32px] p-6 border border-[#1e1e2e]/50 shadow-2xl w-full mx-auto">
-          <LeagueRecap standings={standings} fixtures={fixtures} logoMap={EPL_LOGO_MAP} leagueLogo={eplLogo} mots={mots || undefined} />
+          <LeagueRecap standings={standings} fixtures={fixtures} logoMap={EPL_LOGO_MAP} leagueLogo={eplLogo} mots={mots || undefined} teamsById={EPL_TEAMS_BY_ID} />
         </section>
       </main>
 

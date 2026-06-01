@@ -1,6 +1,6 @@
 $ProjectRoot   = "e:\Study\vibe-antigravity\football_prediction_tool"
-$BranchName    = "feature/epl-final-polish"
-$CommitMessage = "feat: EPL Final Polish - Dark Theme, Title Race Rank Chart, Recap Enhancements (v2.6.0)"
+$BranchName    = "feature/epl-recap-and-mots"
+$CommitMessage = "feat: EPL Phase 3 - Recap Restructure, MOTS Points System, Dynamic Favicon, Early Title Winner (v2.7.0)"
 
 $env:GIT_PAGER = ""
 

@@ -84,20 +84,20 @@ const rollOutcome = (scenario: TournamentScenario): MatchOutcome => {
 
 /**
  * Base pool (0–10 goals) — realistic World Cup distribution.
- * 0–3 goals ~90%, 4–6 ~8%, 7+ ~2%.
+ * 0 bàn (20%), 1 bàn (30%), 2 bàn (25%), 3 bàn (12%), 4 bàn (5%), 5 bàn (4%), 6 bàn (2%), 7 bàn (1.2%), 8 bàn (0.5%), 9 bàn (0.25%), 10 bàn (0.05%)
  */
 const sampleBaseGoals = () =>
   weightedPick<number>([
-    { value: 0, weight: 24 },
+    { value: 0, weight: 20 },
     { value: 1, weight: 30 },
-    { value: 2, weight: 23 },
-    { value: 3, weight: 13 },
-    { value: 4, weight: 4.5 },
-    { value: 5, weight: 2.5 },
-    { value: 6, weight: 1.2 },
-    { value: 7, weight: 0.7 },
-    { value: 8, weight: 0.45 },
-    { value: 9, weight: 0.1 },
+    { value: 2, weight: 25 },
+    { value: 3, weight: 12 },
+    { value: 4, weight: 5 },
+    { value: 5, weight: 4 },
+    { value: 6, weight: 2 },
+    { value: 7, weight: 1.2 },
+    { value: 8, weight: 0.5 },
+    { value: 9, weight: 0.25 },
     { value: 10, weight: 0.05 },
   ]);
 

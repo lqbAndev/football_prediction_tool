@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import type { LeagueStanding, LeagueMatch } from '../../types/leagueConfig';
 import type { LeagueMOTS } from '../../utils/motm';
+import type { Team } from '../../types/tournament';
 
 interface LeagueRecapProps {
   standings: LeagueStanding[];
@@ -31,6 +32,7 @@ interface LeagueRecapProps {
   logoMap?: Record<string, string>;
   leagueLogo?: string;
   mots?: LeagueMOTS;
+  teamsById?: Record<string, Team>;
 }
 
 const StatCard = ({
@@ -349,7 +351,7 @@ const ZoneList = ({
   );
 };
 
-export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, mots }: LeagueRecapProps) {
+export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, mots, teamsById }: LeagueRecapProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'awards' | 'streaks' | 'highlights' | 'stats'>('overview');
 
   const completedMatches = fixtures.filter((f) => f.status === 'completed');
@@ -582,6 +584,45 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
     }
   }
 
+  // Biggest Upset: low-rated team beats high-rated team with biggest rating difference
+  let biggestUpset: { match: LeagueMatch; ratingDiff: number } | null = null;
+  if (teamsById) {
+    for (const match of completedMatches) {
+      if (match.homeScore === null || match.awayScore === null) continue;
+      if (match.homeScore === match.awayScore) continue; // skip draws
+      const homeRating = teamsById[match.homeTeamId]?.rating ?? 0;
+      const awayRating = teamsById[match.awayTeamId]?.rating ?? 0;
+      const winnerIsHome = match.homeScore > match.awayScore;
+      const winnerRating = winnerIsHome ? homeRating : awayRating;
+      const loserRating = winnerIsHome ? awayRating : homeRating;
+      if (winnerRating < loserRating) {
+        const diff = loserRating - winnerRating;
+        if (!biggestUpset || diff > biggestUpset.ratingDiff) {
+          biggestUpset = { match, ratingDiff: diff };
+        }
+      }
+    }
+  }
+
+  // Late Drama Kings: team with most 90+ minute goals
+  const lateDramaMap: Record<string, number> = {};
+  for (const match of completedMatches) {
+    if (!match.timeline) continue;
+    for (const event of match.timeline) {
+      // Check for 90+ goals: displayMinute contains '90+' or sortMinute >= 90
+      const is90Plus = event.displayMinute.startsWith('90+') || event.sortMinute >= 90;
+      if (is90Plus) {
+        lateDramaMap[event.teamId] = (lateDramaMap[event.teamId] || 0) + 1;
+      }
+    }
+  }
+  let lateDramaKing: { teamId: string; teamName: string; count: number } | null = null;
+  for (const [teamId, count] of Object.entries(lateDramaMap)) {
+    if (!lateDramaKing || count > lateDramaKing.count) {
+      lateDramaKing = { teamId, teamName: teamNameMap[teamId] || 'Unknown', count };
+    }
+  }
+
   // 7. Top goalscorers (Golden Boot)
   const topScorers = (() => {
     const scorerMap: Record<string, { playerName: string; teamId: string; teamName: string; goals: number }> = {};
@@ -607,7 +648,7 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
 
     return Object.values(scorerMap)
       .sort((a, b) => b.goals - a.goals || a.playerName.localeCompare(b.playerName))
-      .slice(0, 5);
+      .slice(0, 10);
   })();
 
   // Partition zones
@@ -695,7 +736,7 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
                   : 'text-white/50 hover:text-white hover:bg-white/5 border border-transparent'
               }`}
             >
-              <Zap className="h-4 w-4" /> Boot & Matches
+              <Target className="h-4 w-4" /> Golden Boots
             </button>
             <button
               onClick={() => setActiveTab('stats')}
@@ -782,8 +823,13 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
                         )}
                         <span className="truncate">{mots.teamName}</span>
                       </div>
-                      <div className="flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-black text-amber-300">
-                        <span>{mots.motmCount} MOTM</span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-black text-amber-300">
+                          <span>{(mots as any).points ?? (mots.motmCount * 3)} pts</span>
+                        </div>
+                        <div className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-white/60">
+                          <span>{mots.motmCount} MOTM</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -891,43 +937,110 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
             </div>
           )}
 
-          {/* Tab 4: Top Scorers & Matches */}
+          {/* Tab 4: Top Scorers (Golden Boots) */}
           {activeTab === 'highlights' && (
-            <div className="space-y-6 animate-fadeIn">
-              {/* Golden Boot (Top 5 Scorers) */}
-              <div className="rounded-2xl border border-amber-400/25 bg-amber-950/10 p-5 backdrop-blur-md">
-                <div className="flex items-center gap-2 mb-4 border-b border-[#1e1e2e] pb-2">
-                  <Trophy className="h-5 w-5 text-amber-400" />
-                  <h3 className="text-xs font-black uppercase tracking-widest text-amber-400">Golden Boot (Top 5 Scorers)</h3>
+            <div className="space-y-8 animate-fadeIn">
+              {/* Hero: Golden Boot #1 */}
+              {topScorers[0] && (
+                <div className="relative overflow-hidden rounded-3xl border border-amber-400/30 bg-gradient-to-br from-amber-500/15 via-[#111118] to-amber-900/10 p-8 shadow-[0_0_60px_rgba(245,158,11,0.08)]">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.08),transparent_50%)] pointer-events-none" />
+                  <div className="relative z-10 flex flex-col items-center text-center">
+                    <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.3em] text-amber-400/80 mb-4">
+                      <Trophy className="h-5 w-5 animate-bounce" />
+                      <span>Golden Boot Winner</span>
+                      <Trophy className="h-5 w-5 animate-bounce" />
+                    </div>
+                    <div className="relative mb-4">
+                      <div className="absolute -inset-4 animate-pulse rounded-full bg-amber-400/10 blur-2xl" />
+                      {logoMap && logoMap[topScorers[0].teamId] ? (
+                        <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-white border-2 border-amber-400 shadow-[0_0_24px_rgba(245,158,11,0.4)] p-2">
+                          <img src={logoMap[topScorers[0].teamId]} alt="" className="h-full w-full object-contain" />
+                        </div>
+                      ) : null}
+                    </div>
+                    <h3 className="text-3xl sm:text-4xl font-black text-white mb-1">{topScorers[0].playerName}</h3>
+                    <p className="text-sm text-white/50 font-bold">{topScorers[0].teamName}</p>
+                    <div className="mt-4 flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/15 px-6 py-3 text-2xl font-black text-amber-300 shadow-lg">
+                      <Target className="h-6 w-6" />
+                      <span>{topScorers[0].goals} Goals</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                  {topScorers.map((scorer, idx) => (
+              )}
+
+              {/* Podium: #2 and #3 */}
+              {topScorers.length >= 2 && (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {topScorers.slice(1, 3).map((scorer, idx) => (
                     <div
                       key={idx}
-                      className="flex flex-col items-center justify-between border border-[#1e1e2e] rounded-xl p-4 bg-[#0c0c16]/50 relative overflow-hidden"
+                      className="relative overflow-hidden rounded-2xl border border-slate-500/20 bg-gradient-to-br from-slate-500/10 via-[#111118] to-transparent p-6 transition-all duration-300 hover:scale-[1.02] hover:border-slate-400/30"
                     >
-                      <div className="absolute top-2 left-2 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400/10 border border-amber-400/20 text-[10px] font-black text-amber-300">
-                        {idx + 1}
-                      </div>
-                      <div className="flex flex-col items-center text-center mt-3 mb-2 min-w-0">
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <div className={`flex h-10 w-10 items-center justify-center rounded-full font-black text-lg ${
+                            idx === 0 ? 'bg-slate-300/20 text-slate-300 border border-slate-300/30' : 'bg-amber-700/20 text-amber-600 border border-amber-600/30'
+                          }`}>
+                            {idx + 2}
+                          </div>
+                        </div>
                         {logoMap && logoMap[scorer.teamId] ? (
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white p-1 border border-slate-200 shadow-md">
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white p-1 border border-slate-200 shadow-md">
                             <img src={logoMap[scorer.teamId]} alt="" className="h-full w-full object-contain" />
                           </div>
                         ) : null}
-                        <p className="font-bold text-white truncate text-sm mt-2 w-full">{scorer.playerName}</p>
-                        <p className="text-[10px] text-white/50 truncate w-full">{scorer.teamName}</p>
-                      </div>
-                      <div className="flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1.5 text-xs font-black text-amber-300 w-full justify-center">
-                        <Target className="h-3.5 w-3.5" />
-                        <span>{scorer.goals} goals</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-black text-white text-lg truncate">{scorer.playerName}</p>
+                          <p className="text-xs text-white/40 font-semibold">{scorer.teamName}</p>
+                        </div>
+                        <div className="flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-base font-black text-amber-300 shrink-0">
+                          <Target className="h-4 w-4" />
+                          <span>{scorer.goals}</span>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
+              )}
 
-              {/* Match Highlights */}
+              {/* Rest of Top Scorers Table: #4 to #10 */}
+              {topScorers.length > 3 && (
+                <div className="rounded-2xl border border-[#1e1e2e]/50 bg-[#0c0c16]/50 overflow-hidden backdrop-blur-md">
+                  <div className="flex items-center gap-2 px-5 py-3 border-b border-[#1e1e2e]/30 bg-[#0a0a12]/60">
+                    <Award className="h-4 w-4 text-amber-400/70" />
+                    <span className="text-xs font-black uppercase tracking-widest text-amber-400/70">Top Scorers</span>
+                  </div>
+                  <div className="divide-y divide-[#1e1e2e]/30">
+                    {topScorers.slice(3, 10).map((scorer, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-4 px-5 py-3.5 hover:bg-white/[0.03] transition-colors"
+                      >
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/5 border border-white/10 text-xs font-black text-slate-400">
+                          {idx + 4}
+                        </span>
+                        {logoMap && logoMap[scorer.teamId] ? (
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white p-0.5 border border-slate-200">
+                            <img src={logoMap[scorer.teamId]} alt="" className="h-full w-full object-contain" />
+                          </div>
+                        ) : null}
+                        <div className="flex-1 min-w-0">
+                          <span className="font-bold text-white text-sm">{scorer.playerName}</span>
+                          <span className="text-xs text-white/40 ml-2">{scorer.teamName}</span>
+                        </div>
+                        <span className="text-base font-black text-slate-200">{scorer.goals}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Tab 5: Season Stats */}
+          {activeTab === 'stats' && (
+            <div className="space-y-6 animate-fadeIn">
+              {/* Featured Matches moved here from Boot & Matches */}
               <div className="grid gap-4 sm:grid-cols-2">
                 {highestScoringMatch && (
                   <FeaturedMatchCard
@@ -944,7 +1057,7 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
                 )}
                 {biggestWinMatch && (
                   <FeaturedMatchCard
-                    title="Biggest Win Margin"
+                    title="Most Dominant Win"
                     homeTeam={teamNameMap[biggestWinMatch.homeTeamId] || 'Home Team'}
                     homeTeamId={biggestWinMatch.homeTeamId}
                     awayTeam={teamNameMap[biggestWinMatch.awayTeamId] || 'Away Team'}
@@ -956,53 +1069,75 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
                   />
                 )}
               </div>
-            </div>
-          )}
 
-          {/* Tab 5: Season Stats */}
-          {activeTab === 'stats' && (
-            <div className="grid gap-4 sm:grid-cols-2 animate-fadeIn">
-              {(() => {
-                // Draws King: team with the most draws
-                let drawsKing = standings[0];
-                for (const s of standings) {
-                  if (s.draws > drawsKing.draws) drawsKing = s;
-                }
+              {/* Biggest Upset */}
+              {biggestUpset && (
+                <FeaturedMatchCard
+                  title="Biggest Upset"
+                  homeTeam={teamNameMap[biggestUpset.match.homeTeamId] || 'Home Team'}
+                  homeTeamId={biggestUpset.match.homeTeamId}
+                  awayTeam={teamNameMap[biggestUpset.match.awayTeamId] || 'Away Team'}
+                  awayTeamId={biggestUpset.match.awayTeamId}
+                  homeScore={biggestUpset.match.homeScore!}
+                  awayScore={biggestUpset.match.awayScore!}
+                  roundLabel={`Matchweek ${biggestUpset.match.matchweek} · Rating gap: ${biggestUpset.ratingDiff.toFixed(0)}`}
+                  logoMap={logoMap}
+                />
+              )}
 
-                // Highest Goals Per Match: team with highest avg goals scored per match
-                let highestGPM = standings[0];
-                let highestGPMValue = standings[0].played > 0 ? standings[0].goalsFor / standings[0].played : 0;
-                for (const s of standings) {
-                  const avg = s.played > 0 ? s.goalsFor / s.played : 0;
-                  if (avg > highestGPMValue) {
-                    highestGPM = s;
-                    highestGPMValue = avg;
+              {/* Stat cards row */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                {/* Late Drama Kings */}
+                {lateDramaKing && (
+                  <StatCard
+                    label="Late Drama Kings"
+                    value={lateDramaKing.teamName}
+                    sub={`${lateDramaKing.count} goals scored in 90+ minutes`}
+                    accent="rose"
+                    teamInitials={lateDramaKing.teamName.slice(0, 2).toUpperCase()}
+                    teamId={lateDramaKing.teamId}
+                    logoMap={logoMap}
+                  />
+                )}
+
+                {(() => {
+                  let drawsKing = standings[0];
+                  for (const s of standings) {
+                    if (s.draws > drawsKing.draws) drawsKing = s;
                   }
-                }
-
-                return (
-                  <>
-                    <StatCard
-                      label="Draws King"
-                      value={drawsKing.teamName}
-                      sub={`${drawsKing.draws} draws throughout the season`}
-                      accent="violet"
-                      teamInitials={drawsKing.teamName.slice(0, 2).toUpperCase()}
-                      teamId={drawsKing.teamId}
-                      logoMap={logoMap}
-                    />
-                    <StatCard
-                      label="Highest Goals Per Match"
-                      value={highestGPM.teamName}
-                      sub={`${highestGPMValue.toFixed(2)} goals scored per match on average`}
-                      accent="amber"
-                      teamInitials={highestGPM.teamName.slice(0, 2).toUpperCase()}
-                      teamId={highestGPM.teamId}
-                      logoMap={logoMap}
-                    />
-                  </>
-                );
-              })()}
+                  let highestGPM = standings[0];
+                  let highestGPMValue = standings[0].played > 0 ? standings[0].goalsFor / standings[0].played : 0;
+                  for (const s of standings) {
+                    const avg = s.played > 0 ? s.goalsFor / s.played : 0;
+                    if (avg > highestGPMValue) {
+                      highestGPM = s;
+                      highestGPMValue = avg;
+                    }
+                  }
+                  return (
+                    <>
+                      <StatCard
+                        label="Draws King"
+                        value={drawsKing.teamName}
+                        sub={`${drawsKing.draws} draws throughout the season`}
+                        accent="violet"
+                        teamInitials={drawsKing.teamName.slice(0, 2).toUpperCase()}
+                        teamId={drawsKing.teamId}
+                        logoMap={logoMap}
+                      />
+                      <StatCard
+                        label="Highest Goals Per Match"
+                        value={highestGPM.teamName}
+                        sub={`${highestGPMValue.toFixed(2)} goals scored per match on average`}
+                        accent="amber"
+                        teamInitials={highestGPM.teamName.slice(0, 2).toUpperCase()}
+                        teamId={highestGPM.teamId}
+                        logoMap={logoMap}
+                      />
+                    </>
+                  );
+                })()}
+              </div>
             </div>
           )}
         </div>

@@ -8,7 +8,7 @@ import type {
   SeasonMOTM,
   Team,
 } from '../types/tournament';
-import type { LeagueMatch } from '../types/leagueConfig';
+import type { LeagueMatch, LeagueStanding } from '../types/leagueConfig';
 
 type CompletedMatch = GroupMatch | KnockoutMatch;
 
@@ -366,6 +366,8 @@ export interface LeagueMOTS {
   teamId: string;
   teamName: string;
   motmCount: number;
+  points: number;
+  teamPosition: number;
 }
 
 /**
@@ -374,6 +376,8 @@ export interface LeagueMOTS {
  */
 export const computeLeagueMatchMOTM = (
   match: LeagueMatch,
+  homeTeam?: Team,
+  awayTeam?: Team,
 ): { playerId: string; playerName: string; teamId: string; teamName: string; reason: string } | null => {
   if (match.status !== 'completed') return null;
 
@@ -399,7 +403,21 @@ export const computeLeagueMatchMOTM = (
   }
 
   if (!goalEvents.length) {
-    // No goals — no MOTM for league matches (no fallback needed)
+    // 0-0 draw: pick a random DF or GK from one of the two teams
+    if (homeTeam && awayTeam) {
+      const selectedTeam = Math.random() < 0.5 ? homeTeam : awayTeam;
+      const defenders = selectedTeam.players.filter(p => p.position === 'DF' || p.position === 'GK');
+      if (defenders.length > 0) {
+        const player = defenders[Math.floor(Math.random() * defenders.length)];
+        return {
+          playerId: player.id,
+          playerName: player.name,
+          teamId: selectedTeam.id,
+          teamName: selectedTeam.name,
+          reason: 'clean-sheet',
+        };
+      }
+    }
     return null;
   }
 
@@ -457,10 +475,15 @@ export const computeLeagueMatchMOTM = (
 
 /**
  * Builds the Man Of The Season (MOTS) for league mode.
- * Simply counts total MOTM awards across all completed matches.
+ * Each MOTM award gives 3 points. Champion team player gets +10 points, Top 4 team player gets +5 points.
+ * Sorts by points (DESC), then by team position (ASC) as tie-breaker.
  */
-export const buildLeagueSeasonMOTM = (fixtures: LeagueMatch[]): LeagueMOTS | null => {
-  const aggregate = new Map<string, LeagueMOTS>();
+export const buildLeagueSeasonMOTM = (
+  fixtures: LeagueMatch[],
+  standings?: LeagueStanding[],
+): LeagueMOTS | null => {
+  // 1. Count MOTM awards per player
+  const aggregate = new Map<string, { playerId: string; playerName: string; teamId: string; teamName: string; motmCount: number }>();
 
   for (const match of fixtures) {
     if (match.status !== 'completed' || !match.motm) continue;
@@ -474,10 +497,39 @@ export const buildLeagueSeasonMOTM = (fixtures: LeagueMatch[]): LeagueMOTS | nul
     }
   }
 
-  const leaderboard = Array.from(aggregate.values()).sort((a, b) => {
-    if (b.motmCount !== a.motmCount) return b.motmCount - a.motmCount;
+  if (aggregate.size === 0) return null;
+
+  // 2. Build standings lookup
+  const teamPositionMap = new Map<string, number>();
+  if (standings) {
+    for (const s of standings) {
+      teamPositionMap.set(s.teamId, s.position);
+    }
+  }
+
+  // 3. Calculate points for each player
+  const leaderboard: LeagueMOTS[] = Array.from(aggregate.values()).map((entry) => {
+    const teamPosition = teamPositionMap.get(entry.teamId) ?? 99;
+    let points = entry.motmCount * 3; // Each MOTM = +3 points
+
+    // Champion bonus (1st place) = +10
+    if (teamPosition === 1) points += 10;
+    // Top 4 bonus = +5
+    else if (teamPosition <= 4) points += 5;
+
+    return {
+      ...entry,
+      points,
+      teamPosition,
+    };
+  });
+
+  // 4. Sort: points DESC → team position ASC (higher ranked team wins tiebreak)
+  leaderboard.sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points;
+    if (a.teamPosition !== b.teamPosition) return a.teamPosition - b.teamPosition;
     return a.playerName.localeCompare(b.playerName);
   });
 
-  return leaderboard.length > 0 ? leaderboard[0] : null;
+  return leaderboard[0];
 };

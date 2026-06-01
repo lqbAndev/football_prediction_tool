@@ -94,16 +94,16 @@ export const generateRoundRobinFixtures = (teams: Team[], config: LeagueConfig):
 
 const sampleGoals = (): number => {
   const r = Math.random() * 100;
-  if (r < 24) return 0;
-  if (r < 54) return 1;
-  if (r < 77) return 2;
-  if (r < 90) return 3;
-  if (r < 94.5) return 4;
-  if (r < 97) return 5;
-  if (r < 98.2) return 6;
-  if (r < 98.9) return 7;
-  if (r < 99.35) return 8;
-  if (r < 99.45) return 9;
+  if (r < 20) return 0;
+  if (r < 50) return 1;
+  if (r < 75) return 2;
+  if (r < 87) return 3;
+  if (r < 92) return 4;
+  if (r < 96) return 5;
+  if (r < 98) return 6;
+  if (r < 99.2) return 7;
+  if (r < 99.7) return 8;
+  if (r < 99.95) return 9;
   return 10;
 };
 
@@ -160,7 +160,7 @@ export const simulateLeagueMatch = (
   };
 
   // Compute MOTM for the completed league match
-  completedMatch.motm = computeLeagueMatchMOTM(completedMatch);
+  completedMatch.motm = computeLeagueMatchMOTM(completedMatch, homeTeam, awayTeam);
   return completedMatch;
 };
 
