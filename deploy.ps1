@@ -57,7 +57,7 @@ OK "on branch $BranchName"
 # -----------------------------------------------
 Write-Step "2/6  Stage and commit"
 
-git add src/ public/ index.html package.json package-lock.json vite.config.ts tailwind.config.ts postcss.config.js tsconfig.json tsconfig.node.json .gitignore README.md
+git add src/ public/ index.html package.json package-lock.json vite.config.ts tailwind.config.ts postcss.config.js tsconfig.json tsconfig.node.json .gitignore README.md netlify.toml
 git add -f project_updates/ deploy.ps1 scripts/
 
 git diff --cached --name-only
