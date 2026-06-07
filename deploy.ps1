@@ -1,6 +1,6 @@
 $ProjectRoot   = "e:\Study\vibe-antigravity\football_prediction_tool"
-$BranchName    = "feature/epl-recap-and-mots"
-$CommitMessage = "feat: EPL Phase 3 - Recap Restructure, MOTS Points System, Dynamic Favicon, Early Title Winner (v2.7.0)"
+$BranchName    = "feature/wc26-crawler-and-epl-ux"
+$CommitMessage = "feat: WC26 Player Crawler, Netlify CD, EPL Early Winner GD, Interactive Title Race, Player Goal Modal (v3.0.0)"
 
 $env:GIT_PAGER = ""
 
@@ -33,9 +33,8 @@ Write-Host "Project: $ProjectRoot" -ForegroundColor DarkGray
 # -----------------------------------------------
 # 0. Swap App.tsx with production version
 #    App.prod.tsx has NO testCup import / route
-#    No regex needed - zero risk of emoji corruption
 # -----------------------------------------------
-Write-Step "0/7  Swap App.tsx to production version"
+Write-Step "0/6  Swap App.tsx to production version"
 
 Copy-Item $appDev $appBak -Force
 Copy-Item $appProd $appDev -Force
@@ -44,7 +43,7 @@ OK "App.tsx swapped to App.prod.tsx (no testCup references)"
 # -----------------------------------------------
 # 1. Create feature branch
 # -----------------------------------------------
-Write-Step "1/7  Create feature branch ($BranchName)"
+Write-Step "1/6  Create feature branch ($BranchName)"
 git checkout -b $BranchName 2>$null
 if ($LASTEXITCODE -ne 0) {
   git checkout $BranchName
@@ -56,10 +55,10 @@ OK "on branch $BranchName"
 # 2. Stage and commit
 #    .gitignore excludes: testCup/, *.local-backup, App.dev.tsx
 # -----------------------------------------------
-Write-Step "2/7  Stage and commit"
+Write-Step "2/6  Stage and commit"
 
 git add src/ public/ index.html package.json package-lock.json vite.config.ts tailwind.config.ts postcss.config.js tsconfig.json tsconfig.node.json .gitignore README.md
-git add -f project_updates/ deploy.ps1
+git add -f project_updates/ deploy.ps1 scripts/
 
 git diff --cached --name-only
 
@@ -75,7 +74,7 @@ if (-not $changedFiles) {
 # -----------------------------------------------
 # 3. Checkout main and merge
 # -----------------------------------------------
-Write-Step "3/7  Checkout main and merge"
+Write-Step "3/6  Checkout main and merge"
 git checkout main
 if ($LASTEXITCODE -ne 0) { Fail "git checkout main" }
 
@@ -87,40 +86,29 @@ if ($LASTEXITCODE -ne 0) { Fail "git merge $BranchName" }
 OK "merged $BranchName into main"
 
 # -----------------------------------------------
-# 4. Push main
+# 4. Push main (Netlify auto-deploys from main)
 # -----------------------------------------------
-Write-Step "4/7  Push main"
+Write-Step "4/6  Push main"
 git push origin main
 if ($LASTEXITCODE -ne 0) { Fail "git push origin main" }
-OK "pushed main"
+OK "pushed main - Netlify will auto-build and deploy"
 
 # -----------------------------------------------
-# 5. Build and deploy
-#    Vite builds from the working tree which has
-#    App.prod.tsx as App.tsx — no testCup
+# 5. Restore dev App.tsx
 # -----------------------------------------------
-Write-Step "5/7  Build and deploy to GitHub Pages"
-npm run deploy
-if ($LASTEXITCODE -ne 0) { Fail "npm run deploy" }
-OK "Deployed!"
-
-# -----------------------------------------------
-# 6. Restore dev App.tsx
-# -----------------------------------------------
-Write-Step "6/7  Restore App.tsx to dev version"
+Write-Step "5/6  Restore App.tsx to dev version"
 Restore-App
 
 # -----------------------------------------------
-# 7. Cleanup branch
+# 6. Cleanup branch
 # -----------------------------------------------
-Write-Step "7/7  Cleanup"
+Write-Step "6/6  Cleanup"
 git branch -d $BranchName 2>$null
 OK "cleaned up feature branch"
 
 Write-Host ""
 Write-Host "==========================================" -ForegroundColor Green
-Write-Host "  Done! Deployed to GitHub Pages (HashRouter)." -ForegroundColor Green
-Write-Host "  URL: https://lqbandev.github.io/football_prediction_tool/#/" -ForegroundColor Green
-Write-Host "  No more 404 on page refresh!" -ForegroundColor Yellow
+Write-Host "  Done! Pushed to main." -ForegroundColor Green
+Write-Host "  Netlify CD will auto-detect and deploy." -ForegroundColor Green
 Write-Host "==========================================" -ForegroundColor Green
 git log --oneline -5

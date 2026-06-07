@@ -26,6 +26,7 @@ import { computeLeagueMatchMOTM, buildLeagueSeasonMOTM } from '../utils/motm';
 import type { LeagueMOTS } from '../utils/motm';
 import TitleRaceChart from '../components/league/TitleRaceChart';
 import LeagueRecap from '../components/league/LeagueRecap';
+import { EPLPlayerGoalModal } from '../components/league/EPLPlayerGoalModal';
 import type { LeagueMatch, LeagueStanding } from '../types/leagueConfig';
 import type { Team } from '../types/tournament';
 
@@ -286,6 +287,13 @@ export default function EPLApp() {
   const [showResetModal, setShowResetModal] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [earlyChampionName, setEarlyChampionName] = useState<string | null>(null);
+  const [dismissEarlyWinnerBanner, setDismissEarlyWinnerBanner] = useState(false);
+  const [selectedScorerForModal, setSelectedScorerForModal] = useState<{
+    playerId: string;
+    playerName: string;
+    teamId: string;
+    teamName: string;
+  } | null>(null);
   const [selectedTeamForRoster, setSelectedTeamForRoster] = useState<Team | null>(null);
   const [expandedMatches, setExpandedMatches] = useState<Record<string, boolean>>({});
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -368,7 +376,7 @@ export default function EPLApp() {
   }, [fixtures]);
 
   const topScorers = useMemo(() => {
-    const scorerMap: Record<string, { playerName: string; teamId: string; teamName: string; goals: number }> = {};
+    const scorerMap: Record<string, { playerId: string; playerName: string; teamId: string; teamName: string; goals: number }> = {};
 
     fixtures.forEach((match) => {
       if (match.status === 'completed' && match.timeline) {
@@ -379,6 +387,7 @@ export default function EPLApp() {
 
           if (!scorerMap[playerId]) {
             scorerMap[playerId] = {
+              playerId,
               playerName,
               teamId,
               teamName,
@@ -419,15 +428,29 @@ export default function EPLApp() {
 
   // Early Title Winner detection
   useEffect(() => {
-    if (isSeasonFinished || standings.length < 2 || completedMatchweeksCount === 0) return;
+    if (isSeasonFinished || standings.length < 2 || completedMatchweeksCount === 0) {
+      if (completedMatchweeksCount === 0 && earlyChampionName !== null) {
+        setEarlyChampionName(null);
+      }
+      return;
+    }
     const leader = standings[0];
     const second = standings[1];
     const remainingMatches = epl2526Config.rounds - completedMatchweeksCount;
     const maxPossiblePoints = remainingMatches * 3;
     
-    if (leader.points - second.points > maxPossiblePoints && !earlyChampionName) {
+    const pointGap = leader.points - second.points;
+    const gdGap = leader.goalDifference - second.goalDifference;
+    
+    const isChampion = 
+      pointGap > maxPossiblePoints ||  // Mathematically guaranteed
+      (pointGap === maxPossiblePoints && gdGap >= 15);  // Points equal, but GD gap insurmountable (>= 15)
+      
+    if (isChampion && !earlyChampionName) {
       setEarlyChampionName(leader.teamName);
       setToastMessage(`🏆 ${leader.teamName} have clinched the Premier League title with ${remainingMatches} matches to spare!`);
+    } else if (!isChampion && earlyChampionName) {
+      setEarlyChampionName(null);
     }
   }, [standings, completedMatchweeksCount, isSeasonFinished, earlyChampionName]);
 
@@ -464,6 +487,9 @@ export default function EPLApp() {
     setHasShownChampionModal(false);
     setShowResetModal(false);
     setToastMessage('League progress has been reset.');
+    setEarlyChampionName(null);
+    setDismissEarlyWinnerBanner(false);
+    setSelectedScorerForModal(null);
   };
 
   if (!isInitialized) {
@@ -551,6 +577,56 @@ export default function EPLApp() {
 
       {/* Main Container */}
       <main className="max-w-[1600px] mx-auto px-4 py-8 relative z-10 space-y-8">
+        {/* Early Title Winner Banner */}
+        {earlyChampionName && leaderTeam && !dismissEarlyWinnerBanner && (
+          <div className="relative overflow-hidden bg-gradient-to-r from-amber-500/20 via-yellow-500/10 to-amber-500/20 border border-amber-400/30 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-amber-950/20 animate-fade-in group">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
+            <div className="flex items-center gap-4 relative z-10">
+              <div className="p-3 bg-amber-500/20 rounded-2xl border border-amber-400/40 shrink-0">
+                <Trophy className="w-10 h-10 text-yellow-400 animate-bounce" />
+              </div>
+              <div className="flex items-center gap-4">
+                <img 
+                  src={EPL_LOGO_MAP[leaderTeam.teamId]} 
+                  alt={leaderTeam.teamName} 
+                  className="w-16 h-16 object-contain filter drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" 
+                />
+                <div>
+                  <h3 className="text-2xl font-black text-amber-300 tracking-wide uppercase">
+                    🏆 {leaderTeam.teamName} Champions 25/26
+                  </h3>
+                  <p className="text-slate-300 font-semibold mt-1">
+                    Clinched the title with <span className="text-yellow-400 font-extrabold">{epl2526Config.rounds - completedMatchweeksCount}</span> matches to spare!
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-6 relative z-10 shrink-0 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 border-amber-400/20 pt-4 md:pt-0">
+              <div className="flex gap-4">
+                <div className="text-center px-4 py-2 bg-amber-500/10 rounded-xl border border-amber-500/20">
+                  <div className="text-xs text-amber-400 font-bold uppercase">Points</div>
+                  <div className="text-lg font-black text-slate-100">{leaderTeam.points}</div>
+                </div>
+                <div className="text-center px-4 py-2 bg-amber-500/10 rounded-xl border border-amber-500/20">
+                  <div className="text-xs text-amber-400 font-bold uppercase">GD</div>
+                  <div className="text-lg font-black text-slate-100">{leaderTeam.goalDifference > 0 ? `+${leaderTeam.goalDifference}` : leaderTeam.goalDifference}</div>
+                </div>
+                <div className="text-center px-4 py-2 bg-amber-500/10 rounded-xl border border-amber-500/20">
+                  <div className="text-xs text-amber-400 font-bold uppercase">Wins</div>
+                  <div className="text-lg font-black text-slate-100">{leaderTeam.wins}</div>
+                </div>
+              </div>
+              <button 
+                onClick={() => setDismissEarlyWinnerBanner(true)}
+                className="p-2 hover:bg-white/10 text-amber-300 hover:text-white rounded-xl transition-all border border-transparent hover:border-white/10"
+                title="Dismiss banner"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Matchweeks Section */}
         <section className="bg-[#111118]/70 backdrop-blur-xl rounded-[32px] p-6 border border-[#1e1e2e]/50 shadow-2xl w-full mx-auto">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -917,13 +993,23 @@ export default function EPLApp() {
                   </thead>
                   <tbody className="divide-y divide-[#1e1e2e]/40 text-lg">
                     {topScorers.map((scorer, idx) => (
-                      <tr key={idx} className="hover:bg-white/5 transition-colors">
+                      <tr 
+                        key={idx} 
+                        onClick={() => setSelectedScorerForModal({
+                          playerId: scorer.playerId,
+                          playerName: scorer.playerName,
+                          teamId: scorer.teamId,
+                          teamName: scorer.teamName
+                        })}
+                        className="cursor-pointer hover:bg-white/5 active:bg-white/10 transition-colors group"
+                        title="Click to view player details"
+                      >
                         <td className="py-3.5 px-5 text-center">
-                          <span className="inline-flex items-center justify-center w-8 h-8 rounded-full font-black text-base">
+                          <span className="inline-flex items-center justify-center w-8 h-8 rounded-full font-black text-base text-slate-400 group-hover:text-white transition-colors">
                             {idx + 1}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 font-black text-white text-lg">{scorer.playerName}</td>
+                        <td className="py-3.5 px-4 font-black text-white text-lg group-hover:text-[#e11d8f] transition-colors">{scorer.playerName}</td>
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-2 font-bold text-slate-200 text-lg">
                             <img src={EPL_LOGO_MAP[scorer.teamId]} alt="" className="w-7 h-7 object-contain shrink-0" />
@@ -1186,6 +1272,21 @@ export default function EPLApp() {
         onSave={handleSaveSimulation}
         defaultSaveName="Premier League - My Season"
       />
+
+      {/* EPL Player Goal Modal */}
+      {selectedScorerForModal && (
+        <EPLPlayerGoalModal
+          isOpen={!!selectedScorerForModal}
+          onClose={() => setSelectedScorerForModal(null)}
+          playerId={selectedScorerForModal.playerId}
+          playerName={selectedScorerForModal.playerName}
+          teamId={selectedScorerForModal.teamId}
+          teamName={selectedScorerForModal.teamName}
+          fixtures={fixtures}
+          logoMap={EPL_LOGO_MAP}
+          teamsById={EPL_TEAMS_BY_ID}
+        />
+      )}
 
       {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
 

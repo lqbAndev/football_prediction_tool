@@ -58,6 +58,7 @@ function ordinal(n: number): string {
 export default function TitleRaceChart({ standings, fixtures, totalRounds, logoMap }: TitleRaceChartProps) {
   const [hoveredMw, setHoveredMw] = useState<number | null>(null);
   const [hoveredTeam, setHoveredTeam] = useState<string | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -220,14 +221,17 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
     setTooltipPos(null);
   };
 
-  // Determine line opacity and width based on hover state
+  // The active team is either clicked (selectedTeam) or hovered (hoveredTeam)
+  const activeTeam = selectedTeam ?? hoveredTeam;
+
+  // Determine line opacity and width based on active (click or hover) state
   const getLineStyle = (teamId: string) => {
-    if (hoveredTeam === null) {
-      // No team hovered — all lines subtle
+    if (activeTeam === null) {
+      // No team active — all lines subtle
       return { opacity: 0.3, strokeWidth: 1.8, filter: '' };
     }
-    if (hoveredTeam === teamId) {
-      // This team is hovered — full highlight
+    if (activeTeam === teamId) {
+      // This team is active — full highlight
       return { opacity: 1, strokeWidth: 3.5, filter: 'url(#neon-glow)' };
     }
     // Other teams — fade out
@@ -270,7 +274,7 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
   })();
 
   return (
-    <div className="relative space-y-6">
+    <div className="relative space-y-6" onClick={(e) => { if (e.currentTarget === e.target) setSelectedTeam(null); }}>
       {/* Title Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -279,7 +283,7 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
           </div>
           <div>
             <h2 className="text-xl font-black uppercase tracking-widest text-white sm:text-2xl">Title Race</h2>
-            <p className="text-xs text-white/50">Position progression for all {standings.length} teams • Hover lines or legend to highlight</p>
+            <p className="text-xs text-white/50">Position progression for all {standings.length} teams • Click or hover legend to highlight</p>
           </div>
         </div>
         <div className="flex items-center gap-1.5 rounded-full border border-white/5 bg-white/5 px-3 py-1 text-xs text-white/60 font-semibold backdrop-blur-md">
@@ -377,7 +381,7 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
                 />
               )}
 
-              {/* Main Paths (Lines) for ALL teams — with hover highlight */}
+              {/* Main Paths (Lines) for ALL teams — with click/hover highlight */}
               {chartData.map((team) => {
                 const style = getLineStyle(team.teamId);
                 return (
@@ -393,6 +397,7 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
                       className="cursor-pointer"
                       onMouseEnter={() => setHoveredTeam(team.teamId)}
                       onMouseLeave={() => setHoveredTeam(null)}
+                      onClick={(e) => { e.stopPropagation(); setSelectedTeam(prev => prev === team.teamId ? null : team.teamId); }}
                     />
                     {/* Visible line */}
                     <path
@@ -413,7 +418,7 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
               {/* Circles / Dots on hover points */}
               {hoveredMw !== null &&
                 chartData
-                  .filter((team) => hoveredTeam === null ? chartData.indexOf(team) < 4 : team.teamId === hoveredTeam)
+                  .filter((team) => activeTeam === null ? chartData.indexOf(team) < 4 : team.teamId === activeTeam)
                   .map((team) => {
                     const pos = getPositionAt(team, hoveredMw);
                     if (pos === undefined) return null;
@@ -427,7 +432,7 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
                           stroke="white"
                           strokeWidth={2}
                         />
-                        {hoveredTeam === team.teamId && (
+                        {activeTeam === team.teamId && (
                           <circle
                             cx={xScale(hoveredMw)}
                             cy={yScale(pos)}
@@ -444,7 +449,7 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
 
               {/* End of Line logo markers — show for highlighted team or top 4 */}
               {chartData
-                .filter((team) => hoveredTeam === null ? chartData.indexOf(team) < 4 : team.teamId === hoveredTeam)
+                .filter((team) => activeTeam === null ? chartData.indexOf(team) < 4 : team.teamId === activeTeam)
                 .map((team) => {
                   const lastIdx = team.positions.length - 1;
                   if (lastIdx < 0) return null;
@@ -530,7 +535,8 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
         {chartData.map((team) => {
           const logo = logoMap?.[team.teamId];
           const lastPos = team.positions.length > 0 ? team.positions[team.positions.length - 1] : numTeams;
-          const isHighlighted = hoveredTeam === team.teamId;
+          const isSelected = selectedTeam === team.teamId;
+          const isHighlighted = isSelected || hoveredTeam === team.teamId;
 
           return (
             <div
@@ -538,12 +544,13 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
               className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-bold cursor-pointer transition-all duration-200 ${
                 isHighlighted
                   ? 'border-white/30 bg-white/15 scale-105 shadow-lg'
-                  : hoveredTeam === null
+                  : activeTeam === null
                     ? 'border-white/5 bg-white/5 hover:bg-white/10'
                     : 'border-white/3 bg-white/2 opacity-40'
-              }`}
+              }${isSelected ? ' ring-1 ring-white/25' : ''}`}
               onMouseEnter={() => setHoveredTeam(team.teamId)}
               onMouseLeave={() => setHoveredTeam(null)}
+              onClick={(e) => { e.stopPropagation(); setSelectedTeam(prev => prev === team.teamId ? null : team.teamId); }}
             >
               {logo ? (
                 <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-white p-0.5 border border-slate-200 shadow-sm">
