@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Trophy,
   Medal,
@@ -8,6 +8,7 @@ import {
   Flame,
   Sparkles,
   Shield,
+  ShieldPlus,
   Zap,
   TrendingUp,
   Home,
@@ -20,11 +21,26 @@ import {
   Smile,
   Heart,
   Star,
-  BarChart3
+  BarChart3,
+  Timer,
+  X,
 } from 'lucide-react';
 import type { LeagueStanding, LeagueMatch } from '../../types/leagueConfig';
 import type { LeagueMOTS } from '../../utils/motm';
 import type { Team } from '../../types/tournament';
+import { buildEPLBestXI, type EPLBestXIPlayer, type EPLBestXIResult } from '../../utils/eplBestXI';
+import {
+  computeComebackKings,
+  computeBiggestBottlers,
+  computeFastestGoal,
+  computeLastMinuteWinner,
+  computeHatTrickHeroes,
+  computePenaltySpecialist,
+  computeEarlyBirds,
+  computePenaltyVillains,
+  computeEntertainers,
+  type HatTrickHeroResult,
+} from '../../utils/eplRecapStats';
 
 interface LeagueRecapProps {
   standings: LeagueStanding[];
@@ -189,6 +205,104 @@ const FeaturedMatchCard = ({
   </div>
 );
 
+const EventStatCard = ({
+  icon: Icon,
+  title,
+  playerName,
+  teamName,
+  teamId,
+  displayMinute,
+  matchLabel,
+  logoMap,
+  accent = 'amber',
+}: {
+  icon: React.ComponentType<any>;
+  title: string;
+  playerName: string;
+  teamName: string;
+  teamId: string;
+  displayMinute: string;
+  matchLabel: string;
+  logoMap?: Record<string, string>;
+  accent?: 'amber' | 'sky';
+}) => {
+  const accentBorder = accent === 'amber' ? 'border-amber-400/25' : 'border-sky-400/25';
+  const accentBg = accent === 'amber' ? 'bg-amber-950/10' : 'bg-sky-950/10';
+
+  return (
+    <div className={`rounded-2xl border ${accentBorder} ${accentBg} p-5 backdrop-blur-md transition-all duration-300 hover:scale-[1.02]`}>
+      <div className="flex items-center justify-between mb-3">
+        <span className={`text-xs font-bold uppercase tracking-[0.22em] ${accent === 'amber' ? 'text-amber-400/80' : 'text-sky-400/80'}`}>
+          {title}
+        </span>
+        <div className={`flex items-center gap-1 rounded-full ${accent === 'amber' ? 'bg-amber-500/10 border-amber-500/20 text-amber-300' : 'bg-sky-500/10 border-sky-500/20 text-sky-300'} border px-2.5 py-0.5 text-xs font-black`}>
+          <Clock className="h-3 w-3 mr-0.5" />
+          <span>{displayMinute}</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        {logoMap && teamId && logoMap[teamId] ? (
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white border border-slate-200 p-0.5">
+            <img src={logoMap[teamId]} alt="" className="h-full w-full object-contain" />
+          </div>
+        ) : null}
+        <div className="min-w-0 flex-1">
+          <div className="text-lg font-black text-white leading-tight truncate">{playerName}</div>
+          <div className="text-xs text-white/55 font-semibold mt-0.5 truncate">{teamName}</div>
+          <div className="text-[10px] text-white/40 mt-1 truncate">{matchLabel}</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const PlayerPitchCard = ({
+  player,
+  bestPlayerId,
+  logoMap,
+  onClick,
+}: {
+  player: EPLBestXIPlayer;
+  bestPlayerId: string;
+  logoMap?: Record<string, string>;
+  onClick: () => void;
+}) => {
+  const isBest = player.playerId === bestPlayerId;
+  return (
+    <button
+      onClick={onClick}
+      className={`group relative flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-300 hover:scale-106 focus:outline-none w-[70px] sm:w-[90px] ${
+        isBest
+          ? 'border border-amber-400/40 bg-amber-400/5 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
+          : 'border border-purple-400/10 bg-[#0c0c16]/70 hover:border-purple-400/30'
+      }`}
+    >
+      {isBest && (
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-400 text-[#0d0a02] rounded-full p-0.5 border border-amber-300 shadow-md">
+          <Sparkles className="h-3 w-3 animate-spin" style={{ animationDuration: '6s' }} />
+        </div>
+      )}
+
+      <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-white p-0.5 border border-slate-200 shadow-sm transition-transform group-hover:scale-105">
+        {logoMap && logoMap[player.teamId] ? (
+          <img src={logoMap[player.teamId]} alt="" className="h-full w-full object-contain" />
+        ) : (
+          <span className="font-bold text-[10px] text-slate-800">{player.teamName.slice(0, 2).toUpperCase()}</span>
+        )}
+      </div>
+
+      <div className="mt-1.5 w-full text-center">
+        <span className="block text-[10px] sm:text-xs font-black text-white truncate w-full px-0.5 leading-tight group-hover:text-amber-300 transition-colors">
+          {player.playerName}
+        </span>
+        <span className="block text-[8px] sm:text-[10px] font-bold text-white/50 uppercase tracking-wider mt-0.5">
+          {player.position} · {player.totalScore}
+        </span>
+      </div>
+    </button>
+  );
+};
+
 const Podium = ({
   champion,
   championId,
@@ -352,10 +466,26 @@ const ZoneList = ({
 };
 
 export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, mots, teamsById }: LeagueRecapProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'awards' | 'streaks' | 'highlights' | 'stats'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'awards' | 'streaks' | 'highlights' | 'stats' | 'bestxi'>('overview');
+  const [selectedBestXIPlayer, setSelectedBestXIPlayer] = useState<EPLBestXIPlayer | null>(null);
 
-  const completedMatches = fixtures.filter((f) => f.status === 'completed');
-  const isComplete = completedMatches.length === fixtures.length;
+  const completedMatches = useMemo(() => fixtures.filter((f) => f.status === 'completed'), [fixtures]);
+  const isComplete = useMemo(() => completedMatches.length === fixtures.length, [completedMatches, fixtures]);
+
+  const bestXI = useMemo(() => {
+    if (!teamsById) return null;
+    return buildEPLBestXI(fixtures, standings, Object.values(teamsById));
+  }, [fixtures, standings, teamsById]);
+
+  const comebackKing = useMemo(() => computeComebackKings(completedMatches, standings), [completedMatches, standings]);
+  const biggestBottler = useMemo(() => computeBiggestBottlers(completedMatches, standings), [completedMatches, standings]);
+  const entertainers = useMemo(() => computeEntertainers(standings), [standings]);
+  const earlyBirds = useMemo(() => computeEarlyBirds(completedMatches, standings), [completedMatches, standings]);
+  const penaltyVillains = useMemo(() => computePenaltyVillains(completedMatches, standings), [completedMatches, standings]);
+  const hatTrickHeroes = useMemo(() => computeHatTrickHeroes(completedMatches, standings), [completedMatches]);
+  const penaltySpecialist = useMemo(() => computePenaltySpecialist(completedMatches, standings), [completedMatches, standings]);
+  const fastestGoal = useMemo(() => computeFastestGoal(completedMatches, standings), [completedMatches, standings]);
+  const lastMinuteWinner = useMemo(() => computeLastMinuteWinner(completedMatches, standings), [completedMatches, standings]);
 
   if (!isComplete || standings.length < 3) {
     return (
@@ -609,7 +739,6 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
   for (const match of completedMatches) {
     if (!match.timeline) continue;
     for (const event of match.timeline) {
-      // Check for 90+ goals: displayMinute contains '90+' or sortMinute >= 90
       const is90Plus = event.displayMinute.startsWith('90+') || event.sortMinute >= 90;
       if (is90Plus) {
         lateDramaMap[event.teamId] = (lateDramaMap[event.teamId] || 0) + 1;
@@ -651,7 +780,6 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
       .slice(0, 10);
   })();
 
-  // Partition zones
   const uclTeams = standings.slice(0, 4);
   const uelTeams = standings.slice(4, 6);
   const ueclTeams = standings.slice(6, 7);
@@ -659,7 +787,6 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
 
   return (
     <div className="space-y-6">
-      {/* Ambient header */}
       <div className="relative overflow-hidden rounded-3xl border border-[#1e1e2e] bg-[#111118]/80 p-6 sm:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.06),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(245,158,11,0.02),transparent_45%)] pointer-events-none" />
         <div className="relative z-10">
@@ -684,7 +811,6 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
               </div>
             </div>
 
-            {/* Quick Stats Banner */}
             <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 text-xs font-semibold backdrop-blur-md">
               <div className="text-white/60">
                 Goals: <span className="font-black text-white text-sm">{totalGoals}</span>
@@ -696,7 +822,6 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
             </div>
           </div>
 
-          {/* Navigation Tabs */}
           <div className="flex flex-wrap items-center justify-start gap-2 border-b border-[#1e1e2e] pb-4 mb-6">
             <button
               onClick={() => setActiveTab('overview')}
@@ -748,9 +873,20 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
             >
               <BarChart3 className="h-4 w-4" /> Season Stats
             </button>
+            {bestXI && (
+              <button
+                onClick={() => setActiveTab('bestxi')}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-all ${
+                  activeTab === 'bestxi'
+                    ? 'bg-[#e11d8f]/8 text-slate-100 border border-[#e11d8f]/30 shadow-inner'
+                    : 'text-white/50 hover:text-white hover:bg-white/5 border border-transparent'
+                }`}
+              >
+                <ShieldPlus className="h-4 w-4" /> Best XI
+              </button>
+            )}
           </div>
 
-          {/* Tab 1: Overview & Podium */}
           {activeTab === 'overview' && (
             <div className="space-y-8 animate-fadeIn">
               <div className="flex flex-col lg:flex-row gap-6 items-center justify-center">
@@ -767,7 +903,6 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
                 </div>
               </div>
 
-              {/* Zones Layout */}
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <ZoneList
                   title="Champions League (Top 4)"
@@ -801,7 +936,6 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
             </div>
           )}
 
-          {/* Tab 2: Team Awards */}
           {activeTab === 'awards' && (
             <div className="space-y-6 animate-fadeIn">
               {mots && (
@@ -891,11 +1025,43 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
                   teamId={champion.teamId}
                   logoMap={logoMap}
                 />
+                {comebackKing && (
+                  <StatCard
+                    label="Comeback Kings"
+                    value={comebackKing.teamName}
+                    sub={`${comebackKing.comebacks} wins/draws after conceding first`}
+                    accent="sky"
+                    teamInitials={comebackKing.teamName.slice(0, 2).toUpperCase()}
+                    teamId={comebackKing.teamId}
+                    logoMap={logoMap}
+                  />
+                )}
+                {biggestBottler && (
+                  <StatCard
+                    label="Biggest Bottlers"
+                    value={biggestBottler.teamName}
+                    sub={`Lost ${biggestBottler.bottledPoints} points from leading positions`}
+                    accent="rose"
+                    teamInitials={biggestBottler.teamName.slice(0, 2).toUpperCase()}
+                    teamId={biggestBottler.teamId}
+                    logoMap={logoMap}
+                  />
+                )}
+                {entertainers && (
+                  <StatCard
+                    label="The Entertainers"
+                    value={entertainers.teamName}
+                    sub={`Avg ${entertainers.avgTotalGoals.toFixed(2)} match goals (scored + conceded)`}
+                    accent="violet"
+                    teamInitials={entertainers.teamName.slice(0, 2).toUpperCase()}
+                    teamId={entertainers.teamId}
+                    logoMap={logoMap}
+                  />
+                )}
               </div>
             </div>
           )}
 
-          {/* Tab 3: Streaks & Records */}
           {activeTab === 'streaks' && (
             <div className="grid gap-4 sm:grid-cols-2 animate-fadeIn">
               <StatCard
@@ -934,13 +1100,33 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
                 teamId={goalMachineTeam.teamId}
                 logoMap={logoMap}
               />
+              {earlyBirds && (
+                <StatCard
+                  label="The Early Birds"
+                  value={earlyBirds.teamName}
+                  sub={`Scored ${earlyBirds.earlyGoals} goals within the first 15 minutes`}
+                  accent="sky"
+                  teamInitials={earlyBirds.teamName.slice(0, 2).toUpperCase()}
+                  teamId={earlyBirds.teamId}
+                  logoMap={logoMap}
+                />
+              )}
+              {penaltyVillains && (
+                <StatCard
+                  label="Penalty Villains"
+                  value={penaltyVillains.teamName}
+                  sub={`Conceded ${penaltyVillains.penaltiesConceded} penalties this season`}
+                  accent="rose"
+                  teamInitials={penaltyVillains.teamName.slice(0, 2).toUpperCase()}
+                  teamId={penaltyVillains.teamId}
+                  logoMap={logoMap}
+                />
+              )}
             </div>
           )}
 
-          {/* Tab 4: Top Scorers (Golden Boots) */}
           {activeTab === 'highlights' && (
             <div className="space-y-8 animate-fadeIn">
-              {/* Hero: Golden Boot #1 */}
               {topScorers[0] && (
                 <div className="relative overflow-hidden rounded-3xl border border-amber-400/30 bg-gradient-to-br from-amber-500/15 via-[#111118] to-amber-900/10 p-8 shadow-[0_0_60px_rgba(245,158,11,0.08)]">
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.08),transparent_50%)] pointer-events-none" />
@@ -959,7 +1145,7 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
                       ) : null}
                     </div>
                     <h3 className="text-3xl sm:text-4xl font-black text-white mb-1">{topScorers[0].playerName}</h3>
-                    <p className="text-sm text-white/50 font-bold">{topScorers[0].teamName}</p>
+                    <p className="text-sm text-white/55 font-bold">{topScorers[0].teamName}</p>
                     <div className="mt-4 flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/15 px-6 py-3 text-2xl font-black text-amber-300 shadow-lg">
                       <Target className="h-6 w-6" />
                       <span>{topScorers[0].goals} Goals</span>
@@ -968,7 +1154,6 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
                 </div>
               )}
 
-              {/* Podium: #2 and #3 */}
               {topScorers.length >= 2 && (
                 <div className="grid gap-4 sm:grid-cols-2">
                   {topScorers.slice(1, 3).map((scorer, idx) => (
@@ -1003,7 +1188,6 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
                 </div>
               )}
 
-              {/* Rest of Top Scorers Table: #4 to #10 */}
               {topScorers.length > 3 && (
                 <div className="rounded-2xl border border-[#1e1e2e]/50 bg-[#0c0c16]/50 overflow-hidden backdrop-blur-md">
                   <div className="flex items-center gap-2 px-5 py-3 border-b border-[#1e1e2e]/30 bg-[#0a0a12]/60">
@@ -1034,13 +1218,70 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
                   </div>
                 </div>
               )}
+
+              {/* Curious Stats: Penalty Specialist & Hat-trick Heroes */}
+              <div className="grid gap-6 md:grid-cols-2">
+                {penaltySpecialist && (
+                  <div className="flex flex-col">
+                    <StatCard
+                      label="Penalty Specialist"
+                      value={penaltySpecialist.playerName}
+                      sub={`Scored ${penaltySpecialist.penaltyGoals} penalties for ${penaltySpecialist.teamName}`}
+                      accent="amber"
+                      teamId={penaltySpecialist.teamId}
+                      logoMap={logoMap}
+                      className="h-full"
+                    />
+                  </div>
+                )}
+
+                <div className="rounded-2xl border border-[#1e1e2e]/50 bg-[#0c0c16]/50 p-5 backdrop-blur-md flex flex-col">
+                  <div className="flex items-center gap-2 mb-4 border-b border-[#1e1e2e] pb-2">
+                    <Flame className="h-5 w-5 text-amber-400" />
+                    <h3 className="text-xs font-black uppercase tracking-widest text-amber-400">
+                      Hat-trick Heroes
+                    </h3>
+                  </div>
+                  {hatTrickHeroes.length === 0 ? (
+                    <div className="flex-1 flex items-center justify-center py-6 text-sm text-white/40 italic">
+                      No hat-tricks scored this season
+                    </div>
+                  ) : (
+                    <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                      {hatTrickHeroes.map((hero: HatTrickHeroResult, idx: number) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between gap-3 border-b border-[#1e1e2e]/50 pb-2 last:border-0 last:pb-0"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            {logoMap && hero.teamId && logoMap[hero.teamId] ? (
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-white p-0.5 border border-slate-200">
+                                <img src={logoMap[hero.teamId]} alt="" className="h-full w-full object-contain" />
+                              </div>
+                            ) : null}
+                            <div className="truncate">
+                              <span className="font-bold text-white text-sm block leading-tight">
+                                {hero.playerName}
+                              </span>
+                              <span className="text-[10px] text-white/40 block">
+                                {hero.matchLabel}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-0.5 text-xs font-black text-amber-300 shrink-0">
+                            <span>{hero.goals} goals</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
-          {/* Tab 5: Season Stats */}
           {activeTab === 'stats' && (
             <div className="space-y-6 animate-fadeIn">
-              {/* Featured Matches moved here from Boot & Matches */}
               <div className="grid gap-4 sm:grid-cols-2">
                 {highestScoringMatch && (
                   <FeaturedMatchCard
@@ -1070,7 +1311,6 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
                 )}
               </div>
 
-              {/* Biggest Upset */}
               {biggestUpset && (
                 <FeaturedMatchCard
                   title="Biggest Upset"
@@ -1085,9 +1325,7 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
                 />
               )}
 
-              {/* Stat cards row */}
               <div className="grid gap-4 sm:grid-cols-2">
-                {/* Late Drama Kings */}
                 {lateDramaKing && (
                   <StatCard
                     label="Late Drama Kings"
@@ -1137,6 +1375,166 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
                     </>
                   );
                 })()}
+              </div>
+
+              {/* Event Stats: Fastest Goal & Last-Minute Winner */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                {fastestGoal && (
+                  <EventStatCard
+                    icon={Timer}
+                    title="Fastest Goal of the Season"
+                    playerName={fastestGoal.playerName}
+                    teamName={fastestGoal.teamName}
+                    teamId={fastestGoal.teamId}
+                    displayMinute={fastestGoal.displayMinute}
+                    matchLabel={fastestGoal.matchLabel}
+                    logoMap={logoMap}
+                    accent="sky"
+                  />
+                )}
+                {lastMinuteWinner && (
+                  <EventStatCard
+                    icon={Clock}
+                    title="Latest Winning Goal"
+                    playerName={lastMinuteWinner.playerName}
+                    teamName={lastMinuteWinner.teamName}
+                    teamId={lastMinuteWinner.teamId}
+                    displayMinute={lastMinuteWinner.displayMinute}
+                    matchLabel={lastMinuteWinner.matchLabel}
+                    logoMap={logoMap}
+                    accent="amber"
+                  />
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Tab 6: Best XI */}
+          {activeTab === 'bestxi' && bestXI && (
+            <div className="space-y-6 animate-fadeIn">
+              <div className="text-center max-w-md mx-auto">
+                <h3 className="text-lg font-black text-white">EPL Team of the Season</h3>
+                <p className="text-xs text-white/55 mt-1">
+                  Selected automatically using performance scores based on goals, clean sheets, match awards, and team standings. Click on any player to view details.
+                </p>
+              </div>
+
+              <div className="relative">
+                {/* Soccer Pitch Visualizer */}
+                <div className="relative w-full max-w-2xl mx-auto aspect-[3/4] rounded-3xl border border-[#38003c]/40 bg-gradient-to-b from-[#0d1117] via-[#111827] to-[#0d1117] p-8 shadow-2xl overflow-hidden flex flex-col justify-between select-none">
+                  {/* Pitch markings */}
+                  <div className="absolute inset-4 border border-amber-400/10 rounded-2xl pointer-events-none">
+                    <div className="absolute top-1/2 left-0 right-0 h-px bg-amber-400/10 -translate-y-1/2" />
+                    <div className="absolute top-1/2 left-1/2 w-24 h-24 border border-amber-400/10 rounded-full -translate-x-1/2 -translate-y-1/2" />
+                    <div className="absolute top-1/2 left-1/2 w-2.5 h-2.5 bg-amber-400/10 rounded-full -translate-x-1/2 -translate-y-1/2" />
+                    <div className="absolute top-0 left-1/2 w-48 h-20 border border-amber-400/10 -translate-x-1/2 border-t-0" />
+                    <div className="absolute top-20 left-1/2 w-20 h-8 border border-amber-400/10 -translate-x-1/2 rounded-b-full border-t-0 opacity-40" />
+                    <div className="absolute bottom-0 left-1/2 w-48 h-20 border border-amber-400/10 -translate-x-1/2 border-b-0" />
+                    <div className="absolute bottom-20 left-1/2 w-20 h-8 border border-amber-400/10 -translate-x-1/2 rounded-t-full border-b-0 opacity-40" />
+                  </div>
+
+                  {/* Forwards */}
+                  <div className="flex justify-around items-center z-10 w-full">
+                    {bestXI.forwards.map((player: EPLBestXIPlayer) => (
+                      <PlayerPitchCard
+                        key={player.playerId}
+                        player={player}
+                        bestPlayerId={bestXI.bestPlayer.playerId}
+                        logoMap={logoMap}
+                        onClick={() => setSelectedBestXIPlayer(player)}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Midfielders */}
+                  <div className="flex justify-around items-center z-10 w-full">
+                    {bestXI.midfielders.map((player: EPLBestXIPlayer) => (
+                      <PlayerPitchCard
+                        key={player.playerId}
+                        player={player}
+                        bestPlayerId={bestXI.bestPlayer.playerId}
+                        logoMap={logoMap}
+                        onClick={() => setSelectedBestXIPlayer(player)}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Defenders */}
+                  <div className="flex justify-around items-center z-10 w-full px-2">
+                    {bestXI.defenders.map((player: EPLBestXIPlayer) => (
+                      <PlayerPitchCard
+                        key={player.playerId}
+                        player={player}
+                        bestPlayerId={bestXI.bestPlayer.playerId}
+                        logoMap={logoMap}
+                        onClick={() => setSelectedBestXIPlayer(player)}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Goalkeeper */}
+                  <div className="flex justify-center items-center z-10 w-full">
+                    <PlayerPitchCard
+                      player={bestXI.goalkeeper}
+                      bestPlayerId={bestXI.bestPlayer.playerId}
+                      logoMap={logoMap}
+                      onClick={() => setSelectedBestXIPlayer(bestXI.goalkeeper)}
+                    />
+                  </div>
+
+                  {/* Player Detail Modal Overlay */}
+                  {selectedBestXIPlayer && (
+                    <div className="absolute inset-0 bg-[#0a0a12]/80 backdrop-blur-sm z-30 flex items-center justify-center p-4 rounded-3xl transition-opacity animate-fadeIn">
+                      <div className="relative w-full max-w-sm rounded-2xl border border-amber-400/30 bg-[#111118] p-6 shadow-2xl">
+                        <button
+                          onClick={() => setSelectedBestXIPlayer(null)}
+                          className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors"
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+
+                        <div className="flex flex-col items-center text-center">
+                          <div className="relative mb-4">
+                            {logoMap && selectedBestXIPlayer.teamId && logoMap[selectedBestXIPlayer.teamId] ? (
+                              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white border border-slate-200 p-1.5 shadow-md">
+                                <img src={logoMap[selectedBestXIPlayer.teamId]} alt="" className="h-full w-full object-contain" />
+                              </div>
+                            ) : null}
+                          </div>
+
+                          <h3 className="text-xl font-black text-white">{selectedBestXIPlayer.playerName}</h3>
+                          <p className="text-xs text-white/55 font-bold uppercase tracking-wider mt-1">
+                            {selectedBestXIPlayer.teamName} · {selectedBestXIPlayer.position}
+                          </p>
+
+                          <div className="mt-4 flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-1.5 text-sm font-black text-amber-300">
+                            <Sparkles className="h-4 w-4 text-amber-400" />
+                            <span>Performance Score: {selectedBestXIPlayer.totalScore} pts</span>
+                          </div>
+
+                          <div className="mt-6 w-full grid grid-cols-3 gap-2 border-t border-[#1e1e2e] pt-4">
+                            <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                              <span className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Goals</span>
+                              <span className="block text-lg font-black text-white mt-1">{selectedBestXIPlayer.goals}</span>
+                            </div>
+                            <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                              <span className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">MOTM</span>
+                              <span className="block text-lg font-black text-white mt-1">{selectedBestXIPlayer.motmCount}</span>
+                            </div>
+                            <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                              <span className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">CS</span>
+                              <span className="block text-lg font-black text-white mt-1">
+                                {selectedBestXIPlayer.position === 'GK' || selectedBestXIPlayer.position === 'DF'
+                                  ? selectedBestXIPlayer.cleanSheets
+                                  : '—'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}

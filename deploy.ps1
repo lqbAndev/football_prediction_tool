@@ -1,6 +1,6 @@
 $ProjectRoot   = "e:\Study\vibe-antigravity\football_prediction_tool"
-$BranchName    = "feature/wc26-crawler-and-epl-ux"
-$CommitMessage = "feat: WC26 Player Crawler, Netlify CD, EPL Early Winner GD, Interactive Title Race, Player Goal Modal (v3.0.0)"
+$BranchName    = "feature/epl-bestxi-curious-stats"
+$CommitMessage = "feat: EPL Best XI, Curious Stats, Vercel Deploy (v3.1.0)"
 
 $env:GIT_PAGER = ""
 
@@ -57,7 +57,7 @@ OK "on branch $BranchName"
 # -----------------------------------------------
 Write-Step "2/6  Stage and commit"
 
-git add src/ public/ index.html package.json package-lock.json vite.config.ts tailwind.config.ts postcss.config.js tsconfig.json tsconfig.node.json .gitignore README.md netlify.toml
+git add src/ public/ index.html package.json package-lock.json vite.config.ts tailwind.config.ts postcss.config.js tsconfig.json tsconfig.node.json .gitignore README.md
 git add -f project_updates/ deploy.ps1 scripts/
 
 git diff --cached --name-only
@@ -86,12 +86,12 @@ if ($LASTEXITCODE -ne 0) { Fail "git merge $BranchName" }
 OK "merged $BranchName into main"
 
 # -----------------------------------------------
-# 4. Push main (Netlify auto-deploys from main)
+# 4. Push main (Vercel auto-deploys from main)
 # -----------------------------------------------
 Write-Step "4/6  Push main"
 git push origin main
 if ($LASTEXITCODE -ne 0) { Fail "git push origin main" }
-OK "pushed main - Netlify will auto-build and deploy"
+OK "pushed main - Vercel will auto-build and deploy"
 
 # -----------------------------------------------
 # 5. Restore dev App.tsx
@@ -109,6 +109,6 @@ OK "cleaned up feature branch"
 Write-Host ""
 Write-Host "==========================================" -ForegroundColor Green
 Write-Host "  Done! Pushed to main." -ForegroundColor Green
-Write-Host "  Netlify CD will auto-detect and deploy." -ForegroundColor Green
+Write-Host "  Vercel CD will auto-detect and deploy." -ForegroundColor Green
 Write-Host "==========================================" -ForegroundColor Green
 git log --oneline -5
