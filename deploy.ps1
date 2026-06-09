@@ -1,7 +1,9 @@
-$ProjectRoot   = "e:\Study\vibe-antigravity\football_prediction_tool"
-$BranchName    = "feature/epl-bestxi-curious-stats"
-$CommitMessage = "feat: EPL Best XI, Curious Stats, Vercel Deploy (v3.1.0)"
+param(
+  [string]$BranchName = "feature/epl-bestxi-curious-stats",
+  [string]$CommitMessage = "feat: EPL Best XI, Curious Stats, Vercel Deploy (v3.1.0)"
+)
 
+$ProjectRoot   = $PSScriptRoot
 $env:GIT_PAGER = ""
 
 function Write-Step($msg) {
@@ -16,7 +18,6 @@ function Fail($step) {
 function OK($label) { Write-Host "[OK]   $label" -ForegroundColor Green }
 
 $appDev  = Join-Path $ProjectRoot "src\App.tsx"
-$appProd = Join-Path $ProjectRoot "src\App.prod.tsx"
 $appBak  = Join-Path $ProjectRoot "src\App.dev.tsx"
 
 function Restore-App {
@@ -31,14 +32,40 @@ Set-Location $ProjectRoot
 Write-Host "Project: $ProjectRoot" -ForegroundColor DarkGray
 
 # -----------------------------------------------
-# 0. Swap App.tsx with production version
-#    App.prod.tsx has NO testCup import / route
+# 0. Swap App.tsx with dynamically generated production version
 # -----------------------------------------------
-Write-Step "0/6  Swap App.tsx to production version"
+Write-Step "0/6  Dynamically generate production App.tsx"
 
+if (-not (Test-Path $appDev)) {
+  Fail "src/App.tsx not found"
+}
+
+# Backup dev version
 Copy-Item $appDev $appBak -Force
-Copy-Item $appProd $appDev -Force
-OK "App.tsx swapped to App.prod.tsx (no testCup references)"
+
+# Filter out test-related lines
+$lines = Get-Content $appDev
+$prodLines = $lines | Where-Object {
+  $_ -notmatch "testCup" -and
+  $_ -notmatch "testLeague" -and
+  $_ -notmatch "LeagueApp" -and
+  $_ -notmatch "test-league"
+}
+$prodLines | Set-Content $appDev
+
+OK "App.tsx compiled to production version (removed test/dev dependencies)"
+
+# -----------------------------------------------
+# 0.5. Validate build compiles before committing
+# -----------------------------------------------
+Write-Step "0.5/6 Validate production build"
+Write-Host "Running TypeScript check and build..." -ForegroundColor DarkGray
+
+npm run build
+if ($LASTEXITCODE -ne 0) {
+  Fail "Production build validation failed! Please fix compiler/build errors."
+}
+OK "Production build compiled successfully"
 
 # -----------------------------------------------
 # 1. Create feature branch
@@ -59,8 +86,6 @@ Write-Step "2/6  Stage and commit"
 
 git add src/ public/ index.html package.json package-lock.json vite.config.ts tailwind.config.ts postcss.config.js tsconfig.json tsconfig.node.json .gitignore README.md
 git add -f project_updates/ deploy.ps1 scripts/
-
-git diff --cached --name-only
 
 $changedFiles = git diff --cached --name-only
 if (-not $changedFiles) {

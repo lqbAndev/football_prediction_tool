@@ -271,7 +271,8 @@ const PlayerPitchCard = ({
   return (
     <button
       onClick={onClick}
-      className={`group relative flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-300 hover:scale-106 focus:outline-none w-[70px] sm:w-[90px] ${
+      title={`${player.playerName} — ${player.position} · ${player.totalScore} pts`}
+      className={`group relative flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-xl transition-all duration-300 hover:scale-106 focus:outline-none w-[66px] xs:w-[76px] sm:w-[92px] md:w-[105px] ${
         isBest
           ? 'border border-amber-400/40 bg-amber-400/5 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
           : 'border border-purple-400/10 bg-[#0c0c16]/70 hover:border-purple-400/30'
@@ -283,19 +284,19 @@ const PlayerPitchCard = ({
         </div>
       )}
 
-      <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-white p-0.5 border border-slate-200 shadow-sm transition-transform group-hover:scale-105">
+      <div className="relative flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-white p-0.5 border border-slate-200 shadow-sm transition-transform group-hover:scale-105">
         {logoMap && logoMap[player.teamId] ? (
           <img src={logoMap[player.teamId]} alt="" className="h-full w-full object-contain" />
         ) : (
-          <span className="font-bold text-[10px] text-slate-800">{player.teamName.slice(0, 2).toUpperCase()}</span>
+          <span className="font-bold text-[9px] sm:text-[10px] text-slate-800">{player.teamName.slice(0, 2).toUpperCase()}</span>
         )}
       </div>
 
-      <div className="mt-1.5 w-full text-center">
-        <span className="block text-[10px] sm:text-xs font-black text-white truncate w-full px-0.5 leading-tight group-hover:text-amber-300 transition-colors">
+      <div className="mt-1 w-full text-center">
+        <span className="block text-[8px] xs:text-[9px] sm:text-xs font-black text-white w-full px-0.5 leading-tight group-hover:text-amber-300 transition-colors break-words line-clamp-2">
           {player.playerName}
         </span>
-        <span className="block text-[8px] sm:text-[10px] font-bold text-white/50 uppercase tracking-wider mt-0.5">
+        <span className="block text-[7px] xs:text-[8px] sm:text-[10px] font-bold text-white/50 uppercase tracking-wider mt-0.5">
           {player.position} · {player.totalScore}
         </span>
       </div>
@@ -938,37 +939,47 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
 
           {activeTab === 'awards' && (
             <div className="space-y-6 animate-fadeIn">
-              {mots && (
-                <div className="rounded-2xl border border-amber-400/20 bg-amber-950/10 p-5 transition-all duration-300 hover:scale-[1.02] backdrop-blur-md sm:col-span-2 lg:col-span-3">
-                  <div className="text-xs font-bold uppercase tracking-[0.22em] text-amber-400/80">
-                    Player of the Season
-                  </div>
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <div className="flex min-w-0 flex-1 items-center gap-3">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-950/40 border border-amber-400/30">
-                        <Star className="h-4 w-4 text-amber-300" />
-                      </div>
-                      <div className="truncate text-xl font-black text-white">{mots.playerName}</div>
+              {(() => {
+                // Sync POTS: prefer bestXI.bestPlayer for consistency, fallback to mots
+                const potsPlayer = bestXI?.bestPlayer;
+                const potsName = potsPlayer?.playerName ?? mots?.playerName;
+                const potsTeamId = potsPlayer?.teamId ?? mots?.teamId;
+                const potsTeamName = potsPlayer?.teamName ?? mots?.teamName;
+                const potsPoints = potsPlayer?.totalScore ?? (mots as any)?.points ?? ((mots?.motmCount ?? 0) * 3);
+                const potsMotmCount = potsPlayer?.motmCount ?? mots?.motmCount ?? 0;
+                if (!potsName) return null;
+                return (
+                  <div className="rounded-2xl border border-amber-400/20 bg-amber-950/10 p-5 transition-all duration-300 hover:scale-[1.02] backdrop-blur-md sm:col-span-2 lg:col-span-3">
+                    <div className="text-xs font-bold uppercase tracking-[0.22em] text-amber-400/80">
+                      Player of the Season
                     </div>
-                    <div className="shrink-0 flex items-center gap-3">
-                      <div className="flex items-center gap-1.5 text-sm text-white/60 font-semibold">
-                        {logoMap && mots.teamId && logoMap[mots.teamId] && (
-                          <img src={logoMap[mots.teamId]} alt="" className="h-5 w-5 object-contain bg-white rounded p-0.5 shrink-0" />
-                        )}
-                        <span className="truncate">{mots.teamName}</span>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <div className="flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-black text-amber-300">
-                          <span>{(mots as any).points ?? (mots.motmCount * 3)} pts</span>
+                    <div className="mt-3 flex items-center justify-between gap-3">
+                      <div className="flex min-w-0 flex-1 items-center gap-3">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-950/40 border border-amber-400/30">
+                          <Star className="h-4 w-4 text-amber-300" />
                         </div>
-                        <div className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-white/60">
-                          <span>{mots.motmCount} MOTM</span>
+                        <div className="truncate text-xl font-black text-white">{potsName}</div>
+                      </div>
+                      <div className="shrink-0 flex items-center gap-3">
+                        <div className="flex items-center gap-1.5 text-sm text-white/60 font-semibold">
+                          {logoMap && potsTeamId && logoMap[potsTeamId] && (
+                            <img src={logoMap[potsTeamId]} alt="" className="h-5 w-5 object-contain bg-white rounded p-0.5 shrink-0" />
+                          )}
+                          <span className="truncate">{potsTeamName}</span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-black text-amber-300">
+                            <span>{potsPoints} pts</span>
+                          </div>
+                          <div className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-white/60">
+                            <span>{potsMotmCount} MOTM</span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <StatCard
@@ -1420,10 +1431,10 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
               </div>
 
               <div className="relative">
-                {/* Soccer Pitch Visualizer */}
-                <div className="relative w-full max-w-2xl mx-auto aspect-[3/4] rounded-3xl border border-[#38003c]/40 bg-gradient-to-b from-[#0d1117] via-[#111827] to-[#0d1117] p-8 shadow-2xl overflow-hidden flex flex-col justify-between select-none">
-                  {/* Pitch markings */}
-                  <div className="absolute inset-4 border border-amber-400/10 rounded-2xl pointer-events-none">
+                  {/* Soccer Pitch Visualizer */}
+                  <div className="relative w-full max-w-2xl mx-auto aspect-[3/4] rounded-3xl border border-[#38003c]/40 bg-gradient-to-b from-[#0d1117] via-[#111827] to-[#0d1117] p-4 xs:p-6 sm:p-8 shadow-2xl overflow-hidden flex flex-col justify-between select-none">
+                    {/* Pitch markings */}
+                    <div className="absolute inset-2 xs:inset-3 sm:inset-4 border border-amber-400/10 rounded-2xl pointer-events-none">
                     <div className="absolute top-1/2 left-0 right-0 h-px bg-amber-400/10 -translate-y-1/2" />
                     <div className="absolute top-1/2 left-1/2 w-24 h-24 border border-amber-400/10 rounded-full -translate-x-1/2 -translate-y-1/2" />
                     <div className="absolute top-1/2 left-1/2 w-2.5 h-2.5 bg-amber-400/10 rounded-full -translate-x-1/2 -translate-y-1/2" />
