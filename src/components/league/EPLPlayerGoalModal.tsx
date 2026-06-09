@@ -242,7 +242,7 @@ export const EPLPlayerGoalModal = ({
                           <span>{minute.displayMinute}</span>
                           {minute.isPenalty && (
                             <span className="mt-0.5 rounded-full bg-amber-300/20 px-1 text-[8px] font-black leading-3 tracking-wider text-amber-100">
-                              PEN
+                              (P)
                             </span>
                           )}
                         </div>
