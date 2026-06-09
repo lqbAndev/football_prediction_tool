@@ -269,7 +269,7 @@ export const KnockoutMatchCard = ({
                           <span>
                             {event.playerName}
                             {event.isPenalty && (
-                              <span className="ml-0.5 text-[9px] font-bold text-amber-300/70">(P)</span>
+                              <span className="ml-0.5 text-[9px] font-bold text-amber-300/70">PEN</span>
                             )}
                           </span>
                         </div>
@@ -294,7 +294,7 @@ export const KnockoutMatchCard = ({
                           <span>
                             {event.playerName}
                             {event.isPenalty && (
-                              <span className="ml-0.5 text-[9px] font-bold text-amber-300/70">(P)</span>
+                              <span className="ml-0.5 text-[9px] font-bold text-amber-300/70">PEN</span>
                             )}
                           </span>
                         </div>

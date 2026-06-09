@@ -834,6 +834,11 @@ export default function EPLApp() {
                                       <img src={eplBall} className="w-3.5 h-3.5 object-contain shrink-0" alt="" />
                                       <span className="font-mono text-sm text-indigo-400 font-bold">{ev.displayMinute}</span>
                                       <span className="truncate font-bold">{ev.playerName}</span>
+                                      {ev.isPenalty && (
+                                        <span className="shrink-0 rounded-full border border-amber-400/35 bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-200">
+                                          PEN
+                                        </span>
+                                      )}
                                     </div>
                                   ))
                                 ) : (
@@ -849,6 +854,11 @@ export default function EPLApp() {
                                       <img src={eplBall} className="w-3.5 h-3.5 object-contain shrink-0" alt="" />
                                       <span className="font-mono text-sm text-indigo-400 font-bold">{ev.displayMinute}</span>
                                       <span className="truncate font-bold">{ev.playerName}</span>
+                                      {ev.isPenalty && (
+                                        <span className="shrink-0 rounded-full border border-amber-400/35 bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-200">
+                                          PEN
+                                        </span>
+                                      )}
                                     </div>
                                   ))
                                 ) : (

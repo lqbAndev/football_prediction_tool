@@ -56,7 +56,7 @@ export const TeamRosterModal = ({ isOpen, team, onClose }: TeamRosterModalProps)
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/65 backdrop-blur-md"
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
-      <div className="relative mx-4 flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-white/10 bg-[rgba(8,14,28,0.97)] shadow-[0_12px_60px_rgba(0,0,0,0.6)]">
+      <div className="relative mx-3 flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-[rgba(8,14,28,0.97)] shadow-[0_12px_60px_rgba(0,0,0,0.6)] sm:mx-4">
         {/* ── Header ─────────────────────────────────────── */}
         <div className="relative flex items-center gap-4 border-b border-white/[0.06] px-5 py-4 sm:px-6">
           {/* Decorative gradient backdrop */}
@@ -90,7 +90,7 @@ export const TeamRosterModal = ({ isOpen, team, onClose }: TeamRosterModalProps)
         </div>
 
         {/* ── Body ─────────────────────────────────────── */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6">
+        <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 lg:px-7">
           <div className="space-y-4">
             {POSITION_ORDER.map((pos) => {
               const players = grouped[pos];
@@ -111,13 +111,13 @@ export const TeamRosterModal = ({ isOpen, team, onClose }: TeamRosterModalProps)
                   </div>
 
                   {/* Player grid */}
-                  <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                  <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
                     {players.map((player) => (
                       <div
                         key={player.id}
                         className={`rounded-xl border px-3 py-2 text-sm text-white/80 transition hover:bg-white/[0.04] ${config.borderColor} bg-white/[0.02]`}
                       >
-                        <span className="line-clamp-1">{player.name}</span>
+                        <span className="block leading-snug break-words">{player.name}</span>
                       </div>
                     ))}
                   </div>

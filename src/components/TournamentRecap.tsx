@@ -118,7 +118,7 @@ const BestXIPlayerCard = ({
     role="button"
     tabIndex={0}
     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
-    className={`cursor-pointer rounded-2xl border px-2 py-2 text-center transition-all duration-200 hover:scale-[1.06] hover:shadow-[0_0_18px_rgba(255,255,255,0.08)] active:scale-[0.97] ${isBestPlayer
+    className={`cursor-pointer rounded-2xl border px-3 py-2.5 text-center transition-all duration-200 hover:scale-[1.04] hover:shadow-[0_0_18px_rgba(255,255,255,0.08)] active:scale-[0.97] ${isBestPlayer
       ? 'border-amber-300/45 bg-amber-400/12 shadow-[0_0_22px_rgba(245,158,11,0.22)] hover:border-amber-300/70 hover:shadow-[0_0_28px_rgba(245,158,11,0.35)]'
       : 'border-white/12 bg-white/[0.04] hover:border-white/30 hover:bg-white/[0.08]'
       }`}
@@ -127,12 +127,12 @@ const BestXIPlayerCard = ({
       <Flag teamName={player.teamName} size={16} />
       <span className="text-[10px] uppercase tracking-[0.18em] text-host-ice/65">{player.lineupPosition}</span>
     </div>
-    <p className={`mt-1 truncate text-[13px] font-semibold ${isBestPlayer ? 'text-amber-100' : 'text-white'}`}>
+    <p className={`mt-1 min-h-[2.25rem] text-[13px] font-semibold leading-tight ${isBestPlayer ? 'text-amber-100' : 'text-white'}`}>
       {player.playerName}
     </p>
     <div className="mt-1 inline-flex items-center gap-1 rounded-full border border-white/12 bg-black/20 px-2 py-0.5 text-[10px] text-white/75">
       {player.lineupPosition === 'GK' ? (
-        <span>CS {player.cleanSheets}</span>
+        <span>Clean Sheets {player.cleanSheets}</span>
       ) : (
         <span>G {player.goals}</span>
       )}
@@ -166,7 +166,7 @@ const BestXISection = ({
   };
 
   return (
-    <section className="brand-shell mt-6 overflow-hidden p-5 sm:p-6">
+    <section className="brand-shell mt-6 w-full overflow-hidden p-5 sm:p-6 lg:p-7">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,197,94,0.1),transparent_36%),radial-gradient(circle_at_bottom,rgba(59,130,246,0.09),transparent_42%)]" />
       <div className="relative">
         <div className="flex items-center gap-2">
@@ -179,9 +179,9 @@ const BestXISection = ({
           Best Player: {bestPlayer.playerName} ({bestPlayer.teamName})
         </div>
 
-        <div className="mt-4 rounded-[24px] border border-white/12 bg-[#071223] p-4 sm:p-5">
+        <div className="mt-4 w-full rounded-[24px] border border-white/12 bg-[#071223] p-4 sm:p-5 lg:p-6">
           <div className="space-y-4 sm:space-y-5">
-            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-5 xl:gap-6">
               {bestXI.attackers.map((player) => (
                 <BestXIPlayerCard
                   key={player.playerId}
@@ -192,7 +192,7 @@ const BestXISection = ({
               ))}
             </div>
 
-            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-5 xl:gap-6">
               {bestXI.midfielders.map((player) => (
                 <BestXIPlayerCard
                   key={player.playerId}
@@ -203,7 +203,7 @@ const BestXISection = ({
               ))}
             </div>
 
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3 lg:gap-5 xl:gap-6">
               {bestXI.defenders.map((player) => (
                 <BestXIPlayerCard
                   key={player.playerId}
@@ -214,7 +214,7 @@ const BestXISection = ({
               ))}
             </div>
 
-            <div className="mx-auto w-full max-w-[180px]">
+            <div className="mx-auto w-full max-w-[240px]">
               <BestXIPlayerCard
                 key={bestXI.goalkeeper.playerId}
                 player={bestXI.goalkeeper}
