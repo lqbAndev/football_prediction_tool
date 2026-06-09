@@ -103,7 +103,7 @@ export const MatchCard = ({ match, onPredict }: MatchCardProps) => {
                         <span>
                           {event.playerName}
                           {event.isPenalty && (
-                            <span className="ml-1 text-[10px] font-semibold text-amber-300/70">(P)</span>
+                            <span className="ml-1 text-[10px] font-semibold text-amber-300/70">PEN</span>
                           )}
                         </span>
                       </div>
@@ -128,7 +128,7 @@ export const MatchCard = ({ match, onPredict }: MatchCardProps) => {
                         <span>
                           {event.playerName}
                           {event.isPenalty && (
-                            <span className="ml-1 text-[10px] font-semibold text-amber-300/70">(P)</span>
+                            <span className="ml-1 text-[10px] font-semibold text-amber-300/70">PEN</span>
                           )}
                         </span>
                       </div>

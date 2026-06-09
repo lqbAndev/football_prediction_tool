@@ -233,9 +233,18 @@ export const EPLPlayerGoalModal = ({
                       {match.minutes.map((minute) => (
                         <div
                           key={`${match.matchId}-${minute.sortMinute}-${minute.displayMinute}`}
-                          className="flex h-9 min-w-9 items-center justify-center rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-2 text-xs font-black text-emerald-300"
+                          className={`flex min-h-9 min-w-9 flex-col items-center justify-center rounded-xl border px-2 text-xs font-black ${
+                            minute.isPenalty
+                              ? 'border-amber-400/35 bg-amber-500/15 text-amber-200'
+                              : 'border-emerald-400/20 bg-emerald-500/10 text-emerald-300'
+                          }`}
                         >
-                          {minute.displayMinute}
+                          <span>{minute.displayMinute}</span>
+                          {minute.isPenalty && (
+                            <span className="mt-0.5 rounded-full bg-amber-300/20 px-1 text-[8px] font-black leading-3 tracking-wider text-amber-100">
+                              (P)
+                            </span>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -270,8 +279,10 @@ export const EPLPlayerGoalModal = ({
                           Matchweek {match.matchweek}
                         </span>
                         {penaltyCount > 0 && (
-                          <span className="inline-flex items-center gap-0.5 rounded-full border border-amber-400/30 bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-amber-300">
-                            {penaltyCount > 1 ? `${penaltyCount} PEN` : 'PEN'}
+                          <span className="text-[10px] sm:text-[11px] text-amber-300/70">
+                            {penaltyCount > 1
+                              ? `${penaltyCount} penalties are marked on their minute badges`
+                              : 'Penalty goal marked on its minute badge'}
                           </span>
                         )}
                       </div>
