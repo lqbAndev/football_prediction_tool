@@ -3,9 +3,11 @@
  *
  * Scoring rules (differ from WC26 bestXI.ts):
  *   ALL positions : MOTM award +5 pts, Champion team +10, Top 4 team +5
- *   FW            : Goal +2
+ *   FW            : Goal +3
  *   MF            : Goal +3
- *   DF / GK       : Goal +5, Team clean sheet +2
+ *   DF / GK       : Goal +4
+ *   GK            : Team clean sheet +3
+ *   DF            : Team clean sheet +1
  *
  * Formation: 4-3-3 (1 GK, 4 DF, 3 MF, 3 FW)
  */
@@ -42,15 +44,16 @@ export interface EPLBestXIResult {
 interface MutablePlayer extends EPLBestXIPlayer {}
 
 const goalPoints = (pos: EPLPosition): number => {
-  if (pos === 'FW') return 2;
+  if (pos === 'FW') return 3;
   if (pos === 'MF') return 3;
-  return 5; // DF, GK
+  return 4; // DF, GK
 };
 
 const MOTM_POINTS = 5;
 const CHAMPION_BONUS = 10;
 const TOP4_BONUS = 5;
-const CLEAN_SHEET_POINTS = 2;
+const GK_CLEAN_SHEET_POINTS = 3;
+const DF_CLEAN_SHEET_POINTS = 1;
 
 const comparePlayers = (a: MutablePlayer, b: MutablePlayer): number => {
   if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
@@ -147,40 +150,31 @@ export const buildEPLBestXI = (
     player.totalScore += MOTM_POINTS;
   }
 
-  // ── 3. Count clean sheets (DF + GK only) ─────────────────────
+  // ── 3. Count clean sheets (GK +3, DF +1) ─────────────────────
+  const awardCleanSheet = (team: Team) => {
+    for (const p of team.players) {
+      if (p.position !== 'GK' && p.position !== 'DF') continue;
+      const player = registry.get(`${team.id}:${p.id}`);
+      if (player) {
+        player.cleanSheets += 1;
+        player.totalScore += p.position === 'GK' ? GK_CLEAN_SHEET_POINTS : DF_CLEAN_SHEET_POINTS;
+      }
+    }
+  };
+
   for (const match of completedMatches) {
     if (match.homeScore === null || match.awayScore === null) continue;
 
     // Away team kept clean sheet (homeScore === 0)
     if (match.homeScore === 0) {
       const awayTeam = teamsById.get(match.awayTeamId);
-      if (awayTeam) {
-        for (const p of awayTeam.players) {
-          if (p.position === 'GK' || p.position === 'DF') {
-            const player = registry.get(`${awayTeam.id}:${p.id}`);
-            if (player) {
-              player.cleanSheets += 1;
-              player.totalScore += CLEAN_SHEET_POINTS;
-            }
-          }
-        }
-      }
+      if (awayTeam) awardCleanSheet(awayTeam);
     }
 
     // Home team kept clean sheet (awayScore === 0)
     if (match.awayScore === 0) {
       const homeTeam = teamsById.get(match.homeTeamId);
-      if (homeTeam) {
-        for (const p of homeTeam.players) {
-          if (p.position === 'GK' || p.position === 'DF') {
-            const player = registry.get(`${homeTeam.id}:${p.id}`);
-            if (player) {
-              player.cleanSheets += 1;
-              player.totalScore += CLEAN_SHEET_POINTS;
-            }
-          }
-        }
-      }
+      if (homeTeam) awardCleanSheet(homeTeam);
     }
   }
 

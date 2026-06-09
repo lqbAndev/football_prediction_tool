@@ -13,6 +13,7 @@ import wc26Favicon from './img/tournaments_fifa-world-cup-2026_64x64.football-lo
 import defaultFavicon from './img/icons8-football-96.png';
 
 // ── Register all competitions into the global registry ──
+// Each module's side-effect import calls registerCompetition().
 import './data/competitions/wc26';
 
 const DEFAULT_FAVICON = defaultFavicon;
