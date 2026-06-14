@@ -16,8 +16,13 @@ import defaultFavicon from './img/icons8-football-96.png';
 // ── Register all competitions into the global registry ──
 // Each module's side-effect import calls registerCompetition().
 import './data/competitions/wc26';
-import './data/competitions/testCup';
-import './data/competitions/testLeague';
+
+if (import.meta.env.DEV) {
+  const cupPath = './data/competitions/testCup';
+  const leaguePath = './data/competitions/testLeague';
+  import(/* @vite-ignore */ cupPath);
+  import(/* @vite-ignore */ leaguePath);
+}
 
 const DEFAULT_FAVICON = defaultFavicon;
 
