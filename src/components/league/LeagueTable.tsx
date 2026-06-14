@@ -37,7 +37,7 @@ export default function LeagueTable({ standings, qualificationZones, showAllZone
         <span>📊</span> League Table
       </h2>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto scrollbar-hide">
         <table className="w-full text-white">
           <thead>
             <tr className="border-b border-emerald-500/20">

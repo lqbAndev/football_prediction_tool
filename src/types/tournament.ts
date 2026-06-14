@@ -73,7 +73,8 @@ export type MatchMOTMReason =
   | 'top-goals'
   | 'decisive-goal'
   | 'winner-priority'
-  | 'controlled-random';
+  | 'controlled-random'
+  | 'performance-points';
 
 export interface MatchMOTM {
   playerName: string;

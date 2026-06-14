@@ -222,12 +222,14 @@ export default function LeagueApp() {
               </p>
             </div>
             <div className="flex gap-3">
+              {/* Hide Save Process button
               <button
                 onClick={() => setShowSaveModal(true)}
                 className="px-4 py-2 bg-indigo-500/20 text-white font-bold rounded-xl hover:bg-indigo-500/35 border border-indigo-500/30 transition-all active:scale-95 text-sm flex items-center gap-1.5 shadow-[0_0_12px_rgba(99,102,241,0.25)]"
               >
                 <Save className="h-4 w-4" /> Save Process
               </button>
+              */}
               <button
                 onClick={handleReset}
                 className="px-4 py-2 bg-rose-500/10 text-rose-300 font-bold rounded-xl hover:bg-rose-500/20 border border-rose-500/25 transition-all active:scale-95 text-sm"

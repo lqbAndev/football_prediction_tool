@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Award, Star, Trophy, User, X, Shield } from 'lucide-react';
+import { Award, Star, Trophy, User, X, Shield, Check } from 'lucide-react';
 import { ROUND_LABELS, TEAMS_BY_ID } from '../data/tournament';
 import type {
   GroupMatch,
@@ -26,11 +26,13 @@ interface TimelineEntry {
   /** Sort key for chronological order */
   sortOrder: number;
   /** Type badge colour */
-  type: 'goal' | 'motm' | 'both' | 'cleansheet' | 'cleansheet+motm';
+  type: 'goal' | 'motm' | 'both' | 'cleansheet' | 'cleansheet+motm' | 'win';
   /** Opponent team name */
   opponent: string;
   /** Round display label */
   roundLabel: string;
+  ptsBreakdown?: string;
+  matchPoints?: number;
 }
 
 const getTeamName = (teamId: string | null): string =>
@@ -42,8 +44,7 @@ const getTeamName = (teamId: string | null): string =>
  * For every completed match we check:
  *   1. How many goals the player scored (via timeline or fallback scorers).
  *   2. Whether the player was awarded MOTM.
- *
- * Each relevant match produces one TimelineEntry combining both facts.
+ *   3. Team success and clean sheet points.
  */
 const buildPlayerTimeline = (
   playerId: string,
@@ -52,11 +53,21 @@ const buildPlayerTimeline = (
   position: string | undefined,
   groupMatches: GroupMatch[],
   knockoutMatches: Record<KnockoutRound, KnockoutMatch[]>,
-): { totalGoalsOrCleanSheets: number; totalMotm: number; timeline: TimelineEntry[], isGK: boolean } => {
+): { totalGoalsOrCleanSheets: number; totalMotm: number; totalPoints: number; timeline: TimelineEntry[], isGK: boolean } => {
   const isGK = position === 'GK';
+  const isDF = position === 'DF' || position === 'DEF';
+  const isMF = position === 'MF' || position === 'MID';
+  const isFW = position === 'FW' || position === 'ATT';
+  
   let totalGoalsOrCleanSheets = 0;
   let totalMotm = 0;
+  let totalPoints = 0;
   const timeline: TimelineEntry[] = [];
+
+  // Identify if player is Goalkeeper #1
+  const teamData = TEAMS_BY_ID[teamId];
+  const gks = teamData?.players.filter(p => p.position === 'GK') || [];
+  const isPrimaryGK = gks.length > 0 && gks[0].id === playerId;
 
   const processMatch = (
     match: GroupMatch | KnockoutMatch,
@@ -64,6 +75,11 @@ const buildPlayerTimeline = (
     sortOrder: number,
   ) => {
     if (match.status !== 'completed') return;
+
+    const homeScore = match.homeScore ?? 0;
+    const awayScore = match.awayScore ?? 0;
+    const isKnockout = match.stage === 'knockout';
+    const round = isKnockout ? (match as KnockoutMatch).round : null;
 
     // --- Check MOTM ---
     const teamName = getTeamName(teamId);
@@ -78,78 +94,127 @@ const buildPlayerTimeline = (
 
     if (isMotm) totalMotm += 1;
 
-    if (isGK) {
-      // Check for clean sheet
-      const opponentScore = match.homeTeamId === teamId ? match.awayScore : match.homeScore;
-      const isCleanSheet = opponentScore === 0;
-
-      if (!isCleanSheet && !isMotm) return;
-
-      if (isCleanSheet) totalGoalsOrCleanSheets += 1;
-
-      const parts: string[] = [];
-      if (isCleanSheet) parts.push('Clean sheet');
-      if (isMotm) parts.push('MOTM');
-
-      const type: TimelineEntry['type'] =
-        isCleanSheet && isMotm ? 'cleansheet+motm' : isCleanSheet ? 'cleansheet' : 'motm';
-
-      timeline.push({
-        description: `${parts.join(' + ')} — ${roundLabel} vs ${opponentName}`,
-        sortOrder,
-        type,
-        opponent: opponentName,
-        roundLabel,
-      });
-    } else {
-      // --- Count goals ---
-      let goalsInMatch = 0;
-
-      if (match.timeline?.length) {
-        for (const event of match.timeline) {
-          if (event.playerId === playerId && event.teamId === teamId) {
-            goalsInMatch += 1;
-          }
-        }
-      } else if (match.scorers) {
-        const side =
-          match.homeTeamId === teamId
-            ? match.scorers.home
-            : match.awayTeamId === teamId
-              ? match.scorers.away
-              : [];
-
-        for (const event of side) {
-          if (event.playerId === playerId) {
-            goalsInMatch += 1;
-          }
+    // --- Count goals ---
+    let goalsInMatch = 0;
+    if (match.timeline?.length) {
+      for (const event of match.timeline) {
+        if (event.playerId === playerId && event.teamId === teamId) {
+          goalsInMatch += 1;
         }
       }
+    } else if (match.scorers) {
+      const side =
+        match.homeTeamId === teamId
+          ? match.scorers.home
+          : match.awayTeamId === teamId
+            ? match.scorers.away
+            : [];
 
-      if (goalsInMatch === 0 && !isMotm) return;
-
-      totalGoalsOrCleanSheets += goalsInMatch;
-
-      // --- Create description ---
-      const parts: string[] = [];
-      if (goalsInMatch > 0) {
-        parts.push(`Scored ${goalsInMatch} goal${goalsInMatch > 1 ? 's' : ''}`);
+      for (const event of side) {
+        if (event.playerId === playerId) {
+          goalsInMatch += 1;
+        }
       }
-      if (isMotm) {
-        parts.push('MOTM');
-      }
-
-      const type: TimelineEntry['type'] =
-        goalsInMatch > 0 && isMotm ? 'both' : goalsInMatch > 0 ? 'goal' : 'motm';
-
-      timeline.push({
-        description: `${parts.join(' + ')} — ${roundLabel} vs ${opponentName}`,
-        sortOrder,
-        type,
-        opponent: opponentName,
-        roundLabel,
-      });
     }
+
+    // --- Check Clean Sheet ---
+    const opponentScore = match.homeTeamId === teamId ? awayScore : homeScore;
+    const isCleanSheet = opponentScore === 0;
+    const cleanSheetApplies = isCleanSheet && (isPrimaryGK || isDF);
+
+    // --- Check Team Outcome (Win) ---
+    let winnerTeamId: string | null = null;
+    if (isKnockout && 'winnerTeamId' in match && match.winnerTeamId) {
+      winnerTeamId = match.winnerTeamId;
+    } else if (homeScore > awayScore) {
+      winnerTeamId = match.homeTeamId;
+    } else if (awayScore > homeScore) {
+      winnerTeamId = match.awayTeamId;
+    }
+    const hasWon = winnerTeamId === teamId;
+
+    // Filter relevant matches: must have goals, MOTM, clean sheet, or winner points
+    if (goalsInMatch === 0 && !isMotm && !cleanSheetApplies && !hasWon) return;
+
+    if (isGK && isCleanSheet) {
+      totalGoalsOrCleanSheets += 1;
+    } else if (!isGK) {
+      totalGoalsOrCleanSheets += goalsInMatch;
+    }
+
+    // --- Points Breakdown calculation ---
+    const details: string[] = [];
+    let matchPoints = 0;
+
+    // Bàn thắng: FW: +2đ, MF: +3đ, DF/GK: +5đ
+    if (goalsInMatch > 0) {
+      let goalVal = 2;
+      if (isMF) goalVal = 3;
+      else if (isDF || isGK) goalVal = 5;
+      
+      const pts = goalsInMatch * goalVal;
+      matchPoints += pts;
+      details.push(`+${pts} pts (Goal${goalsInMatch > 1 ? 's' : ''})`);
+    }
+
+    // Sạch lưới: GK số 1 và DF: +2đ
+    if (cleanSheetApplies) {
+      matchPoints += 2;
+      details.push("+2 pts (Clean Sheet)");
+    }
+
+    // MOTM: +5đ
+    if (isMotm) {
+      matchPoints += 5;
+      details.push("+5 pts (MOTM)");
+    }
+
+    // Điểm tập thể: Thắng vòng bảng (+0.5đ), Thắng Knockout (+1đ, ko tính CK/tranh Hạng 3), Bán kết (+1đ)
+    if (hasWon) {
+      let winPts = 0;
+      if (!isKnockout) {
+        winPts = 0.5;
+      } else if (round === 'semifinals') {
+        winPts = 1;
+      } else if (round === 'roundOf32' || round === 'roundOf16' || round === 'quarterfinals') {
+        winPts = 1;
+      }
+      
+      if (winPts > 0) {
+        matchPoints += winPts;
+        details.push(`+${winPts} pts (Team Win)`);
+      }
+    }
+
+    totalPoints += matchPoints;
+
+    // --- Create description ---
+    const parts: string[] = [];
+    if (isGK && isCleanSheet) {
+      parts.push('Clean sheet');
+    } else if (goalsInMatch > 0) {
+      parts.push(`Scored ${goalsInMatch} goal${goalsInMatch > 1 ? 's' : ''}`);
+    }
+    if (isMotm) {
+      parts.push('MOTM');
+    }
+    if (parts.length === 0 && hasWon) {
+      parts.push('Team Win');
+    }
+
+    const type: TimelineEntry['type'] = isMotm
+      ? (goalsInMatch > 0 ? 'both' : (cleanSheetApplies ? 'cleansheet+motm' : 'motm'))
+      : (goalsInMatch > 0 ? 'goal' : (cleanSheetApplies ? 'cleansheet' : 'win'));
+
+    timeline.push({
+      description: `${parts.join(' + ')} — ${roundLabel} vs ${opponentName}`,
+      sortOrder,
+      type,
+      opponent: opponentName,
+      roundLabel,
+      ptsBreakdown: details.join(', '),
+      matchPoints,
+    });
   };
 
   // Group matches
@@ -176,8 +241,44 @@ const buildPlayerTimeline = (
     }
   }
 
+  // Achievement points (Champion +3, Runner-up +2, Hạng 3 +1.5)
+  const finalMatch = knockoutMatches.final[0];
+  const thirdPlaceMatch = knockoutMatches.thirdPlace[0];
+  let achievementPoints = 0;
+  let achievementDesc = "";
+
+  if (finalMatch && finalMatch.status === 'completed') {
+    if (finalMatch.winnerTeamId === teamId) {
+      achievementPoints = 3;
+      achievementDesc = "Tournament Champion — +3 pts";
+    } else if (finalMatch.loserTeamId === teamId) {
+      achievementPoints = 2;
+      achievementDesc = "Tournament Runner-up — +2 pts";
+    }
+  }
+  
+  if (thirdPlaceMatch && thirdPlaceMatch.status === 'completed') {
+    if (thirdPlaceMatch.winnerTeamId === teamId) {
+      achievementPoints = 1.5;
+      achievementDesc = "Third Place Match Winner — +1.5 pts";
+    }
+  }
+
+  if (achievementPoints > 0) {
+    totalPoints += achievementPoints;
+    timeline.push({
+      description: achievementDesc,
+      sortOrder: 999, // Place at the very end
+      type: 'both',
+      opponent: '',
+      roundLabel: 'Achievement',
+      ptsBreakdown: `+${achievementPoints} pts (Final Standing)`,
+      matchPoints: achievementPoints,
+    });
+  }
+
   timeline.sort((a, b) => a.sortOrder - b.sortOrder);
-  return { totalGoalsOrCleanSheets, totalMotm, timeline, isGK };
+  return { totalGoalsOrCleanSheets, totalMotm, totalPoints, timeline, isGK };
 };
 
 const TypeBadge = ({ type }: { type: TimelineEntry['type'] }) => {
@@ -206,6 +307,11 @@ const TypeBadge = ({ type }: { type: TimelineEntry['type'] }) => {
       icon: <Trophy className="h-3 w-3" />,
       label: 'Clean Sheet + MOTM',
     },
+    win: {
+      bg: 'bg-indigo-500/20 border-indigo-400/30 text-indigo-300',
+      icon: <Check className="h-3.5 w-3.5" />,
+      label: 'Team Win',
+    },
   }[type];
 
   return (
@@ -228,7 +334,7 @@ export const PlayerProfileModal = ({
   groupMatches,
   knockoutMatches,
 }: PlayerProfileModalProps) => {
-  const { totalGoalsOrCleanSheets, totalMotm, timeline, isGK } = useMemo(
+  const { totalGoalsOrCleanSheets, totalMotm, totalPoints, timeline, isGK } = useMemo(
     () => buildPlayerTimeline(playerId, teamId, playerName, position, groupMatches, knockoutMatches),
     [playerId, teamId, playerName, position, groupMatches, knockoutMatches],
   );
@@ -278,19 +384,25 @@ export const PlayerProfileModal = ({
           </button>
         </div>
 
-        {/* Stat badges */}
-        <div className="relative flex gap-3 px-5 sm:px-6">
-          <div className={`flex-1 rounded-2xl border px-3 py-3 sm:px-4 text-center ${isGK ? 'border-sky-400/20 bg-sky-500/10' : 'border-emerald-400/20 bg-emerald-500/10'}`}>
-            <div className={`text-[10px] uppercase tracking-[0.2em] ${isGK ? 'text-sky-300/70' : 'text-emerald-300/70'}`}>
+        {/* Stat badges - 3 Column Layout */}
+        <div className="relative flex gap-2.5 px-5 sm:px-6">
+          <div className={`flex-1 rounded-2xl border px-2 py-3 text-center ${isGK ? 'border-sky-400/20 bg-sky-500/10' : 'border-emerald-400/20 bg-emerald-500/10'}`}>
+            <div className={`text-[9px] sm:text-[10px] uppercase tracking-[0.15em] ${isGK ? 'text-sky-300/70' : 'text-emerald-300/70'}`}>
               {isGK ? 'Clean Sheets' : 'Goals'}
             </div>
-            <div className="mt-1 text-2xl sm:text-3xl font-black text-white">{totalGoalsOrCleanSheets}</div>
+            <div className="mt-1 text-xl sm:text-2xl font-black text-white">{totalGoalsOrCleanSheets}</div>
           </div>
-          <div className="flex-1 rounded-2xl border border-amber-400/20 bg-amber-500/10 px-3 py-3 sm:px-4 text-center">
-            <div className="text-[10px] uppercase tracking-[0.2em] text-amber-300/70">
+          <div className="flex-1 rounded-2xl border border-amber-400/20 bg-amber-500/10 px-2 py-3 text-center">
+            <div className="text-[9px] sm:text-[10px] uppercase tracking-[0.15em] text-amber-300/70">
               MOTM
             </div>
-            <div className="mt-1 text-2xl sm:text-3xl font-black text-white">{totalMotm}</div>
+            <div className="mt-1 text-xl sm:text-2xl font-black text-white">{totalMotm}</div>
+          </div>
+          <div className="flex-1 rounded-2xl border border-pink-500/25 bg-pink-500/10 px-2 py-3 text-center shadow-[0_0_12px_rgba(236,72,153,0.1)]">
+            <div className="text-[9px] sm:text-[10px] uppercase tracking-[0.15em] text-pink-300/70">
+              Points
+            </div>
+            <div className="mt-1 text-xl sm:text-2xl font-black text-pink-200">{totalPoints}</div>
           </div>
         </div>
 
@@ -317,18 +429,32 @@ export const PlayerProfileModal = ({
                       <Shield className="h-3 w-3 text-sky-400" />
                     ) : entry.type === 'motm' ? (
                       <Star className="h-3 w-3 text-amber-400" />
+                    ) : entry.type === 'win' ? (
+                      <Check className="h-3.5 w-3.5 text-indigo-400" />
                     ) : (
                       <Trophy className="h-3 w-3 text-host-mexico" />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <TypeBadge type={entry.type} />
-                      <span className="text-[10px] sm:text-[11px] text-white/40">{entry.roundLabel}</span>
+                    <div className="flex flex-wrap items-center justify-between gap-1.5">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <TypeBadge type={entry.type} />
+                        <span className="text-[10px] sm:text-[11px] text-white/40">{entry.roundLabel}</span>
+                      </div>
+                      {entry.matchPoints !== undefined && entry.matchPoints > 0 && (
+                        <span className="rounded-full bg-pink-500/10 border border-pink-500/20 px-2 py-0.5 text-[9px] font-black text-pink-300">
+                          +{entry.matchPoints} pts
+                        </span>
+                      )}
                     </div>
                     <p className="mt-1.5 text-xs sm:text-[13px] font-medium text-white/85 leading-relaxed">
                       {entry.description}
                     </p>
+                    {entry.ptsBreakdown && (
+                      <p className="mt-1 text-[10px] text-white/45 font-mono italic">
+                        Breakdown: {entry.ptsBreakdown}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}

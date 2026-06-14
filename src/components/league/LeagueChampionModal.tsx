@@ -90,7 +90,7 @@ export default function LeagueChampionModal({
           </h3>
 
           <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-emerald-200/80">
-            Congratulations to **{championName}** for finishing at the top of the table and becoming the champion of Vibe Test League this season!
+            Congratulations to {championName} for finishing at the top of the table and becoming the champion of Vibe Test League this season!
           </p>
 
           {stats && (

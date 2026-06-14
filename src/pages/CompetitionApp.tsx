@@ -207,6 +207,7 @@ function CompetitionContent({ competition }: { competition: NonNullable<ReturnTy
                 Knock-out
               </button>
 
+              {/* Hide Save Process button
               <button
                 type="button"
                 onClick={() => setShowSaveModal(true)}
@@ -214,6 +215,7 @@ function CompetitionContent({ competition }: { competition: NonNullable<ReturnTy
               >
                 <Save className="h-4 w-4" /> Save Process
               </button>
+              */}
 
               <button
                 type="button"

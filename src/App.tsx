@@ -4,6 +4,7 @@ import LandingPage from './pages/LandingPage';
 import CompetitionHub from './pages/CompetitionHub';
 import WC26App from './pages/WC26App';
 import CompetitionApp from './pages/CompetitionApp';
+import LeagueApp from './pages/LeagueApp';
 import SavedSimulations from './pages/SavedSimulations';
 import EPLApp from './pages/EPLApp';
 
@@ -15,6 +16,8 @@ import defaultFavicon from './img/icons8-football-96.png';
 // ── Register all competitions into the global registry ──
 // Each module's side-effect import calls registerCompetition().
 import './data/competitions/wc26';
+import './data/competitions/testCup';
+import './data/competitions/testLeague';
 
 const DEFAULT_FAVICON = defaultFavicon;
 
@@ -46,6 +49,8 @@ function App() {
       {/* Premier League 25/26 - uses dedicated EPLApp */}
       <Route path="/competition/epl" element={<EPLApp />} />
 
+      {/* Test League (dev-only) - uses dedicated LeagueApp */}
+      {import.meta.env.DEV && <Route path="/competition/test-league" element={<LeagueApp />} />}
       {/* All other competitions use the generic dynamic page */}
       <Route path="/competition/:id/*" element={<CompetitionApp />} />
       {/* fallback */}

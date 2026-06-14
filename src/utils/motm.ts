@@ -1,4 +1,5 @@
 import { TEAMS_BY_ID } from '../data/tournament';
+import { EPL_TEAMS_BY_ID } from '../data/competitions/epl2526/teams';
 import type {
   GroupMatch,
   KnockoutMatch,
@@ -7,6 +8,7 @@ import type {
   MatchMOTMReason,
   SeasonMOTM,
   Team,
+  PlayerProfile,
 } from '../types/tournament';
 import type { LeagueMatch, LeagueStanding } from '../types/leagueConfig';
 
@@ -222,58 +224,149 @@ const pickFallbackMOTM = (match: CompletedMatch): MatchMOTM | null => {
   return pickFallbackFromTeam(selectedTeam, buildSeed(match, 'fallback-player'));
 };
 
+export const calculateMatchMOTM = (
+  match: CompletedMatch | LeagueMatch,
+  homeTeam: Team,
+  awayTeam: Team
+): { playerId: string; playerName: string; teamId: string; teamName: string; reason: MatchMOTMReason } | null => {
+  if (match.status !== 'completed') return null;
+
+  const homeScore = match.homeScore ?? 0;
+  const awayScore = match.awayScore ?? 0;
+
+  // 1. Determine winner
+  let winnerTeamId: string | null = null;
+  if ('winnerTeamId' in match && match.winnerTeamId) {
+    winnerTeamId = match.winnerTeamId;
+  } else if (homeScore > awayScore) {
+    winnerTeamId = match.homeTeamId;
+  } else if (awayScore > homeScore) {
+    winnerTeamId = match.awayTeamId;
+  }
+
+  // Initialize player scores Map
+  const playerScores = new Map<string, { player: PlayerProfile; team: Team; score: number }>();
+
+  const initializePlayers = (team: Team) => {
+    for (const player of team.players) {
+      playerScores.set(`${team.id}:${player.id}`, {
+        player,
+        team,
+        score: 0,
+      });
+    }
+  };
+
+  initializePlayers(homeTeam);
+  initializePlayers(awayTeam);
+
+  // 2. Goal scoring: Forward (+4 pts), Midfielder (+5 pts), Defender/Goalkeeper (+8 pts)
+  const goalEvents: { playerId: string; teamId: string }[] = [];
+  if (match.timeline?.length) {
+    for (const event of match.timeline) {
+      goalEvents.push({ playerId: event.playerId, teamId: event.teamId });
+    }
+  } else if (match.scorers) {
+    for (const scorer of match.scorers.home) {
+      goalEvents.push({ playerId: scorer.playerId, teamId: homeTeam.id });
+    }
+    for (const scorer of match.scorers.away) {
+      goalEvents.push({ playerId: scorer.playerId, teamId: awayTeam.id });
+    }
+  }
+
+  for (const event of goalEvents) {
+    const key = `${event.teamId}:${event.playerId}`;
+    const entry = playerScores.get(key);
+    if (entry) {
+      const pos = entry.player.position;
+      let points = 0;
+      if (pos === 'FW') points = 4;
+      else if (pos === 'MF') points = 5;
+      else if (pos === 'DF' || pos === 'GK') points = 8;
+      entry.score += points;
+    }
+  }
+
+  // 3. Clean Sheet: Goalkeeper #1 and all Defenders (DF) get +4 pts
+  const awardCleanSheet = (team: Team) => {
+    // Only primary GK (index 0 in GK list)
+    const gks = team.players.filter((p) => p.position === 'GK');
+    if (gks.length > 0) {
+      const entry = playerScores.get(`${team.id}:${gks[0].id}`);
+      if (entry) entry.score += 4;
+    }
+    // All Defenders (DF)
+    for (const p of team.players) {
+      if (p.position === 'DF') {
+        const entry = playerScores.get(`${team.id}:${p.id}`);
+        if (entry) entry.score += 4;
+      }
+    }
+  };
+
+  if (awayScore === 0) {
+    awardCleanSheet(homeTeam);
+  }
+  if (homeScore === 0) {
+    awardCleanSheet(awayTeam);
+  }
+
+  // 4. Winner Team: +2 pts for all players
+  if (winnerTeamId) {
+    const winnerTeam = winnerTeamId === homeTeam.id ? homeTeam : awayTeam;
+    for (const p of winnerTeam.players) {
+      const entry = playerScores.get(`${winnerTeam.id}:${p.id}`);
+      if (entry) entry.score += 2;
+    }
+  }
+
+  // 5. Small random factor (Math.random() * 2) to break ties dynamically
+  for (const entry of playerScores.values()) {
+    entry.score += Math.random() * 2;
+  }
+
+  // Find player with the highest score
+  let bestPlayerKey: string | null = null;
+  let maxScore = -1;
+
+  for (const [key, entry] of playerScores.entries()) {
+    if (entry.score > maxScore) {
+      maxScore = entry.score;
+      bestPlayerKey = key;
+    }
+  }
+
+  if (!bestPlayerKey) return null;
+  const bestEntry = playerScores.get(bestPlayerKey)!;
+
+  return {
+    playerId: bestEntry.player.id,
+    playerName: bestEntry.player.name,
+    teamId: bestEntry.team.id,
+    teamName: bestEntry.team.name,
+    reason: 'performance-points',
+  };
+};
+
 export const computeMatchMOTM = (match: CompletedMatch): MatchMOTM | null => {
   if (match.status !== 'completed') {
     return null;
   }
 
-  const goalEvents = buildGoalEvents(match);
+  if (!match.homeTeamId || !match.awayTeamId) return null;
+  const homeTeam = TEAMS_BY_ID[match.homeTeamId];
+  const awayTeam = TEAMS_BY_ID[match.awayTeamId];
+  if (!homeTeam || !awayTeam) return null;
 
-  if (!goalEvents.length) {
-    return pickFallbackMOTM(match);
-  }
+  const result = calculateMatchMOTM(match, homeTeam, awayTeam);
+  if (!result) return null;
 
-  const candidates = buildCandidates(goalEvents);
-
-  if (!candidates.length) {
-    return pickFallbackMOTM(match);
-  }
-
-  const maxGoals = Math.max(...candidates.map((candidate) => candidate.goals));
-  const topCandidates = candidates.filter((candidate) => candidate.goals === maxGoals);
-
-  if (topCandidates.length === 1) {
-    return toMatchMOTM(topCandidates[0], 'top-goals');
-  }
-
-  const decisiveScorer = getDecisiveGoalScorer(match, goalEvents);
-  if (decisiveScorer) {
-    const decisiveCandidate = topCandidates.find(
-      (candidate) =>
-        candidate.playerId === decisiveScorer.playerId && candidate.teamId === decisiveScorer.teamId,
-    );
-
-    if (decisiveCandidate) {
-      return toMatchMOTM(decisiveCandidate, 'decisive-goal');
-    }
-  }
-
-  const winnerTeamId = inferWinnerTeamId(match);
-  const winnerCandidates = winnerTeamId
-    ? topCandidates.filter((candidate) => candidate.teamId === winnerTeamId)
-    : [];
-
-  if (winnerCandidates.length === 1) {
-    return toMatchMOTM(winnerCandidates[0], 'winner-priority');
-  }
-
-  if (winnerCandidates.length > 1) {
-    const selected = pickByHash(winnerCandidates, buildSeed(match, 'winner-random'));
-    return toMatchMOTM(selected, 'controlled-random');
-  }
-
-  const selected = pickByHash(topCandidates, buildSeed(match, 'top-random'));
-  return toMatchMOTM(selected, 'controlled-random');
+  return {
+    playerName: result.playerName,
+    teamName: result.teamName,
+    reason: result.reason,
+  };
 };
 
 const KNOCKOUT_MOTM_BONUS: Record<KnockoutRound, number> = {
@@ -381,96 +474,11 @@ export const computeLeagueMatchMOTM = (
 ): { playerId: string; playerName: string; teamId: string; teamName: string; reason: string } | null => {
   if (match.status !== 'completed') return null;
 
-  const goalEvents: MatchGoalEvent[] = [];
+  const resolvedHome = homeTeam ?? EPL_TEAMS_BY_ID[match.homeTeamId];
+  const resolvedAway = awayTeam ?? EPL_TEAMS_BY_ID[match.awayTeamId];
+  if (!resolvedHome || !resolvedAway) return null;
 
-  if (match.timeline?.length) {
-    for (const event of match.timeline) {
-      goalEvents.push({
-        playerId: event.playerId,
-        playerName: event.playerName,
-        teamId: event.teamId,
-        side: event.side,
-        sortMinute: event.sortMinute,
-      });
-    }
-  } else if (match.scorers) {
-    for (const s of match.scorers.home) {
-      goalEvents.push({ playerId: s.playerId, playerName: s.playerName, teamId: s.teamId, side: 'home', sortMinute: s.minute });
-    }
-    for (const s of match.scorers.away) {
-      goalEvents.push({ playerId: s.playerId, playerName: s.playerName, teamId: s.teamId, side: 'away', sortMinute: s.minute });
-    }
-  }
-
-  if (!goalEvents.length) {
-    // 0-0 draw: pick a random DF or GK from one of the two teams
-    if (homeTeam && awayTeam) {
-      const selectedTeam = Math.random() < 0.5 ? homeTeam : awayTeam;
-      const defenders = selectedTeam.players.filter(p => p.position === 'DF' || p.position === 'GK');
-      if (defenders.length > 0) {
-        const player = defenders[Math.floor(Math.random() * defenders.length)];
-        return {
-          playerId: player.id,
-          playerName: player.name,
-          teamId: selectedTeam.id,
-          teamName: selectedTeam.name,
-          reason: 'clean-sheet',
-        };
-      }
-    }
-    return null;
-  }
-
-  goalEvents.sort((a, b) => a.sortMinute - b.sortMinute);
-  const candidates = buildCandidates(goalEvents);
-  if (!candidates.length) return null;
-
-  const maxGoals = Math.max(...candidates.map((c) => c.goals));
-  const topCandidates = candidates.filter((c) => c.goals === maxGoals);
-
-  if (topCandidates.length === 1) {
-    const c = topCandidates[0];
-    return { playerId: c.playerId, playerName: c.playerName, teamId: c.teamId, teamName: c.teamName, reason: 'top-goals' };
-  }
-
-  // Decisive goal check
-  const winnerTeamId = match.homeScore !== null && match.awayScore !== null && match.homeScore !== match.awayScore
-    ? (match.homeScore > match.awayScore ? match.homeTeamId : match.awayTeamId)
-    : null;
-
-  if (winnerTeamId) {
-    const loserGoals = Math.min(match.homeScore!, match.awayScore!);
-    const decisiveOrder = loserGoals + 1;
-    let winnerGoalCount = 0;
-    let decisiveScorer: MatchGoalEvent | null = null;
-    for (const event of goalEvents) {
-      if (event.teamId === winnerTeamId) {
-        winnerGoalCount++;
-        if (winnerGoalCount === decisiveOrder) { decisiveScorer = event; break; }
-      }
-    }
-    if (decisiveScorer) {
-      const dc = topCandidates.find((c) => c.playerId === decisiveScorer!.playerId && c.teamId === decisiveScorer!.teamId);
-      if (dc) return { playerId: dc.playerId, playerName: dc.playerName, teamId: dc.teamId, teamName: dc.teamName, reason: 'decisive-goal' };
-    }
-
-    // Winner priority
-    const winnerCandidates = topCandidates.filter((c) => c.teamId === winnerTeamId);
-    if (winnerCandidates.length === 1) {
-      const c = winnerCandidates[0];
-      return { playerId: c.playerId, playerName: c.playerName, teamId: c.teamId, teamName: c.teamName, reason: 'winner-priority' };
-    }
-    if (winnerCandidates.length > 1) {
-      const seed = `${match.id}|${match.homeScore}|${match.awayScore}|${match.predictedAt}`;
-      const c = pickByHash(winnerCandidates, seed);
-      return { playerId: c.playerId, playerName: c.playerName, teamId: c.teamId, teamName: c.teamName, reason: 'controlled-random' };
-    }
-  }
-
-  // Draw or no winner candidates — hash pick from all top
-  const seed = `${match.id}|${match.homeScore}|${match.awayScore}|${match.predictedAt}|top`;
-  const c = pickByHash(topCandidates, seed);
-  return { playerId: c.playerId, playerName: c.playerName, teamId: c.teamId, teamName: c.teamName, reason: 'controlled-random' };
+  return calculateMatchMOTM(match, resolvedHome, resolvedAway);
 };
 
 /**

@@ -29,7 +29,7 @@ export const BestThirdTable = ({ entries, groupStageComplete }: BestThirdTablePr
         Top 8 third-place teams are highlighted to advance to knockout. When group stage is incomplete, this is a provisional ranking based on current data.
       </p>
 
-      <div className="mt-5 overflow-x-auto rounded-[28px] border border-white/10 bg-black/15">
+      <div className="mt-5 overflow-x-auto scrollbar-hide rounded-[28px] border border-white/10 bg-black/15">
         <table className="min-w-full text-sm">
           <thead className="text-xs uppercase tracking-[0.22em] text-white/45">
             <tr>

@@ -874,6 +874,7 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
             >
               <BarChart3 className="h-4 w-4" /> Season Stats
             </button>
+
             {bestXI && (
               <button
                 onClick={() => setActiveTab('bestxi')}
@@ -1420,6 +1421,8 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
             </div>
           )}
 
+
+
           {/* Tab 6: Best XI */}
           {activeTab === 'bestxi' && bestXI && (
             <div className="space-y-6 animate-fadeIn">
@@ -1494,57 +1497,102 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
                   </div>
 
                   {/* Player Detail Modal Overlay */}
-                  {selectedBestXIPlayer && (
-                    <div className="absolute inset-0 bg-[#0a0a12]/80 backdrop-blur-sm z-30 flex items-center justify-center p-4 rounded-3xl transition-opacity animate-fadeIn">
-                      <div className="relative w-full max-w-sm rounded-2xl border border-amber-400/30 bg-[#111118] p-6 shadow-2xl">
-                        <button
-                          onClick={() => setSelectedBestXIPlayer(null)}
-                          className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors"
-                        >
-                          <X className="h-5 w-5" />
-                        </button>
+                  {selectedBestXIPlayer && (() => {
+                    const isFwOrMf = selectedBestXIPlayer.position === 'FW' || selectedBestXIPlayer.position === 'MF';
+                    const goalPointsVal = isFwOrMf ? 3 : 4;
+                    const goalsPts = selectedBestXIPlayer.goals * goalPointsVal;
+                    let csPts = 0;
+                    if (selectedBestXIPlayer.position === 'GK') {
+                      csPts = selectedBestXIPlayer.cleanSheets * 3;
+                    } else if (selectedBestXIPlayer.position === 'DF') {
+                      csPts = selectedBestXIPlayer.cleanSheets * 1;
+                    }
+                    const motmPts = selectedBestXIPlayer.motmCount * 5;
+                    const teamPts = Math.max(0, selectedBestXIPlayer.totalScore - (goalsPts + csPts + motmPts));
 
-                        <div className="flex flex-col items-center text-center">
-                          <div className="relative mb-4">
-                            {logoMap && selectedBestXIPlayer.teamId && logoMap[selectedBestXIPlayer.teamId] ? (
-                              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white border border-slate-200 p-1.5 shadow-md">
-                                <img src={logoMap[selectedBestXIPlayer.teamId]} alt="" className="h-full w-full object-contain" />
+                    return (
+                      <div className="absolute inset-0 bg-[#0a0a12]/80 backdrop-blur-sm z-30 flex items-center justify-center p-4 rounded-3xl transition-opacity animate-fadeIn">
+                        <div className="relative w-full max-w-sm rounded-2xl border border-amber-400/30 bg-[#111118] p-5 sm:p-6 shadow-2xl">
+                          <button
+                            onClick={() => setSelectedBestXIPlayer(null)}
+                            className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors"
+                          >
+                            <X className="h-5 w-5" />
+                          </button>
+
+                          <div className="flex flex-col items-center text-center">
+                            <div className="relative mb-3">
+                              {logoMap && selectedBestXIPlayer.teamId && logoMap[selectedBestXIPlayer.teamId] ? (
+                                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white border border-slate-200 p-1.5 shadow-md">
+                                  <img src={logoMap[selectedBestXIPlayer.teamId]} alt="" className="h-full w-full object-contain" />
+                                </div>
+                              ) : null}
+                            </div>
+
+                            <h3 className="text-lg sm:text-xl font-black text-white">{selectedBestXIPlayer.playerName}</h3>
+                            <p className="text-xs text-white/55 font-bold uppercase tracking-wider mt-1">
+                              {selectedBestXIPlayer.teamName} · {selectedBestXIPlayer.position}
+                            </p>
+
+                            <div className="mt-3.5 flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-1.5 text-xs sm:text-sm font-black text-amber-300">
+                              <Sparkles className="h-4 w-4 text-amber-400" />
+                              <span>Performance Score: {selectedBestXIPlayer.totalScore} pts</span>
+                            </div>
+
+                            <div className="mt-4 w-full grid grid-cols-3 gap-2 border-t border-[#1e1e2e]/50 pt-3">
+                              <div className="bg-white/5 rounded-xl p-2.5 border border-white/5">
+                                <span className="block text-[9px] font-bold text-white/40 uppercase tracking-widest">Goals</span>
+                                <span className="block text-base font-black text-white mt-0.5">{selectedBestXIPlayer.goals}</span>
                               </div>
-                            ) : null}
-                          </div>
-
-                          <h3 className="text-xl font-black text-white">{selectedBestXIPlayer.playerName}</h3>
-                          <p className="text-xs text-white/55 font-bold uppercase tracking-wider mt-1">
-                            {selectedBestXIPlayer.teamName} · {selectedBestXIPlayer.position}
-                          </p>
-
-                          <div className="mt-4 flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-1.5 text-sm font-black text-amber-300">
-                            <Sparkles className="h-4 w-4 text-amber-400" />
-                            <span>Performance Score: {selectedBestXIPlayer.totalScore} pts</span>
-                          </div>
-
-                          <div className="mt-6 w-full grid grid-cols-3 gap-2 border-t border-[#1e1e2e] pt-4">
-                            <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                              <span className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Goals</span>
-                              <span className="block text-lg font-black text-white mt-1">{selectedBestXIPlayer.goals}</span>
+                              <div className="bg-white/5 rounded-xl p-2.5 border border-white/5">
+                                <span className="block text-[9px] font-bold text-white/40 uppercase tracking-widest">MOTM</span>
+                                <span className="block text-base font-black text-white mt-0.5">{selectedBestXIPlayer.motmCount}</span>
+                              </div>
+                              <div className="bg-white/5 rounded-xl p-2.5 border border-white/5">
+                                <span className="block text-[9px] font-bold text-white/40 uppercase tracking-widest">CS</span>
+                                <span className="block text-base font-black text-white mt-0.5">
+                                  {selectedBestXIPlayer.position === 'GK' || selectedBestXIPlayer.position === 'DF'
+                                    ? selectedBestXIPlayer.cleanSheets
+                                    : '—'}
+                                </span>
+                              </div>
                             </div>
-                            <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                              <span className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">MOTM</span>
-                              <span className="block text-lg font-black text-white mt-1">{selectedBestXIPlayer.motmCount}</span>
+
+                            {/* Points Breakdown List */}
+                            <div className="mt-4 w-full border-t border-[#1e1e2e]/50 pt-3 text-left space-y-2">
+                              <h4 className="text-[9px] font-black text-amber-400 uppercase tracking-widest mb-1.5">Points Breakdown</h4>
+                              
+                              <div className="flex justify-between text-xs text-white/70">
+                                <span>Goal Points</span>
+                                <span className="font-mono text-white/90">+{goalsPts} pts <span className="text-white/40">({selectedBestXIPlayer.goals} × {goalPointsVal})</span></span>
+                              </div>
+                              
+                              {(selectedBestXIPlayer.position === 'GK' || selectedBestXIPlayer.position === 'DF') && (
+                                <div className="flex justify-between text-xs text-white/70">
+                                  <span>Clean Sheet Points</span>
+                                  <span className="font-mono text-white/90">+{csPts} pts <span className="text-white/40">({selectedBestXIPlayer.cleanSheets} × {selectedBestXIPlayer.position === 'GK' ? 3 : 1})</span></span>
+                                </div>
+                              )}
+                              
+                              <div className="flex justify-between text-xs text-white/70">
+                                <span>MOTM Points</span>
+                                <span className="font-mono text-white/90">+{motmPts} pts <span className="text-white/40">({selectedBestXIPlayer.motmCount} × 5)</span></span>
+                              </div>
+                              
+                              {teamPts > 0 && (
+                                <div className="flex justify-between text-xs text-white/70">
+                                  <span>Team Standings Points</span>
+                                  <span className="font-mono text-white/90">+{teamPts} pts <span className="text-white/40">({teamPts === 4 ? 'Champion' : 'Top 4'})</span></span>
+                                </div>
+                              )}
                             </div>
-                            <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                              <span className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">CS</span>
-                              <span className="block text-lg font-black text-white mt-1">
-                                {selectedBestXIPlayer.position === 'GK' || selectedBestXIPlayer.position === 'DF'
-                                  ? selectedBestXIPlayer.cleanSheets
-                                  : '—'}
-                              </span>
-                            </div>
+
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
+
                 </div>
               </div>
             </div>

@@ -294,7 +294,7 @@ export default function TitleRaceChart({ standings, fixtures, totalRounds, logoM
 
       {/* SVG Chart Wrapper */}
       <div className="relative overflow-hidden rounded-2xl border border-[#1e1e2e] bg-[#111118]/45 p-4 backdrop-blur-md">
-        <div className="relative overflow-x-auto">
+        <div className="relative overflow-x-auto scrollbar-hide">
           <svg
             ref={svgRef}
             viewBox={`0 0 ${width} ${height}`}

@@ -22,6 +22,7 @@ export interface BestXIPlayer {
   totalScore: number;
   knockoutImpact: number;
   semiFinalImpact: number;
+  progressScore: number;
 }
 
 export interface BestXIResult {
@@ -57,12 +58,16 @@ const comparePlayers = (left: MutableBestXIPlayer, right: MutableBestXIPlayer) =
     return right.totalScore - left.totalScore;
   }
 
-  if (right.goals !== left.goals) {
-    return right.goals - left.goals;
+  if (right.progressScore !== left.progressScore) {
+    return right.progressScore - left.progressScore;
   }
 
   if (right.motmCount !== left.motmCount) {
     return right.motmCount - left.motmCount;
+  }
+
+  if (right.goals !== left.goals) {
+    return right.goals - left.goals;
   }
 
   return left.playerName.localeCompare(right.playerName);
@@ -140,6 +145,7 @@ const buildPlayerRegistry = () => {
         totalScore: 0,
         knockoutImpact: 0,
         semiFinalImpact: 0,
+        progressScore: 0,
       });
     }
   }
@@ -237,63 +243,145 @@ export const buildBestXI = (
 ) => {
   const { registry, teamByName } = buildPlayerRegistry();
 
-  const processMatch = (match: GroupMatch | KnockoutMatch, round: KnockoutRound | null) => {
-    if (match.status !== 'completed') {
-      return;
+  // 1. Calculate progressScore for each team
+  const teamProgress = new Map<string, number>();
+  for (const team of TEAMS) {
+    teamProgress.set(team.id, 0); // Default: eliminated in group stage
+  }
+
+  const processLoserProgress = (round: KnockoutRound, progressVal: number) => {
+    for (const match of knockoutMatches[round]) {
+      if (match.status === 'completed') {
+        if (match.loserTeamId) {
+          teamProgress.set(match.loserTeamId, progressVal);
+        }
+        if (match.winnerTeamId) {
+          teamProgress.set(match.winnerTeamId, progressVal + 1);
+        }
+      }
+    }
+  };
+
+  processLoserProgress('roundOf32', 1);
+  processLoserProgress('roundOf16', 2);
+  processLoserProgress('quarterfinals', 3);
+
+  const thirdPlaceMatch = knockoutMatches.thirdPlace[0];
+  if (thirdPlaceMatch && thirdPlaceMatch.status === 'completed') {
+    if (thirdPlaceMatch.loserTeamId) teamProgress.set(thirdPlaceMatch.loserTeamId, 4); // 4th place
+    if (thirdPlaceMatch.winnerTeamId) teamProgress.set(thirdPlaceMatch.winnerTeamId, 5); // 3rd place
+  }
+
+  const finalMatch = knockoutMatches.final[0];
+  if (finalMatch && finalMatch.status === 'completed') {
+    if (finalMatch.loserTeamId) teamProgress.set(finalMatch.loserTeamId, 6); // Runner-up
+    if (finalMatch.winnerTeamId) teamProgress.set(finalMatch.winnerTeamId, 7); // Champion
+  }
+
+  // Update progressScore for all players
+  for (const player of registry.values()) {
+    player.progressScore = teamProgress.get(player.teamId) || 0;
+  }
+
+  // 2. Process all matches to calculate total score
+  const processMatchScores = (match: GroupMatch | KnockoutMatch, round: KnockoutRound | null) => {
+    if (match.status !== 'completed') return;
+
+    const homeScore = match.homeScore ?? 0;
+    const awayScore = match.awayScore ?? 0;
+    const isKnockout = round !== null;
+
+    // --- A. Team Points ---
+    let winnerTeamId: string | null = null;
+    if (isKnockout && 'winnerTeamId' in match && match.winnerTeamId) {
+      winnerTeamId = match.winnerTeamId;
+    } else if (homeScore > awayScore) {
+      winnerTeamId = match.homeTeamId;
+    } else if (awayScore > homeScore) {
+      winnerTeamId = match.awayTeamId;
     }
 
-    const isKnockout = round !== null;
-    const hasSemiFinalBonus = isKnockout && roundHasSemiFinalBonus(round);
-    const timeline = resolveTimeline(match);
+    if (winnerTeamId) {
+      const winTeam = teamByName.get(TEAMS.find((t) => t.id === winnerTeamId)?.name ?? '');
+      if (winTeam) {
+        let teamPts = 0;
+        if (!isKnockout) {
+          teamPts = 0.5; // Group win
+        } else if (round === 'semifinals') {
+          teamPts = 1; // Semifinal win
+        } else if (round === 'roundOf32' || round === 'roundOf16' || round === 'quarterfinals') {
+          teamPts = 1; // Knockout win
+        }
 
-    for (const event of timeline) {
-      if (!event.teamId) {
-        continue;
+        if (teamPts > 0) {
+          for (const p of winTeam.players) {
+            const player = registry.get(`${winTeam.id}:${p.id}`);
+            if (player) player.totalScore += teamPts;
+          }
+        }
       }
+    }
 
+    // --- B. Individual Goal Points ---
+    const timeline = resolveTimeline(match);
+    for (const event of timeline) {
+      if (!event.teamId) continue;
       const key = `${event.teamId}:${event.playerId}`;
       const player = registry.get(key);
-      if (!player) {
-        continue;
+      if (player) {
+        player.goals += 1;
+        const pos = player.naturalPosition;
+        let goalPts = 0;
+        if (pos === 'ATT') goalPts = 2;
+        else if (pos === 'MID') goalPts = 3;
+        else if (pos === 'DEF' || pos === 'GK') goalPts = 5;
+        player.totalScore += goalPts;
       }
-
-      applyGoalScore(player, isKnockout, hasSemiFinalBonus);
     }
 
-    // Process clean sheets
-    if (match.homeScore === 0) {
-      const awayTeam = teamByName.get(match.awayTeamId ? TEAMS.find(t => t.id === match.awayTeamId)?.name ?? '' : '');
-      if (awayTeam) {
-        for (const p of awayTeam.players) {
-          if (p.position === 'GK') {
-            const player = registry.get(`${awayTeam.id}:${p.id}`);
-            if (player) player.cleanSheets += 1;
+    // --- C. Clean Sheet Points: GK #1 and DF get +2 pts ---
+    const awardCleanSheet = (teamId: string) => {
+      const team = teamByName.get(TEAMS.find((t) => t.id === teamId)?.name ?? '');
+      if (team) {
+        // Goalkeeper #1 only (index 0 in GK array)
+        const gks = team.players.filter((p) => p.position === 'GK');
+        if (gks.length > 0) {
+          const player = registry.get(`${team.id}:${gks[0].id}`);
+          if (player) {
+            player.cleanSheets += 1;
+            player.totalScore += 2;
+          }
+        }
+        // All Defenders (DF)
+        for (const p of team.players) {
+          if (p.position === 'DF') {
+            const player = registry.get(`${team.id}:${p.id}`);
+            if (player) {
+              player.cleanSheets += 1;
+              player.totalScore += 2;
+            }
           }
         }
       }
+    };
+
+    if (awayScore === 0 && match.homeTeamId) {
+      awardCleanSheet(match.homeTeamId);
     }
-    if (match.awayScore === 0) {
-      const homeTeam = teamByName.get(match.homeTeamId ? TEAMS.find(t => t.id === match.homeTeamId)?.name ?? '' : '');
-      if (homeTeam) {
-        for (const p of homeTeam.players) {
-          if (p.position === 'GK') {
-            const player = registry.get(`${homeTeam.id}:${p.id}`);
-            if (player) player.cleanSheets += 1;
-          }
-        }
-      }
+    if (homeScore === 0 && match.awayTeamId) {
+      awardCleanSheet(match.awayTeamId);
     }
 
-
+    // --- D. MOTM Points: +5 pts ---
     if (match.motm) {
       const motmTeam = teamByName.get(match.motm.teamName);
       if (motmTeam) {
-        const motmPlayer = motmTeam.players.find((player) => player.name === match.motm?.playerName);
+        const motmPlayer = motmTeam.players.find((p) => p.name === match.motm?.playerName);
         if (motmPlayer) {
-          const key = `${motmTeam.id}:${motmPlayer.id}`;
-          const player = registry.get(key);
+          const player = registry.get(`${motmTeam.id}:${motmPlayer.id}`);
           if (player) {
-            applyMotmScore(player, isKnockout, hasSemiFinalBonus);
+            player.motmCount += 1;
+            player.totalScore += 5;
           }
         }
       }
@@ -301,78 +389,70 @@ export const buildBestXI = (
   };
 
   for (const match of groupMatches) {
-    processMatch(match, null);
+    processMatchScores(match, null);
   }
 
   for (const [round, matches] of Object.entries(knockoutMatches) as [KnockoutRound, KnockoutMatch[]][]) {
     for (const match of matches) {
-      processMatch(match, round);
+      processMatchScores(match, round);
     }
   }
 
+  // --- E. Champion/Runner-up/Third-place Final Points ---
+  if (finalMatch && finalMatch.status === 'completed') {
+    const championId = finalMatch.winnerTeamId;
+    const runnerUpId = finalMatch.loserTeamId;
+    if (championId) {
+      const team = teamByName.get(TEAMS.find((t) => t.id === championId)?.name ?? '');
+      if (team) {
+        for (const p of team.players) {
+          const player = registry.get(`${championId}:${p.id}`);
+          if (player) player.totalScore += 3;
+        }
+      }
+    }
+    if (runnerUpId) {
+      const team = teamByName.get(TEAMS.find((t) => t.id === runnerUpId)?.name ?? '');
+      if (team) {
+        for (const p of team.players) {
+          const player = registry.get(`${runnerUpId}:${p.id}`);
+          if (player) player.totalScore += 2;
+        }
+      }
+    }
+  }
+
+  if (thirdPlaceMatch && thirdPlaceMatch.status === 'completed') {
+    const thirdPlaceId = thirdPlaceMatch.winnerTeamId;
+    if (thirdPlaceId) {
+      const team = teamByName.get(TEAMS.find((t) => t.id === thirdPlaceId)?.name ?? '');
+      if (team) {
+        for (const p of team.players) {
+          const player = registry.get(`${thirdPlaceId}:${p.id}`);
+          if (player) player.totalScore += 1.5;
+        }
+      }
+    }
+  }
+
+  // 3. Selection of Best XI (4-3-3)
   const sortedPool = Array.from(registry.values()).sort(comparePlayers);
   if (!sortedPool.length) {
     return null;
   }
 
-  // ── Step 1: Lock in the Golden Glove GK (most clean sheets) ──────────
-  // Tie-break: more clean sheets first; then higher totalScore.
-  const allGKs = sortedPool.filter(p => p.naturalPosition === 'GK');
-  const goldenGloveGK = allGKs.reduce<MutableBestXIPlayer | null>((best, p) => {
-    if (!best) return p;
-    if (p.cleanSheets > best.cleanSheets) return p;
-    if (p.cleanSheets === best.cleanSheets && p.totalScore > best.totalScore) return p;
-    return best;
-  }, null);
-
-  // ── Step 2: Lock in the Top Scorer (most goals) in ATT slot ──────────
-  // Only lock if they actually scored (goals > 0); otherwise fall back to normal selection.
-  const topScorer = sortedPool.reduce<MutableBestXIPlayer | null>((best, p) => {
-    if (!best) return p;
-    if (p.goals > best.goals) return p;
-    if (p.goals === best.goals && p.totalScore > best.totalScore) return p;
-    return best;
-  }, null);
-
-  // ── Step 3: Build the XI, injecting locked players first ─────────────
   const selectedIds = new Set<string>();
 
-  // Force Golden Glove GK into the GK slot
-  let goalkeeper: BestXIPlayer;
-  if (goldenGloveGK) {
-    selectedIds.add(goldenGloveGK.playerId);
-    goalkeeper = { ...goldenGloveGK, lineupPosition: 'GK' };
-  } else {
-    const [fallbackGK] = selectByPosition(sortedPool, selectedIds, 'GK', 1);
-    if (!fallbackGK) return null;
-    goalkeeper = fallbackGK;
-  }
-
-  // Force Top Scorer into one of the 3 ATT slots regardless of natural position
-  let lockedAttacker: BestXIPlayer | null = null;
-  if (topScorer && topScorer.goals > 0) {
-    selectedIds.add(topScorer.playerId);
-    lockedAttacker = { ...topScorer, lineupPosition: 'ATT' };
-  }
-
-  // Fill DEF × 4 and MID × 3 by totalScore (locked players already excluded)
+  const [goalkeeper] = selectByPosition(sortedPool, selectedIds, 'GK', 1);
   const defenders = selectByPosition(sortedPool, selectedIds, 'DEF', 4);
   const midfielders = selectByPosition(sortedPool, selectedIds, 'MID', 3);
-
-  // Fill the remaining ATT slots (3 total; 1 may already be the locked top scorer)
-  const remainingATTCount = lockedAttacker ? 2 : 3;
-  const remainingAttackers = selectByPosition(sortedPool, selectedIds, 'ATT', remainingATTCount);
-  const attackers = lockedAttacker
-    ? [lockedAttacker, ...remainingAttackers]
-    : remainingAttackers;
+  const attackers = selectByPosition(sortedPool, selectedIds, 'ATT', 3);
 
   if (!goalkeeper || defenders.length !== 4 || midfielders.length !== 3 || attackers.length !== 3) {
     return null;
   }
 
-  // MOTS = highest totalScore across all 11 (computed after full lineup is set)
-  const fullXI = [goalkeeper, ...defenders, ...midfielders, ...attackers].sort(comparePlayers);
-  const bestPlayer = fullXI[0];
+  const bestPlayer = sortedPool[0];
 
   return {
     goalkeeper,

@@ -182,7 +182,7 @@ export default function WC26App() {
 
                 <p className="mt-5 text-lg font-medium text-host-ice/80 sm:text-xl">{SLOGAN}</p>
 
-                <div className="mt-6 overflow-x-auto pb-1">
+                <div className="mt-6 overflow-x-auto scrollbar-hide pb-1">
                   <div className="flex w-max min-w-full flex-nowrap gap-2.5">
                     {/* Back to Hub button */}
                     <button
@@ -234,6 +234,7 @@ export default function WC26App() {
 
 
 
+                    {/* Hide Save Process button
                     <button
                       type="button"
                       onClick={() => setShowSaveModal(true)}
@@ -241,6 +242,7 @@ export default function WC26App() {
                     >
                       <Save className="h-4 w-4" /> Save Process
                     </button>
+                    */}
 
                     <button
                       type="button"

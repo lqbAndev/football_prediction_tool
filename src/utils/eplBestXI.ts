@@ -50,8 +50,8 @@ const goalPoints = (pos: EPLPosition): number => {
 };
 
 const MOTM_POINTS = 5;
-const CHAMPION_BONUS = 10;
-const TOP4_BONUS = 5;
+const CHAMPION_BONUS = 4;
+const TOP4_BONUS = 2;
 const GK_CLEAN_SHEET_POINTS = 3;
 const DF_CLEAN_SHEET_POINTS = 1;
 
@@ -152,12 +152,23 @@ export const buildEPLBestXI = (
 
   // ── 3. Count clean sheets (GK +3, DF +1) ─────────────────────
   const awardCleanSheet = (team: Team) => {
-    for (const p of team.players) {
-      if (p.position !== 'GK' && p.position !== 'DF') continue;
-      const player = registry.get(`${team.id}:${p.id}`);
+    // Only primary GK (index 0) gets clean sheet points
+    const gks = team.players.filter((p) => p.position === 'GK');
+    if (gks.length > 0) {
+      const player = registry.get(`${team.id}:${gks[0].id}`);
       if (player) {
         player.cleanSheets += 1;
-        player.totalScore += p.position === 'GK' ? GK_CLEAN_SHEET_POINTS : DF_CLEAN_SHEET_POINTS;
+        player.totalScore += GK_CLEAN_SHEET_POINTS;
+      }
+    }
+    // All Defenders (DF) get clean sheet points
+    for (const p of team.players) {
+      if (p.position === 'DF') {
+        const player = registry.get(`${team.id}:${p.id}`);
+        if (player) {
+          player.cleanSheets += 1;
+          player.totalScore += DF_CLEAN_SHEET_POINTS;
+        }
       }
     }
   };
@@ -196,24 +207,8 @@ export const buildEPLBestXI = (
 
   const usedIds = new Set<string>();
 
-  // GK — pick the one with most clean sheets; tiebreak by totalScore
-  const allGKs = sortedPool.filter((p) => p.position === 'GK');
-  const bestGK = allGKs.reduce<MutablePlayer | null>((best, p) => {
-    if (!best) return p;
-    if (p.cleanSheets > best.cleanSheets) return p;
-    if (p.cleanSheets === best.cleanSheets && p.totalScore > best.totalScore) return p;
-    return best;
-  }, null);
-
-  let goalkeeper: EPLBestXIPlayer;
-  if (bestGK) {
-    usedIds.add(bestGK.playerId);
-    goalkeeper = { ...bestGK };
-  } else {
-    const [fallback] = selectByPosition(sortedPool, usedIds, 'GK', 1);
-    if (!fallback) return null;
-    goalkeeper = fallback;
-  }
+  const [goalkeeper] = selectByPosition(sortedPool, usedIds, 'GK', 1);
+  if (!goalkeeper) return null;
 
   const defenders = selectByPosition(sortedPool, usedIds, 'DF', 4);
   const midfielders = selectByPosition(sortedPool, usedIds, 'MF', 3);
@@ -223,9 +218,8 @@ export const buildEPLBestXI = (
     return null;
   }
 
-  // Best Player = highest totalScore among the XI
-  const fullXI = [goalkeeper, ...defenders, ...midfielders, ...forwards].sort(comparePlayers);
-  const bestPlayer = fullXI[0];
+  // Best Player (MOTS/POTS) = highest totalScore in the entire registry
+  const bestPlayer = sortedPool[0];
 
   return {
     goalkeeper,

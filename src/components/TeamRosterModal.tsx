@@ -58,31 +58,31 @@ export const TeamRosterModal = ({ isOpen, team, onClose }: TeamRosterModalProps)
     >
       <div className="relative mx-3 flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-[rgba(8,14,28,0.97)] shadow-[0_12px_60px_rgba(0,0,0,0.6)] sm:mx-4">
         {/* ── Header ─────────────────────────────────────── */}
-        <div className="relative flex items-center gap-4 border-b border-white/[0.06] px-5 py-4 sm:px-6">
+        <div className="relative flex items-center gap-5 border-b border-white/[0.06] px-5 py-5 sm:px-6">
           {/* Decorative gradient backdrop */}
           <div className="absolute inset-0 bg-gradient-to-r from-host-usa/10 via-transparent to-host-mexico/10" />
 
-          <div className="relative flex items-center gap-3">
+          <div className="relative flex items-center gap-4 sm:gap-5">
             {/* Team Logo (Badge) */}
             {logoSrc && !logoError ? (
               <img
                 src={logoSrc}
                 alt={`Logo ${team.name}`}
-                className="h-12 w-12 shrink-0 object-contain drop-shadow-[0_2px_8px_rgba(255,255,255,0.1)]"
+                className="h-16 w-16 sm:h-20 sm:w-20 shrink-0 object-contain drop-shadow-[0_2px_12px_rgba(255,255,255,0.15)]"
                 onError={() => setLogoError(true)}
               />
             ) : (
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5">
-                <Shield className="h-6 w-6 text-white/30" />
+              <div className="flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5">
+                <Shield className="h-8 w-8 text-white/30" />
               </div>
             )}
 
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <Flag teamName={team.name} size={22} />
-                <h3 className="text-lg font-bold text-white sm:text-xl">{team.name}</h3>
+              <div className="flex items-center gap-2.5">
+                <Flag teamName={team.name} size={24} />
+                <h3 className="text-xl font-bold text-white sm:text-2xl tracking-wide">{team.name}</h3>
               </div>
-              <p className="mt-0.5 text-xs text-white/45">
+              <p className="mt-1 text-xs sm:text-sm text-white/45">
                 Group {team.group} · {team.players.length} players
               </p>
             </div>

@@ -8,7 +8,7 @@ interface StandingsTableProps {
 
 export const StandingsTable = ({ standings, qualifiedThirdIds }: StandingsTableProps) => {
   return (
-    <div className="overflow-x-auto rounded-[28px] border border-white/10 bg-black/15">
+    <div className="overflow-x-auto scrollbar-hide rounded-[28px] border border-white/10 bg-black/15">
       <table className="min-w-full text-sm">
         <thead className="text-xs uppercase tracking-[0.22em] text-white/45">
           <tr>

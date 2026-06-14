@@ -885,7 +885,7 @@ export default function EPLApp() {
               <img src={eplLogoNoTextWhite} className="w-9 h-9 object-contain" alt="" />
               League Table
             </h2>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto scrollbar-hide">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-[#1e1e2e]/50 text-slate-200 text-base uppercase tracking-wider font-extrabold">
