@@ -260,7 +260,8 @@ export const calculateMatchMOTM = (
   initializePlayers(homeTeam);
   initializePlayers(awayTeam);
 
-  // 2. Goal scoring: Forward (+4 pts), Midfielder (+5 pts), Defender/Goalkeeper (+8 pts)
+  // 2. Goal scoring: Forward (+10), Midfielder (+12), Defender/Goalkeeper (+15)
+  //    Higher per-goal points ensure scorers strongly outweigh non-scorers.
   const goalEvents: { playerId: string; teamId: string }[] = [];
   if (match.timeline?.length) {
     for (const event of match.timeline) {
@@ -281,26 +282,28 @@ export const calculateMatchMOTM = (
     if (entry) {
       const pos = entry.player.position;
       let points = 0;
-      if (pos === 'FW') points = 4;
-      else if (pos === 'MF') points = 5;
-      else if (pos === 'DF' || pos === 'GK') points = 8;
+      if (pos === 'FW') points = 10;
+      else if (pos === 'MF') points = 12;
+      else if (pos === 'DF' || pos === 'GK') points = 15;
       entry.score += points;
     }
   }
 
-  // 3. Clean Sheet: Goalkeeper #1 and all Defenders (DF) get +4 pts
+  // 3. Clean Sheet: ONLY primary GK (index 0) gets +5.
+  //    All Defenders (DF) get only +2 (reduced from +4 to prevent
+  //    defenders dominating MOTM without scoring).
   const awardCleanSheet = (team: Team) => {
-    // Only primary GK (index 0 in GK list)
+    // Only primary GK (index 0 in GK list) — +5 pts
     const gks = team.players.filter((p) => p.position === 'GK');
     if (gks.length > 0) {
       const entry = playerScores.get(`${team.id}:${gks[0].id}`);
-      if (entry) entry.score += 4;
+      if (entry) entry.score += 5;
     }
-    // All Defenders (DF)
+    // All Defenders (DF) — only +2 pts (reduced)
     for (const p of team.players) {
       if (p.position === 'DF') {
         const entry = playerScores.get(`${team.id}:${p.id}`);
-        if (entry) entry.score += 4;
+        if (entry) entry.score += 2;
       }
     }
   };
@@ -312,18 +315,19 @@ export const calculateMatchMOTM = (
     awardCleanSheet(awayTeam);
   }
 
-  // 4. Winner Team: +2 pts for all players
+  // 4. Winner Team: +1 pt for all players (reduced from +2)
   if (winnerTeamId) {
     const winnerTeam = winnerTeamId === homeTeam.id ? homeTeam : awayTeam;
     for (const p of winnerTeam.players) {
       const entry = playerScores.get(`${winnerTeam.id}:${p.id}`);
-      if (entry) entry.score += 2;
+      if (entry) entry.score += 1;
     }
   }
 
-  // 5. Small random factor (Math.random() * 2) to break ties dynamically
+  // 5. Random factor (Math.random() * 5) to break ties dynamically
+  //    Wider range (0-5 vs old 0-2) eliminates alphabetical sorting patterns.
   for (const entry of playerScores.values()) {
-    entry.score += Math.random() * 2;
+    entry.score += Math.random() * 5;
   }
 
   // Find player with the highest score

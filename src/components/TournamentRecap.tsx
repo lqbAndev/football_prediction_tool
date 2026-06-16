@@ -71,7 +71,7 @@ const StatCard = ({
         <div className="flex min-w-0 flex-1 items-center gap-2.5">
           {flagTeam ? <Flag teamName={flagTeam} size={26} /> : null}
           {flagTeams ? <Flag teamName={flagTeams[0]} size={26} /> : null}
-          <div className="truncate text-3xl font-bold text-white">{value}</div>
+          <div className="truncate text-xl font-bold text-white sm:text-3xl">{value}</div>
           {flagTeams ? <Flag teamName={flagTeams[1]} size={26} /> : null}
         </div>
       </div>
@@ -440,6 +440,7 @@ export const TournamentRecap = ({ stats, groupMatches, knockoutMatches }: Tourna
         </div>
       </div>
 
+      <div className="responsive-table-wrap">
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total Goals" value={stats.totalGoals} sub={`${stats.goalsPerMatch} goals/match`} accent="usa" />
         <StatCard label="Total Matches" value={stats.totalMatches} sub="Matches Completed" accent="mexico" />
@@ -528,7 +529,7 @@ export const TournamentRecap = ({ stats, groupMatches, knockoutMatches }: Tourna
         ) : null}
 
         {stats.highestScoringMatch ? (
-          <div className="sm:col-span-2">
+          <div className="sm:col-span-2 min-w-0">
             <StatCard
               label="Highest Scoring Match"
               value={`${stats.highestScoringMatch.homeTeamName} ${stats.highestScoringMatch.homeScore} - ${stats.highestScoringMatch.awayScore} ${stats.highestScoringMatch.awayTeamName}`}
@@ -539,6 +540,7 @@ export const TournamentRecap = ({ stats, groupMatches, knockoutMatches }: Tourna
             />
           </div>
         ) : null}
+      </div>
       </div>
 
       <BestXISection stats={stats} groupMatches={groupMatches} knockoutMatches={knockoutMatches} />

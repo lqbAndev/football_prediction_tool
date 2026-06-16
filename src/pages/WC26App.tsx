@@ -35,6 +35,7 @@ export default function WC26App() {
     coreState,
     derivedState,
     predictGroupMatch,
+    applyRealResult,
     openKnockoutStage,
     predictKnockoutMatch,
     resolvePenalty,
@@ -389,6 +390,8 @@ export default function WC26App() {
                   qualifiedThirdIds={qualifiedThirdIds}
                   onPredict={predictGroupMatch}
                   onTeamClick={(teamId) => setSelectedTeamId(teamId)}
+                  onApplyRealResult={applyRealResult}
+                  onShowToast={setToastMessage}
                 />
               ))}
             </div>

@@ -172,7 +172,7 @@ const FeaturedMatchCard = ({
             {homeTeam.slice(0, 2).toUpperCase()}
           </div>
         )}
-        <span className="whitespace-nowrap font-bold text-white text-base">
+        <span className="truncate font-bold text-white text-sm sm:text-base">
           {homeTeam}
         </span>
       </div>
@@ -188,7 +188,7 @@ const FeaturedMatchCard = ({
 
       {/* Away */}
       <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
-        <span className="whitespace-nowrap text-right font-bold text-white text-base">
+        <span className="truncate text-right font-bold text-white text-sm sm:text-base">
           {awayTeam}
         </span>
         {logoMap && awayTeamId && logoMap[awayTeamId] ? (
@@ -812,7 +812,7 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
               </div>
             </div>
 
-            <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 text-xs font-semibold backdrop-blur-md">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 bg-white/5 border border-white/10 rounded-2xl px-3 sm:px-4 py-2 text-xs font-semibold backdrop-blur-md">
               <div className="text-white/60">
                 Goals: <span className="font-black text-white text-sm">{totalGoals}</span>
               </div>
@@ -823,10 +823,10 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-start gap-2 border-b border-[#1e1e2e] pb-4 mb-6">
+          <div className="responsive-tab-nav border-b border-[#1e1e2e] pb-4 mb-6">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-all ${
+              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all ${
                 activeTab === 'overview'
                   ? 'bg-[#e11d8f]/8 text-slate-100 border border-[#e11d8f]/30 shadow-inner'
                   : 'text-white/50 hover:text-white hover:bg-white/5 border border-transparent'
@@ -836,7 +836,7 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
             </button>
             <button
               onClick={() => setActiveTab('awards')}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-all ${
+              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all ${
                 activeTab === 'awards'
                   ? 'bg-[#e11d8f]/8 text-slate-100 border border-[#e11d8f]/30 shadow-inner'
                   : 'text-white/50 hover:text-white hover:bg-white/5 border border-transparent'
@@ -846,7 +846,7 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
             </button>
             <button
               onClick={() => setActiveTab('streaks')}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-all ${
+              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all ${
                 activeTab === 'streaks'
                   ? 'bg-[#e11d8f]/8 text-slate-100 border border-[#e11d8f]/30 shadow-inner'
                   : 'text-white/50 hover:text-white hover:bg-white/5 border border-transparent'
@@ -856,7 +856,7 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
             </button>
             <button
               onClick={() => setActiveTab('highlights')}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-all ${
+              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all ${
                 activeTab === 'highlights'
                   ? 'bg-[#e11d8f]/8 text-slate-100 border border-[#e11d8f]/30 shadow-inner'
                   : 'text-white/50 hover:text-white hover:bg-white/5 border border-transparent'
@@ -866,7 +866,7 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
             </button>
             <button
               onClick={() => setActiveTab('stats')}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-all ${
+              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all ${
                 activeTab === 'stats'
                   ? 'bg-[#e11d8f]/8 text-slate-100 border border-[#e11d8f]/30 shadow-inner'
                   : 'text-white/50 hover:text-white hover:bg-white/5 border border-transparent'
@@ -878,7 +878,7 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
             {bestXI && (
               <button
                 onClick={() => setActiveTab('bestxi')}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-all ${
+                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all ${
                   activeTab === 'bestxi'
                     ? 'bg-[#e11d8f]/8 text-slate-100 border border-[#e11d8f]/30 shadow-inner'
                     : 'text-white/50 hover:text-white hover:bg-white/5 border border-transparent'
@@ -954,14 +954,14 @@ export default function LeagueRecap({ standings, fixtures, logoMap, leagueLogo, 
                     <div className="text-xs font-bold uppercase tracking-[0.22em] text-amber-400/80">
                       Player of the Season
                     </div>
-                    <div className="mt-3 flex items-center justify-between gap-3">
+                    <div className="mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex min-w-0 flex-1 items-center gap-3">
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-950/40 border border-amber-400/30">
                           <Star className="h-4 w-4 text-amber-300" />
                         </div>
                         <div className="truncate text-xl font-black text-white">{potsName}</div>
                       </div>
-                      <div className="shrink-0 flex items-center gap-3">
+                      <div className="flex flex-wrap items-center gap-3">
                         <div className="flex items-center gap-1.5 text-sm text-white/60 font-semibold">
                           {logoMap && potsTeamId && logoMap[potsTeamId] && (
                             <img src={logoMap[potsTeamId]} alt="" className="h-5 w-5 object-contain bg-white rounded p-0.5 shrink-0" />

@@ -313,11 +313,20 @@ export default function EPLApp() {
         const raw = window.localStorage.getItem('epl-prediction:v1');
         if (raw) {
           const parsed = JSON.parse(raw);
-          if (parsed && Array.isArray(parsed.fixtures)) {
-            setFixtures(parsed.fixtures);
-            setSelectedMatchweek(parsed.selectedMatchweek || 1);
-            setIsInitialized(true);
-            return;
+          if (parsed && parsed.version === 2 && Array.isArray(parsed.fixtures)) {
+            const isValid = parsed.fixtures.every((match: any) => 
+              match && match.homeTeamId && match.awayTeamId &&
+              EPL_TEAMS_BY_ID[match.homeTeamId] && EPL_TEAMS_BY_ID[match.awayTeamId] &&
+              (!match.motm || (match.motm.playerId && match.motm.teamId))
+            );
+            if (isValid) {
+              setFixtures(parsed.fixtures);
+              setSelectedMatchweek(parsed.selectedMatchweek || 1);
+              setIsInitialized(true);
+              return;
+            } else {
+              console.warn("EPL auto-save contains invalid, outdated, or incomplete data. Resetting fixtures.");
+            }
           }
         }
       } catch (e) {
@@ -459,6 +468,7 @@ export default function EPLApp() {
       if (match.matchweek === selectedMatchweek && match.status === 'pending') {
         const homeTeam = EPL_TEAMS_BY_ID[match.homeTeamId];
         const awayTeam = EPL_TEAMS_BY_ID[match.awayTeamId];
+        if (!homeTeam || !awayTeam) return match;
         return simulateEPLMatch(match, homeTeam, awayTeam);
       }
       return match;
@@ -471,6 +481,7 @@ export default function EPLApp() {
       if (match.id === matchId && match.status === 'pending') {
         const homeTeam = EPL_TEAMS_BY_ID[match.homeTeamId];
         const awayTeam = EPL_TEAMS_BY_ID[match.awayTeamId];
+        if (!homeTeam || !awayTeam) return match;
         return simulateEPLMatch(match, homeTeam, awayTeam);
       }
       return match;
@@ -662,7 +673,7 @@ export default function EPLApp() {
 
             <div className="flex-1 flex flex-col gap-3 min-w-0">
               {/* Row 1: Matchweek 1 -> 19 */}
-              <div className="flex gap-1.5 sm:gap-2 justify-between w-full">
+              <div className="flex gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide py-1 w-full flex-nowrap">
                 {Array.from({ length: 19 }, (_, i) => i + 1).map((mw) => {
                   const isCompleted = fixtures
                     .filter((f) => f.matchweek === mw)
@@ -673,7 +684,7 @@ export default function EPLApp() {
                     <button
                       key={mw}
                       onClick={() => setSelectedMatchweek(mw)}
-                      className={`flex-1 py-2 rounded-xl font-black text-xs sm:text-base shrink border transition-all text-center cursor-pointer ${isCurrent
+                      className={`flex-1 py-2 px-3 rounded-xl font-black text-xs sm:text-base shrink-0 min-w-[36px] sm:min-w-[44px] border transition-all text-center cursor-pointer ${isCurrent
                         ? 'bg-[#e11d8f]/90 text-white border-[#e11d8f]/70 scale-105 shadow-md shadow-[#e11d8f]/20'
                         : isCompleted
                           ? 'bg-[#111118] text-[#e11d8f]/80 border-[#1e1e2e]/50 hover:bg-[#1a1a24]'
@@ -687,7 +698,7 @@ export default function EPLApp() {
               </div>
 
               {/* Row 2: Matchweek 20 -> 38 */}
-              <div className="flex gap-1.5 sm:gap-2 justify-between w-full">
+              <div className="flex gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide py-1 w-full flex-nowrap">
                 {Array.from({ length: 19 }, (_, i) => i + 20).map((mw) => {
                   const isCompleted = fixtures
                     .filter((f) => f.matchweek === mw)
@@ -698,7 +709,7 @@ export default function EPLApp() {
                     <button
                       key={mw}
                       onClick={() => setSelectedMatchweek(mw)}
-                      className={`flex-1 py-2 rounded-xl font-black text-xs sm:text-base shrink border transition-all text-center cursor-pointer ${isCurrent
+                      className={`flex-1 py-2 px-3 rounded-xl font-black text-xs sm:text-base shrink-0 min-w-[36px] sm:min-w-[44px] border transition-all text-center cursor-pointer ${isCurrent
                         ? 'bg-[#e11d8f]/90 text-white border-[#e11d8f]/70 scale-105 shadow-md shadow-[#e11d8f]/20'
                         : isCompleted
                           ? 'bg-[#111118] text-[#e11d8f]/80 border-[#1e1e2e]/50 hover:bg-[#1a1a24]'
@@ -727,6 +738,7 @@ export default function EPLApp() {
             {matchweekFixtures.map((match) => {
               const homeTeam = EPL_TEAMS_BY_ID[match.homeTeamId];
               const awayTeam = EPL_TEAMS_BY_ID[match.awayTeamId];
+              if (!homeTeam || !awayTeam) return null;
               const isCompleted = match.status === 'completed';
               const hasTimeline = match.timeline && match.timeline.length > 0;
               const homeEvents = match.timeline?.filter((e) => e.side === 'home') ?? [];
@@ -824,7 +836,7 @@ export default function EPLApp() {
                           )}
                           {/* Goal Timeline */}
                           {hasTimeline && (
-                            <div className="grid grid-cols-2 gap-6 text-sm">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 text-sm">
                               {/* Home goals */}
                               <div className="bg-[#0a0a12]/60 p-4 rounded-2xl border border-[#1e1e2e]/25 space-y-2.5">
                                 <span className="text-sm text-slate-300 font-black uppercase tracking-wider block border-b border-[#1e1e2e]/30 pb-1">{homeTeam.shortName} Goals</span>
@@ -991,8 +1003,8 @@ export default function EPLApp() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-hidden rounded-2xl border border-[#1e1e2e]/35 bg-[#0a0a12]/50 shadow-lg">
-                <table className="w-full text-left border-collapse">
+              <div className="overflow-x-auto scrollbar-hide w-full max-w-full rounded-2xl border border-[#1e1e2e]/35 bg-[#0a0a12]/50 shadow-lg">
+                <table className="w-full min-w-[500px] text-left border-collapse">
                   <thead>
                     <tr className="border-b border-[#1e1e2e]/30 bg-[#0a0a12]/85 text-base font-black uppercase tracking-wider text-slate-200">
                       <th className="py-3 px-5 w-16 text-center">Rank</th>

@@ -1,0 +1,441 @@
+{
+  "lastUpdated": "2026-06-16T17:06:32.115Z",
+  "source": "Manual / TheSportsDB",
+  "matches": {
+    "group-A-1": {
+      "homeScore": 2,
+      "awayScore": 0,
+      "scorers": [
+        {
+          "playerName": "JULIÁN QUIÑONES",
+          "minute": 9,
+          "side": "home",
+          "teamId": "mexico"
+        },
+        {
+          "playerName": "RAÚL JIMÉNEZ",
+          "minute": 67,
+          "side": "home",
+          "teamId": "mexico"
+        }
+      ],
+      "motm": {
+        "playerName": "JULIÁN QUIÑONES",
+        "teamName": "Mexico"
+      }
+    },
+    "group-A-2": {
+      "homeScore": 2,
+      "awayScore": 1,
+      "scorers": [
+        {
+          "playerName": "LADISLAV KREJČÍ",
+          "minute": 58,
+          "side": "away",
+          "teamId": "czech-republic"
+        },
+        {
+          "playerName": "HWANG IN-BEOM",
+          "minute": 67,
+          "side": "home",
+          "teamId": "south-korea"
+        },
+        {
+          "playerName": "OH HYEON-GYU",
+          "minute": 80,
+          "side": "home",
+          "teamId": "south-korea"
+        }
+      ],
+      "motm": {
+        "playerName": "HWANG IN-BEOM",
+        "teamName": "South Korea"
+      }
+    },
+    "group-B-1": {
+      "homeScore": 1,
+      "awayScore": 1,
+      "scorers": [
+        {
+          "playerName": "CYLE LARIN",
+          "minute": 78,
+          "side": "home",
+          "teamId": "canada"
+        },
+        {
+          "playerName": "JOVO LUKIC",
+          "minute": 21,
+          "side": "away",
+          "teamId": "bosnia-herzegovina"
+        }
+      ],
+      "motm": {
+        "playerName": "CYLE LARIN",
+        "teamName": "Canada"
+      }
+    },
+    "group-D-1": {
+      "homeScore": 4,
+      "awayScore": 1,
+      "scorers": [
+        {
+          "playerName": "CHRISTIAN PULISIC",
+          "minute": 7,
+          "side": "home",
+          "teamId": "united-states"
+        },
+        {
+          "playerName": "FOLARIN BALOGUN",
+          "minute": 31,
+          "side": "home",
+          "teamId": "united-states"
+        },
+        {
+          "playerName": "FOLARIN BALOGUN",
+          "minute": 45,
+          "side": "home",
+          "teamId": "united-states"
+        },
+        {
+          "playerName": "GIO REYNA",
+          "minute": 90,
+          "side": "home",
+          "teamId": "united-states"
+        },
+        {
+          "playerName": "MAURÍCIO",
+          "minute": 73,
+          "side": "away",
+          "teamId": "paraguay"
+        }
+      ],
+      "motm": {
+        "playerName": "FOLARIN BALOGUN",
+        "teamName": "United States"
+      }
+    },
+    "group-C-1": {
+      "homeScore": 1,
+      "awayScore": 1,
+      "scorers": [
+        {
+          "playerName": "ISMAEL SAIBARI",
+          "minute": 21,
+          "side": "away",
+          "teamId": "morocco"
+        },
+        {
+          "playerName": "VINÍCIUS JÚNIOR",
+          "minute": 32,
+          "side": "home",
+          "teamId": "brazil"
+        }
+      ],
+      "motm": {
+        "playerName": "VINÍCIUS JÚNIOR",
+        "teamName": "Brazil"
+      }
+    },
+    "group-B-2": {
+      "homeScore": 1,
+      "awayScore": 1,
+      "scorers": [
+        {
+          "playerName": "AKRAM AFIF",
+          "minute": 90,
+          "side": "home",
+          "teamId": "qatar"
+        },
+        {
+          "playerName": "BREEL EMBOLO",
+          "minute": 17,
+          "side": "away",
+          "teamId": "switzerland"
+        }
+      ],
+      "motm": {
+        "playerName": "BREEL EMBOLO",
+        "teamName": "Switzerland"
+      }
+    },
+    "group-C-2": {
+      "homeScore": 0,
+      "awayScore": 1,
+      "scorers": [
+        {
+          "playerName": "JOHN MCGINN",
+          "minute": 28,
+          "side": "away",
+          "teamId": "scotland"
+        }
+      ],
+      "motm": {
+        "playerName": "JOHN MCGINN",
+        "teamName": "Scotland"
+      }
+    },
+    "group-D-2": {
+      "homeScore": 2,
+      "awayScore": 0,
+      "scorers": [
+        {
+          "playerName": "NESTORY IRANKUNDA",
+          "minute": 27,
+          "side": "home",
+          "teamId": "australia"
+        },
+        {
+          "playerName": "CONNOR METCALFE",
+          "minute": 75,
+          "side": "home",
+          "teamId": "australia"
+        }
+      ],
+      "motm": {
+        "playerName": "NESTORY IRANKUNDA",
+        "teamName": "Australia"
+      }
+    },
+    "group-E-1": {
+      "homeScore": 7,
+      "awayScore": 1,
+      "scorers": [
+        {
+          "playerName": "FELIX NMECHA",
+          "minute": 6,
+          "side": "home",
+          "teamId": "germany"
+        },
+        {
+          "playerName": "LIVANO COMENENCIA",
+          "minute": 21,
+          "side": "away",
+          "teamId": "curacao"
+        },
+        {
+          "playerName": "NICO SCHLOTTERBECK",
+          "minute": 38,
+          "side": "home",
+          "teamId": "germany"
+        },
+        {
+          "playerName": "KAI HAVERTZ",
+          "minute": 45,
+          "side": "home",
+          "teamId": "germany"
+        },
+        {
+          "playerName": "JAMAL MUSIALA",
+          "minute": 47,
+          "side": "home",
+          "teamId": "germany"
+        },
+        {
+          "playerName": "NATHANIEL BROWN",
+          "minute": 68,
+          "side": "home",
+          "teamId": "germany"
+        },
+        {
+          "playerName": "DENIZ UNDAV",
+          "minute": 78,
+          "side": "home",
+          "teamId": "germany"
+        },
+        {
+          "playerName": "KAI HAVERTZ",
+          "minute": 88,
+          "side": "home",
+          "teamId": "germany"
+        }
+      ],
+      "motm": {
+        "playerName": "KAI HAVERTZ",
+        "teamName": "Germany"
+      }
+    },
+    "group-E-2": {
+      "homeScore": 1,
+      "awayScore": 0,
+      "scorers": [
+        {
+          "playerName": "AMAD DIALLO",
+          "minute": 90,
+          "side": "home",
+          "teamId": "ivory-coast"
+        }
+      ],
+      "motm": {
+        "playerName": "AMAD DIALLO",
+        "teamName": "Ivory Coast"
+      }
+    },
+    "group-F-1": {
+      "homeScore": 2,
+      "awayScore": 2,
+      "scorers": [
+        {
+          "playerName": "VIRGIL VAN DIJK",
+          "minute": 51,
+          "side": "home",
+          "teamId": "netherlands"
+        },
+        {
+          "playerName": "KEITO NAKAMURA",
+          "minute": 57,
+          "side": "away",
+          "teamId": "japan"
+        },
+        {
+          "playerName": "CRYSENCIO SUMMERVILLE",
+          "minute": 64,
+          "side": "home",
+          "teamId": "netherlands"
+        },
+        {
+          "playerName": "DAICHI KAMADA",
+          "minute": 89,
+          "side": "away",
+          "teamId": "japan"
+        }
+      ],
+      "motm": {
+        "playerName": "KEITO NAKAMURA",
+        "teamName": "Japan"
+      }
+    },
+    "group-F-2": {
+      "homeScore": 5,
+      "awayScore": 1,
+      "scorers": [
+        {
+          "playerName": "YASIN AYARI",
+          "minute": 7,
+          "side": "home",
+          "teamId": "sweden"
+        },
+        {
+          "playerName": "ALEXANDER ISAK",
+          "minute": 30,
+          "side": "home",
+          "teamId": "sweden"
+        },
+        {
+          "playerName": "OMAR REKIK",
+          "minute": 43,
+          "side": "away",
+          "teamId": "tunisia"
+        },
+        {
+          "playerName": "VIKTOR GYÖKERES",
+          "minute": 59,
+          "side": "home",
+          "teamId": "sweden"
+        },
+        {
+          "playerName": "MATTIAS SVANBERG",
+          "minute": 84,
+          "side": "home",
+          "teamId": "sweden"
+        },
+        {
+          "playerName": "YASIN AYARI",
+          "minute": 95,
+          "side": "home",
+          "teamId": "sweden"
+        }
+      ],
+      "motm": {
+        "playerName": "YASIN AYARI",
+        "teamName": "Sweden"
+      }
+    },
+    "group-G-1": {
+      "homeScore": 1,
+      "awayScore": 1,
+      "scorers": [
+        {
+          "playerName": "ROMELU LUKAKU",
+          "minute": 66,
+          "side": "home",
+          "teamId": "belgium"
+        },
+        {
+          "playerName": "EMAM ASHOUR",
+          "minute": 19,
+          "side": "away",
+          "teamId": "egypt"
+        }
+      ],
+      "motm": {
+        "playerName": "EMAM ASHOUR",
+        "teamName": "Egypt"
+      }
+    },
+    "group-G-2": {
+      "homeScore": 2,
+      "awayScore": 2,
+      "scorers": [
+        {
+          "playerName": "RAMIN REZAEIAN",
+          "minute": 32,
+          "side": "home",
+          "teamId": "iran"
+        },
+        {
+          "playerName": "MOHAMMAD MOHEBI",
+          "minute": 64,
+          "side": "home",
+          "teamId": "iran"
+        },
+        {
+          "playerName": "ELI JUST",
+          "minute": 7,
+          "side": "away",
+          "teamId": "new-zealand"
+        },
+        {
+          "playerName": "ELI JUST",
+          "minute": 54,
+          "side": "away",
+          "teamId": "new-zealand"
+        }
+      ],
+      "motm": {
+        "playerName": "ELI JUST",
+        "teamName": "New Zealand"
+      }
+    },
+    "group-H-1": {
+      "homeScore": 0,
+      "awayScore": 0,
+      "scorers": [],
+      "motm": {
+        "playerName": "VOZINHA",
+        "teamName": "Cape Verde"
+      }
+    },
+    "group-H-2": {
+      "homeScore": 1,
+      "awayScore": 1,
+      "scorers": [
+        {
+          "playerName": "ABDULELAH AL AMRI",
+          "minute": 41,
+          "side": "home",
+          "teamId": "saudi-arabia"
+        },
+        {
+          "playerName": "MAXIMILIANO ARAÚJO",
+          "minute": 80,
+          "side": "away",
+          "teamId": "uruguay"
+        }
+      ],
+      "motm": {
+        "playerName": "MAXIMILIANO ARAÚJO",
+        "teamName": "Uruguay"
+      }
+    }
+  }
+}

@@ -1,25 +1,66 @@
 import { useState } from 'react';
-import { ChevronDown, Clock } from 'lucide-react';
+import { ChevronDown, Clock, Radio } from 'lucide-react';
 import { useTeamsById } from '../hooks/CompetitionContext';
 import type { GroupMatch } from '../types/tournament';
 import { Flag } from './Flag';
 import { TriondaBall } from './BrandAssets';
 
+/** Shape of a single match entry in real_results.json */
+export interface RealMatchResult {
+  homeScore: number;
+  awayScore: number;
+  scorers: Array<{
+    playerName: string;
+    teamId: string;
+    side: 'home' | 'away';
+    minute: number;
+  }>;
+  motm: { playerName: string; teamName: string } | null;
+}
+
 interface MatchCardProps {
   match: GroupMatch;
   onPredict: (matchId: string) => void;
+  onApplyRealResult?: (matchId: string, data: RealMatchResult) => void;
+  onShowToast?: (message: string) => void;
 }
 
-export const MatchCard = ({ match, onPredict }: MatchCardProps) => {
+export const MatchCard = ({ match, onPredict, onApplyRealResult, onShowToast }: MatchCardProps) => {
   const teamsById = useTeamsById();
   const homeTeam = teamsById[match.homeTeamId];
   const awayTeam = teamsById[match.awayTeamId];
   const isCompleted = match.status === 'completed';
   const [expanded, setExpanded] = useState(false);
+  const [loadingLive, setLoadingLive] = useState(false);
   const hasTimeline = match.timeline && match.timeline.length > 0;
 
   const homeEvents = match.timeline?.filter((e) => e.side === 'home') ?? [];
   const awayEvents = match.timeline?.filter((e) => e.side === 'away') ?? [];
+
+  const handleLiveResult = async () => {
+    if (!onApplyRealResult || !onShowToast) return;
+    setLoadingLive(true);
+
+    try {
+      // Dynamic import to avoid bundling empty JSON when not used
+      const realResults = await import('../data/real_results.json');
+      const matchData = (realResults.matches as Record<string, RealMatchResult>)?.[match.id];
+
+      if (matchData && matchData.homeScore !== undefined) {
+        onApplyRealResult(match.id, matchData);
+      } else {
+        onShowToast(
+          "This match hasn't been played yet or hasn't been updated. Use the Prediction feature!"
+        );
+      }
+    } catch {
+      onShowToast(
+        "This match hasn't been played yet or hasn't been updated. Use the Prediction feature!"
+      );
+    } finally {
+      setLoadingLive(false);
+    }
+  };
 
   return (
     <article className="rounded-[28px] border border-white/10 bg-black/15 p-4 shadow-glow">
@@ -164,13 +205,26 @@ export const MatchCard = ({ match, onPredict }: MatchCardProps) => {
       ) : null}
 
       {!isCompleted && (
-        <button
-          type="button"
-          onClick={() => onPredict(match.id)}
-          className="mt-5 inline-flex w-full items-center justify-center gap-2.5 rounded-2xl border border-emerald-400/25 bg-gradient-to-r from-emerald-500/20 via-teal-500/15 to-emerald-500/20 px-5 py-4 text-sm font-bold tracking-widest text-emerald-100 shadow-[0_4px_24px_rgba(52,211,153,0.08)] transition-all duration-200 hover:-translate-y-1 hover:border-emerald-400/45 hover:from-emerald-500/30 hover:via-teal-500/25 hover:to-emerald-500/30 hover:shadow-[0_8px_32px_rgba(52,211,153,0.18)] active:translate-y-0"
-        >
-          PREDICT MATCH
-        </button>
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+          <button
+            type="button"
+            onClick={() => onPredict(match.id)}
+            className="inline-flex flex-1 items-center justify-center gap-2.5 rounded-2xl border border-emerald-400/25 bg-gradient-to-r from-emerald-500/20 via-teal-500/15 to-emerald-500/20 px-5 py-4 text-sm font-bold tracking-widest text-emerald-100 shadow-[0_4px_24px_rgba(52,211,153,0.08)] transition-all duration-200 hover:-translate-y-1 hover:border-emerald-400/45 hover:from-emerald-500/30 hover:via-teal-500/25 hover:to-emerald-500/30 hover:shadow-[0_8px_32px_rgba(52,211,153,0.18)] active:translate-y-0"
+          >
+            PREDICT MATCH
+          </button>
+          {onApplyRealResult && (
+            <button
+              type="button"
+              onClick={handleLiveResult}
+              disabled={loadingLive}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-sky-400/25 bg-gradient-to-r from-sky-500/20 via-blue-500/15 to-sky-500/20 px-5 py-4 text-sm font-bold tracking-widest text-sky-100 shadow-[0_4px_24px_rgba(56,189,248,0.08)] transition-all duration-200 hover:-translate-y-1 hover:border-sky-400/45 hover:from-sky-500/30 hover:via-blue-500/25 hover:to-sky-500/30 hover:shadow-[0_8px_32px_rgba(56,189,248,0.18)] active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none"
+            >
+              <Radio className="h-4 w-4" />
+              {loadingLive ? 'LOADING...' : 'LIVE RESULT'}
+            </button>
+          )}
+        </div>
       )}
     </article>
   );

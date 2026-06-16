@@ -41,11 +41,20 @@ export default function LeagueApp() {
         if (raw) {
           const parsed = JSON.parse(raw);
           if (parsed && Array.isArray(parsed.fixtures)) {
-            setFixtures(parsed.fixtures);
-            setSelectedMatchweek(parsed.selectedMatchweek || 1);
-            setHasShownChampionModal(parsed.hasShownChampionModal || false);
-            setIsInitialized(true);
-            return;
+            const isValid = parsed.fixtures.every((match: any) => 
+              match && match.homeTeamId && match.awayTeamId &&
+              TEST_LEAGUE_TEAMS_BY_ID[match.homeTeamId] && TEST_LEAGUE_TEAMS_BY_ID[match.awayTeamId] &&
+              (!match.motm || (match.motm.playerId && match.motm.teamId))
+            );
+            if (isValid) {
+              setFixtures(parsed.fixtures);
+              setSelectedMatchweek(parsed.selectedMatchweek || 1);
+              setHasShownChampionModal(parsed.hasShownChampionModal || false);
+              setIsInitialized(true);
+              return;
+            } else {
+              console.warn("Test league auto-save contains invalid or outdated team IDs. Resetting fixtures.");
+            }
           }
         }
       } catch (e) {
@@ -174,6 +183,7 @@ export default function LeagueApp() {
       if (match.id === matchId && match.status === 'pending') {
         const homeTeam = TEST_LEAGUE_TEAMS_BY_ID[match.homeTeamId];
         const awayTeam = TEST_LEAGUE_TEAMS_BY_ID[match.awayTeamId];
+        if (!homeTeam || !awayTeam) return match;
         return simulateLeagueMatch(
           match,
           homeTeam,

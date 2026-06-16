@@ -1,6 +1,6 @@
 import type { GroupMatch, GroupId, Team, TeamStanding } from '../types/tournament';
 import { Flag } from './Flag';
-import { MatchCard } from './MatchCard';
+import { MatchCard, type RealMatchResult } from './MatchCard';
 import { StandingsTable } from './StandingsTable';
 
 interface GroupCardProps {
@@ -14,6 +14,8 @@ interface GroupCardProps {
   qualifiedThirdIds: Set<string>;
   onPredict: (matchId: string) => void;
   onTeamClick?: (teamId: string) => void;
+  onApplyRealResult?: (matchId: string, data: RealMatchResult) => void;
+  onShowToast?: (message: string) => void;
 }
 
 export const GroupCard = ({
@@ -23,6 +25,8 @@ export const GroupCard = ({
   qualifiedThirdIds,
   onPredict,
   onTeamClick,
+  onApplyRealResult,
+  onShowToast,
 }: GroupCardProps) => {
   const completedMatches = matches.filter((match) => match.status === 'completed').length;
 
@@ -54,7 +58,13 @@ export const GroupCard = ({
 
       <div className="mt-5 grid gap-4">
         {matches.map((match) => (
-          <MatchCard key={match.id} match={match} onPredict={onPredict} />
+          <MatchCard
+            key={match.id}
+            match={match}
+            onPredict={onPredict}
+            onApplyRealResult={onApplyRealResult}
+            onShowToast={onShowToast}
+          />
         ))}
       </div>
 

@@ -138,6 +138,111 @@ export const useTournament = () => {
     }));
   };
 
+  const applyRealResult = (matchId: string, data: any) => {
+    setCoreState((currentState) => {
+      const groupMatchIndex = currentState.groupMatches.findIndex(m => m.id === matchId);
+      if (groupMatchIndex !== -1) {
+        const match = currentState.groupMatches[groupMatchIndex];
+        if (match.status === 'completed') {
+          return currentState;
+        }
+
+        const homeTeam = TEAMS_BY_ID[match.homeTeamId];
+        const awayTeam = TEAMS_BY_ID[match.awayTeamId];
+
+        const timeline: import('../types/tournament').TimelineEvent[] = [];
+        const scorers: import('../types/tournament').MatchScorers = { home: [], away: [] };
+
+        if (data.scorers && Array.isArray(data.scorers)) {
+          data.scorers.forEach((s: any) => {
+            const side = s.side;
+            const teamId = side === 'home' ? match.homeTeamId : match.awayTeamId;
+            const team = side === 'home' ? homeTeam : awayTeam;
+
+            const queryName = s.playerName.trim().toUpperCase();
+            let matchedPlayer = team.players.find(p => p.name.toUpperCase() === queryName);
+            if (!matchedPlayer) {
+              matchedPlayer = team.players.find(p => p.name.toUpperCase().includes(queryName) || queryName.includes(p.name.toUpperCase()));
+            }
+            if (!matchedPlayer) {
+              matchedPlayer = team.players[0];
+            }
+
+            const goalEvent: import('../types/tournament').GoalEvent = {
+              minute: s.minute,
+              playerId: matchedPlayer.id,
+              playerName: matchedPlayer.name,
+              teamId: teamId
+            };
+
+            if (side === 'home') {
+              scorers.home.push(goalEvent);
+            } else {
+              scorers.away.push(goalEvent);
+            }
+
+            timeline.push({
+              sortMinute: s.minute,
+              displayMinute: `${s.minute}'`,
+              playerName: matchedPlayer.name,
+              playerId: matchedPlayer.id,
+              teamId: teamId,
+              side: side,
+              isPenalty: !!s.isPenalty,
+              phase: 'regulation'
+            });
+          });
+        }
+
+        timeline.sort((a, b) => a.sortMinute - b.sortMinute);
+
+        let motm: import('../types/tournament').MatchMOTM | null = null;
+        if (data.motm && data.motm.playerName) {
+          const motmTeamName = data.motm.teamName;
+          let motmTeamId = match.homeTeamId;
+          if (motmTeamName.toLowerCase() === awayTeam.name.toLowerCase() || motmTeamName.toLowerCase() === awayTeam.shortName.toLowerCase()) {
+            motmTeamId = match.awayTeamId;
+          }
+          const motmTeam = TEAMS_BY_ID[motmTeamId];
+          const queryMotmName = data.motm.playerName.trim().toUpperCase();
+          let matchedMotmPlayer = motmTeam.players.find(p => p.name.toUpperCase() === queryMotmName);
+          if (!matchedMotmPlayer) {
+            matchedMotmPlayer = motmTeam.players.find(p => p.name.toUpperCase().includes(queryMotmName) || queryMotmName.includes(p.name.toUpperCase()));
+          }
+          if (!matchedMotmPlayer) {
+            matchedMotmPlayer = motmTeam.players[0];
+          }
+
+          motm = {
+            playerName: matchedMotmPlayer.name,
+            teamName: motmTeam.name,
+            reason: 'performance-points'
+          };
+        }
+
+        const updatedMatch: import('../types/tournament').GroupMatch = {
+          ...match,
+          homeScore: data.homeScore,
+          awayScore: data.awayScore,
+          scorers,
+          timeline,
+          motm,
+          status: 'completed',
+          predictedAt: new Date().toISOString()
+        };
+
+        const nextGroupMatches = currentState.groupMatches.map((m) => (m.id === matchId ? updatedMatch : m));
+
+        return {
+          ...currentState,
+          groupMatches: nextGroupMatches
+        };
+      }
+
+      return currentState;
+    });
+  };
+
   const openKnockoutStage = () => {
     startTransition(() => {
       setCoreState((currentState) => {
@@ -275,6 +380,7 @@ export const useTournament = () => {
     coreState,
     derivedState,
     predictGroupMatch,
+    applyRealResult,
     openKnockoutStage,
     predictKnockoutMatch,
     resolvePenalty,

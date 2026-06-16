@@ -1,6 +1,6 @@
 param(
-  [string]$BranchName = "feature/points-system-refactor",
-  [string]$CommitMessage = "feat: Points-based system refactor, bug fixes, mobile UI & hide save process (v3.2.0)"
+  [string]$BranchName = "feature/v3.4-mobile-motm-liveresults",
+  [string]$CommitMessage = "feat: v3.4.0 - Mobile responsive, MOTM fix, Live Results and Web Scraper"
 )
 
 $ProjectRoot   = $PSScriptRoot
