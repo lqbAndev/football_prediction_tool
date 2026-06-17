@@ -63,7 +63,7 @@ export const MatchCard = ({ match, onPredict, onApplyRealResult, onShowToast }: 
   };
 
   return (
-    <article className="rounded-[24px] sm:rounded-[28px] border border-white/10 bg-black/15 p-3.5 sm:p-4 shadow-glow">
+    <article className="rounded-[24px] sm:rounded-[28px] border border-white/10 bg-black/15 p-3.5 sm:p-4 shadow-glow w-full min-w-0">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="field-label">Round {match.matchday}</p>
@@ -225,7 +225,7 @@ export const MatchCard = ({ match, onPredict, onApplyRealResult, onShowToast }: 
           <button
             type="button"
             onClick={() => onPredict(match.id)}
-            className="inline-flex flex-1 items-center justify-center gap-2.5 rounded-2xl border border-emerald-400/25 bg-gradient-to-r from-emerald-500/20 via-teal-500/15 to-emerald-500/20 px-5 py-4 text-sm font-bold tracking-widest text-emerald-100 shadow-[0_4px_24px_rgba(52,211,153,0.08)] transition-all duration-200 hover:-translate-y-1 hover:border-emerald-400/45 hover:from-emerald-500/30 hover:via-teal-500/25 hover:to-emerald-500/30 hover:shadow-[0_8px_32px_rgba(52,211,153,0.18)] active:translate-y-0"
+            className="inline-flex flex-1 items-center justify-center gap-2.5 rounded-2xl border border-emerald-400/25 bg-gradient-to-r from-emerald-500/20 via-teal-500/15 to-emerald-500/20 px-4 py-3 sm:px-5 sm:py-4 text-sm font-bold tracking-widest text-emerald-100 shadow-[0_4px_24px_rgba(52,211,153,0.08)] transition-all duration-200 hover:-translate-y-1 hover:border-emerald-400/45 hover:from-emerald-500/30 hover:via-teal-500/25 hover:to-emerald-500/30 hover:shadow-[0_8px_32px_rgba(52,211,153,0.18)] active:translate-y-0"
           >
             PREDICT MATCH
           </button>
@@ -234,7 +234,7 @@ export const MatchCard = ({ match, onPredict, onApplyRealResult, onShowToast }: 
               type="button"
               onClick={handleLiveResult}
               disabled={loadingLive}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-sky-400/25 bg-gradient-to-r from-sky-500/20 via-blue-500/15 to-sky-500/20 px-5 py-4 text-sm font-bold tracking-widest text-sky-100 shadow-[0_4px_24px_rgba(56,189,248,0.08)] transition-all duration-200 hover:-translate-y-1 hover:border-sky-400/45 hover:from-sky-500/30 hover:via-blue-500/25 hover:to-sky-500/30 hover:shadow-[0_8px_32px_rgba(56,189,248,0.18)] active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-sky-400/25 bg-gradient-to-r from-sky-500/20 via-blue-500/15 to-sky-500/20 px-4 py-3 sm:px-5 sm:py-4 text-sm font-bold tracking-widest text-sky-100 shadow-[0_4px_24px_rgba(56,189,248,0.08)] transition-all duration-200 hover:-translate-y-1 hover:border-sky-400/45 hover:from-sky-500/30 hover:via-blue-500/25 hover:to-sky-500/30 hover:shadow-[0_8px_32px_rgba(56,189,248,0.18)] active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none"
             >
               <Radio className="h-4 w-4" />
               {loadingLive ? 'LOADING...' : 'LIVE RESULT'}

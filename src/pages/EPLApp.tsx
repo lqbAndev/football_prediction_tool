@@ -357,6 +357,7 @@ export default function EPLApp() {
       version: 2,
       fixtures,
       selectedMatchweek,
+      hasShownChampionModal,
       updatedAt: new Date().toISOString(),
     };
     saveSimulation(name, 'epl', 'league', payload);

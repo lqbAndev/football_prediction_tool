@@ -21,7 +21,7 @@ const HOST_CHIPS = [
 
 export const HeroBranding = () => {
   return (
-    <div className="brand-shell isolate overflow-hidden p-5 sm:p-6">
+    <div className="brand-shell isolate overflow-hidden p-5 sm:p-6 w-full min-w-0">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,89,161,0.18),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(24,115,91,0.16),transparent_32%)]" />
 
       <div className="relative flex flex-col gap-5">

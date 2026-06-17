@@ -159,7 +159,7 @@ export default function WC26App() {
 
   return (
     <CompetitionProvider value={{ teamsById: TEAMS_BY_ID }}>
-    <div className="relative overflow-hidden">
+    <div className="relative overflow-hidden w-full">
       <div className="pointer-events-none absolute left-[-120px] top-[140px] hidden opacity-30 lg:block">
         <TriondaBall size={260} className="animate-ball-float" />
       </div>
@@ -170,7 +170,7 @@ export default function WC26App() {
 
           <div className="relative">
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] xl:items-start">
-              <div className="max-w-3xl">
+              <div className="w-full max-w-3xl min-w-0">
                 <div className="flex items-center gap-4">
                   <div className="block sm:hidden">
                     <WorldCupLogo size={44} />
