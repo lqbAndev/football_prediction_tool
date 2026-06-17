@@ -352,7 +352,7 @@ function CompetitionContent({ competition }: { competition: NonNullable<ReturnTy
           </section>
 
           {/* ── Knockout ── */}
-          <section id="knockout" className="relative left-1/2 w-screen max-w-none -translate-x-1/2 px-4 sm:px-6 lg:px-8">
+          <section id="knockout" className="w-full">
             <div className="mx-auto max-w-[1880px]">
               <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
                 <div>

@@ -31,7 +31,7 @@ export const GroupCard = ({
   const completedMatches = matches.filter((match) => match.status === 'completed').length;
 
   return (
-    <section className="panel p-4 sm:p-5">
+    <section className="panel p-3.5 sm:p-5">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="field-label">{group.label}</p>

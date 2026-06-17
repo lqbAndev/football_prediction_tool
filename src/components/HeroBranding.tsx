@@ -25,16 +25,18 @@ export const HeroBranding = () => {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,89,161,0.18),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(24,115,91,0.16),transparent_32%)]" />
 
       <div className="relative flex flex-col gap-5">
-        <div className="flex items-center justify-between gap-2">
-          <div className="block sm:hidden">
-            <WorldCupLogo size={64} />
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
+          <div className="block sm:hidden shrink-0">
+            <WorldCupLogo size={48} />
           </div>
-          <div className="hidden sm:block">
+          <div className="hidden sm:block shrink-0">
             <WorldCupLogo size={108} />
           </div>
-          <h2 className="text-lg sm:text-2xl font-bold text-white text-center flex-1">FIFA WORLD CUP 2026</h2>
+          <h2 className="text-sm sm:text-2xl font-bold text-white text-center flex-1 leading-tight min-w-0">
+            FIFA WORLD CUP 2026
+          </h2>
           <div className="block sm:hidden shrink-0 animate-ball-float">
-            <TriondaBall size={60} />
+            <TriondaBall size={44} />
           </div>
           <div className="hidden sm:block shrink-0 animate-ball-float">
             <TriondaBall size={96} />

@@ -63,17 +63,27 @@ export const MatchCard = ({ match, onPredict, onApplyRealResult, onShowToast }: 
   };
 
   return (
-    <article className="rounded-[28px] border border-white/10 bg-black/15 p-4 shadow-glow">
+    <article className="rounded-[24px] sm:rounded-[28px] border border-white/10 bg-black/15 p-3.5 sm:p-4 shadow-glow">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="field-label">Round {match.matchday}</p>
-          <div className="mt-1 space-y-2">
-            <div className="flex items-center gap-3 text-base font-semibold text-white">
-              <Flag teamName={homeTeam.name} size={28} />
+          <div className="mt-1 space-y-1.5 sm:space-y-2">
+            <div className="flex items-center gap-2 sm:gap-3 text-sm sm:text-base font-semibold text-white">
+              <div className="block sm:hidden">
+                <Flag teamName={homeTeam.name} size={22} />
+              </div>
+              <div className="hidden sm:block">
+                <Flag teamName={homeTeam.name} size={28} />
+              </div>
               <span>{homeTeam.name}</span>
             </div>
-            <div className="flex items-center gap-3 text-base font-semibold text-white">
-              <Flag teamName={awayTeam.name} size={28} />
+            <div className="flex items-center gap-2 sm:gap-3 text-sm sm:text-base font-semibold text-white">
+              <div className="block sm:hidden">
+                <Flag teamName={awayTeam.name} size={22} />
+              </div>
+              <div className="hidden sm:block">
+                <Flag teamName={awayTeam.name} size={28} />
+              </div>
               <span>{awayTeam.name}</span>
             </div>
           </div>
@@ -81,7 +91,7 @@ export const MatchCard = ({ match, onPredict, onApplyRealResult, onShowToast }: 
 
         <div className="flex flex-col items-end gap-2">
           <span
-            className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${isCompleted
+            className={`rounded-full px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.15em] sm:tracking-[0.2em] ${isCompleted
                 ? 'border border-emerald-300/20 bg-emerald-400/10 text-emerald-100'
                 : 'border border-amber-300/20 bg-amber-300/10 text-amber-100'
               }`}
@@ -89,9 +99,9 @@ export const MatchCard = ({ match, onPredict, onApplyRealResult, onShowToast }: 
             {isCompleted ? 'Completed' : 'Pending'}
           </span>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-center">
-            <div className="text-xs uppercase tracking-[0.28em] text-white/45">Score</div>
-            <div className="mt-1 text-2xl font-bold text-white">
+          <div className="rounded-xl sm:rounded-2xl border border-white/10 bg-white/5 px-2.5 py-1.5 sm:px-4 sm:py-2 text-center">
+            <div className="text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.28em] text-white/45">Score</div>
+            <div className="mt-0.5 sm:mt-1 text-xl sm:text-2xl font-bold text-white">
               {match.homeScore ?? '-'} <span className="text-white/35">:</span> {match.awayScore ?? '-'}
             </div>
           </div>

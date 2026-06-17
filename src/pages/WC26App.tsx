@@ -164,8 +164,8 @@ export default function WC26App() {
         <TriondaBall size={260} className="animate-ball-float" />
       </div>
 
-      <div className="mx-auto max-w-[1640px] px-4 py-6 sm:px-6 lg:px-8">
-        <header className="brand-shell overflow-hidden p-6 sm:p-8">
+      <div className="mx-auto max-w-[1640px] px-2 py-4 sm:px-6 lg:px-8">
+        <header className="brand-shell overflow-hidden p-4 sm:p-8">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(19,78,74,0.22),transparent_28%),radial-gradient(circle_at_left,rgba(30,64,175,0.18),transparent_22%),radial-gradient(circle_at_bottom_right,rgba(165,52,72,0.16),transparent_28%)]" />
 
           <div className="relative">
@@ -180,7 +180,7 @@ export default function WC26App() {
                   </div>
                   <div>
                     <p className="field-label">World Cup 2026</p>
-                    <h1 className="mt-2 font-display text-3xl font-bold leading-tight text-white sm:text-5xl xl:text-[3.7rem]">
+                    <h1 className="mt-2 font-display text-2xl font-bold leading-tight text-white sm:text-5xl xl:text-[3.7rem]">
                       Prediction Tool
                     </h1>
                   </div>
@@ -416,7 +416,7 @@ export default function WC26App() {
             <TopScorersTable scorers={derivedState.topScorers} />
           </section>
 
-          <section id="knockout" className="relative left-1/2 w-screen max-w-none -translate-x-1/2 px-4 sm:px-6 lg:px-8">
+          <section id="knockout" className="w-full">
             <div className="mx-auto max-w-[1880px]">
               <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -471,7 +471,7 @@ export default function WC26App() {
             </div>
           </section>
 
-          <section id="recap" className="relative left-1/2 w-screen max-w-none -translate-x-1/2 px-4 sm:px-6 lg:px-8">
+          <section id="recap" className="w-full">
             <div className="mx-auto max-w-[1640px]">
               <TournamentRecap stats={recapStats} groupMatches={coreState.groupMatches} knockoutMatches={coreState.knockoutMatches} />
             </div>
