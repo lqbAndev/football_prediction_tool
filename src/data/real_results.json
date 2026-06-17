@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-06-16T17:06:32.115Z",
+  "lastUpdated": "2026-06-17T14:36:00.000Z",
   "source": "Manual / TheSportsDB",
   "matches": {
     "group-A-1": {
@@ -435,6 +435,144 @@
       "motm": {
         "playerName": "MAXIMILIANO ARAÚJO",
         "teamName": "Uruguay"
+      }
+    },
+    "group-I-1": {
+      "homeScore": 3,
+      "awayScore": 1,
+      "scorers": [
+        {
+          "playerName": "KYLIAN MBAPPÉ",
+          "minute": 66,
+          "side": "home",
+          "teamId": "france"
+        },
+        {
+          "playerName": "BRADLEY BARCOLA",
+          "minute": 82,
+          "side": "home",
+          "teamId": "france"
+        },
+        {
+          "playerName": "KYLIAN MBAPPÉ",
+          "minute": 96,
+          "side": "home",
+          "teamId": "france"
+        },
+        {
+          "playerName": "IBRAHIM MBAYE",
+          "minute": 95,
+          "side": "away",
+          "teamId": "senegal"
+        }
+      ],
+      "motm": {
+        "playerName": "KYLIAN MBAPPÉ",
+        "teamName": "France"
+      }
+    },
+    "group-I-2": {
+      "homeScore": 1,
+      "awayScore": 4,
+      "scorers": [
+        {
+          "playerName": "AYMEN HUSSEIN",
+          "minute": 39,
+          "side": "home",
+          "teamId": "iraq"
+        },
+        {
+          "playerName": "ERLING HAALAND",
+          "minute": 29,
+          "side": "away",
+          "teamId": "norway"
+        },
+        {
+          "playerName": "ERLING HAALAND",
+          "minute": 43,
+          "side": "away",
+          "teamId": "norway"
+        },
+        {
+          "playerName": "LEO ØSTIGÅRD",
+          "minute": 76,
+          "side": "away",
+          "teamId": "norway"
+        },
+        {
+          "playerName": "AYMEN HUSSEIN",
+          "minute": 96,
+          "side": "away",
+          "teamId": "iraq",
+          "isOwnGoal": true
+        }
+      ],
+      "motm": {
+        "playerName": "ERLING HAALAND",
+        "teamName": "Norway"
+      }
+    },
+    "group-J-1": {
+      "homeScore": 3,
+      "awayScore": 0,
+      "scorers": [
+        {
+          "playerName": "LIONEL MESSI",
+          "minute": 17,
+          "side": "home",
+          "teamId": "argentina"
+        },
+        {
+          "playerName": "LIONEL MESSI",
+          "minute": 60,
+          "side": "home",
+          "teamId": "argentina"
+        },
+        {
+          "playerName": "LIONEL MESSI",
+          "minute": 76,
+          "side": "home",
+          "teamId": "argentina"
+        }
+      ],
+      "motm": {
+        "playerName": "LIONEL MESSI",
+        "teamName": "Argentina"
+      }
+    },
+    "group-J-2": {
+      "homeScore": 3,
+      "awayScore": 1,
+      "scorers": [
+        {
+          "playerName": "ROMANO SCHMID",
+          "minute": 21,
+          "side": "home",
+          "teamId": "austria"
+        },
+        {
+          "playerName": "YAZAN AL ARAB",
+          "minute": 76,
+          "side": "home",
+          "teamId": "jordan",
+          "isOwnGoal": true
+        },
+        {
+          "playerName": "MARKO ARNAUTOVIC",
+          "minute": 93,
+          "side": "home",
+          "teamId": "austria"
+        },
+        {
+          "playerName": "ALI OLWAN",
+          "minute": 50,
+          "side": "away",
+          "teamId": "jordan"
+        }
+      ],
+      "motm": {
+        "playerName": "MARKO ARNAUTOVIC",
+        "teamName": "Austria"
       }
     }
   }
