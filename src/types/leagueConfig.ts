@@ -77,6 +77,7 @@ export interface LeagueMatch {
     teamId: string;
     side: 'home' | 'away';
     isPenalty?: boolean;
+    isOwnGoal?: boolean;
   }>;
   motm?: {
     playerId: string;

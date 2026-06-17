@@ -271,6 +271,9 @@ export const KnockoutMatchCard = ({
                             {event.isPenalty && (
                               <span className="ml-0.5 text-[9px] font-bold text-amber-300/70">PEN</span>
                             )}
+                            {event.isOwnGoal && (
+                              <span className="ml-0.5 text-[9px] font-bold text-red-400/80">OG</span>
+                            )}
                           </span>
                         </div>
                       ))
@@ -295,6 +298,9 @@ export const KnockoutMatchCard = ({
                             {event.playerName}
                             {event.isPenalty && (
                               <span className="ml-0.5 text-[9px] font-bold text-amber-300/70">PEN</span>
+                            )}
+                            {event.isOwnGoal && (
+                              <span className="ml-0.5 text-[9px] font-bold text-red-400/80">OG</span>
                             )}
                           </span>
                         </div>

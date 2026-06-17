@@ -82,7 +82,8 @@ const buildMatchHighlight = (
 
   if (match.timeline) {
     for (const event of match.timeline) {
-      const info: ScorerInfo = { playerName: event.playerName, displayMinute: event.displayMinute };
+      const name = event.isOwnGoal ? `${event.playerName} (OG)` : event.playerName;
+      const info: ScorerInfo = { playerName: name, displayMinute: event.displayMinute };
       if (event.side === 'home') {
         homeScorers.push(info);
       } else {
@@ -91,10 +92,12 @@ const buildMatchHighlight = (
     }
   } else if (match.scorers) {
     for (const event of match.scorers.home) {
-      homeScorers.push({ playerName: event.playerName, displayMinute: `${event.minute}'` });
+      const name = event.isOwnGoal ? `${event.playerName} (OG)` : event.playerName;
+      homeScorers.push({ playerName: name, displayMinute: `${event.minute}'` });
     }
     for (const event of match.scorers.away) {
-      awayScorers.push({ playerName: event.playerName, displayMinute: `${event.minute}'` });
+      const name = event.isOwnGoal ? `${event.playerName} (OG)` : event.playerName;
+      awayScorers.push({ playerName: name, displayMinute: `${event.minute}'` });
     }
   }
 

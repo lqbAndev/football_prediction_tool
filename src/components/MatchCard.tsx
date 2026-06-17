@@ -146,6 +146,9 @@ export const MatchCard = ({ match, onPredict, onApplyRealResult, onShowToast }: 
                           {event.isPenalty && (
                             <span className="ml-1 text-[10px] font-semibold text-amber-300/70">PEN</span>
                           )}
+                          {event.isOwnGoal && (
+                            <span className="ml-1 text-[10px] font-semibold text-red-400/80">OG</span>
+                          )}
                         </span>
                       </div>
                     ))
@@ -170,6 +173,9 @@ export const MatchCard = ({ match, onPredict, onApplyRealResult, onShowToast }: 
                           {event.playerName}
                           {event.isPenalty && (
                             <span className="ml-1 text-[10px] font-semibold text-amber-300/70">PEN</span>
+                          )}
+                          {event.isOwnGoal && (
+                            <span className="ml-1 text-[10px] font-semibold text-red-400/80">OG</span>
                           )}
                         </span>
                       </div>

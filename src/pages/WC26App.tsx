@@ -172,10 +172,15 @@ export default function WC26App() {
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] xl:items-start">
               <div className="max-w-3xl">
                 <div className="flex items-center gap-4">
-                  <WorldCupLogo size={56} />
+                  <div className="block sm:hidden">
+                    <WorldCupLogo size={44} />
+                  </div>
+                  <div className="hidden sm:block">
+                    <WorldCupLogo size={56} />
+                  </div>
                   <div>
                     <p className="field-label">World Cup 2026</p>
-                    <h1 className="mt-2 font-display text-4xl font-bold leading-tight text-white sm:text-5xl xl:text-[3.7rem]">
+                    <h1 className="mt-2 font-display text-3xl font-bold leading-tight text-white sm:text-5xl xl:text-[3.7rem]">
                       Prediction Tool
                     </h1>
                   </div>
@@ -294,16 +299,21 @@ export default function WC26App() {
                 <div className="flex items-center gap-2 text-xs uppercase tracking-[0.24em] text-host-ice/55">
                   <Orbit className="h-4 w-4" /> Champion
                 </div>
-                <div className="mt-3 flex items-center gap-3 text-xl font-bold text-white">
+                <div className="mt-3 flex items-center gap-2 sm:gap-3 text-base sm:text-xl font-bold text-white">
                   {derivedState.championName ? (
                     <>
-                      <ChampionCup size={48} />
-                      <Flag teamName={derivedState.championName} size={28} />
+                      <div className="block sm:hidden">
+                        <ChampionCup size={32} />
+                      </div>
+                      <div className="hidden sm:block">
+                        <ChampionCup size={48} />
+                      </div>
+                      <Flag teamName={derivedState.championName} size={20} className="sm:h-[20px]" />
                     </>
                   ) : (
-                    <WorldCupLogo size={28} />
+                    <WorldCupLogo size={24} />
                   )}
-                  <span>{derivedState.championName ?? 'TBD'}</span>
+                  <span className="truncate">{derivedState.championName ?? 'TBD'}</span>
                 </div>
                 <div className="mt-2 text-sm text-white/60">Champion</div>
               </div>
@@ -361,20 +371,21 @@ export default function WC26App() {
 
                 {/* Active Scenario Banner */}
                 {activeScenario !== 'standard' && (
-                  <div className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold ${
+                  <div className={`flex flex-wrap items-center gap-2 rounded-2xl sm:rounded-full border px-4 py-1.5 text-xs font-semibold ${
                     activeScenario === 'favorites'
                       ? 'border-amber-400/30 bg-amber-400/10 text-amber-200'
                       : 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200'
                   }`}>
-                    <Zap className="h-3 w-3" />
-                    {currentOption.label} — 
+                    <Zap className="h-3 w-3 shrink-0" />
+                    <span>{currentOption.label} — </span>
                     <span className="opacity-70">{currentOption.desc}</span>
                   </div>
                 )}
                 {activeScenario === 'standard' && (
-                  <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs text-white/50">
-                    <Zap className="h-3 w-3" />
-                    Standard — pure random, ignoring Rating
+                  <div className="flex flex-wrap items-center gap-2 rounded-2xl sm:rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs text-white/50">
+                    <Zap className="h-3 w-3 shrink-0" />
+                    <span>Standard — </span>
+                    <span className="opacity-70">pure random, ignoring Rating</span>
                   </div>
                 )}
               </div>

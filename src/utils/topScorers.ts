@@ -9,6 +9,7 @@ import type {
 
 const registerGoals = (scorersMap: Map<string, TopScorerEntry>, events: GoalEvent[]) => {
   for (const event of events) {
+    if (event.isOwnGoal) continue;
     const existing = scorersMap.get(event.playerId);
     const teamName = TEAMS_BY_ID[event.teamId]?.name ?? event.teamId;
 

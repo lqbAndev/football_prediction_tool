@@ -118,28 +118,31 @@ const BestXIPlayerCard = ({
     role="button"
     tabIndex={0}
     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
-    className={`cursor-pointer rounded-2xl border px-3 py-2.5 text-center transition-all duration-200 hover:scale-[1.04] hover:shadow-[0_0_18px_rgba(255,255,255,0.08)] active:scale-[0.97] ${isBestPlayer
+    className={`cursor-pointer rounded-2xl border px-1.5 py-1.5 sm:px-3 sm:py-2.5 text-center transition-all duration-200 hover:scale-[1.04] hover:shadow-[0_0_18px_rgba(255,255,255,0.08)] active:scale-[0.97] ${isBestPlayer
       ? 'border-amber-300/45 bg-amber-400/12 shadow-[0_0_22px_rgba(245,158,11,0.22)] hover:border-amber-300/70 hover:shadow-[0_0_28px_rgba(245,158,11,0.35)]'
       : 'border-white/12 bg-white/[0.04] hover:border-white/30 hover:bg-white/[0.08]'
       }`}
   >
     <div className="flex items-center justify-center gap-1.5">
-      <Flag teamName={player.teamName} size={16} />
-      <span className="text-[10px] uppercase tracking-[0.18em] text-host-ice/65">{player.lineupPosition}</span>
+      <Flag teamName={player.teamName} size={14} className="sm:h-[10px]" />
+      <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.18em] text-host-ice/65">{player.lineupPosition}</span>
     </div>
-    <p className={`mt-1 min-h-[2.25rem] text-[13px] font-semibold leading-tight ${isBestPlayer ? 'text-amber-100' : 'text-white'}`}>
+    <p className={`mt-1 min-h-[2rem] sm:min-h-[2.25rem] text-[11px] sm:text-[13px] font-semibold leading-tight truncate ${isBestPlayer ? 'text-amber-100' : 'text-white'}`}>
       {player.playerName}
     </p>
-    <div className="mt-1 inline-flex items-center gap-1 rounded-full border border-white/12 bg-black/20 px-2 py-0.5 text-[10px] text-white/75">
+    <div className="mt-1 inline-flex items-center gap-0.5 sm:gap-1 rounded-full border border-white/12 bg-black/20 px-1 sm:px-2 py-0.5 text-[9px] sm:text-[10px] text-white/75">
       {player.lineupPosition === 'GK' ? (
-        <span>Clean Sheets {player.cleanSheets}</span>
+        <>
+          <span className="hidden sm:inline">Clean Sheets {player.cleanSheets}</span>
+          <span className="inline sm:hidden">CS {player.cleanSheets}</span>
+        </>
       ) : (
         <span>G {player.goals}</span>
       )}
       <span>|</span>
       <span>M {player.motmCount}</span>
     </div>
-    <div className="mt-1 text-[9px] text-host-ice/35">Tap to view profile</div>
+    <div className="mt-1 text-[8px] sm:text-[9px] text-host-ice/35 truncate">Tap to view profile</div>
   </article>
 );
 
@@ -345,50 +348,65 @@ const Podium = ({
   runnerUp: string;
   thirdPlace: string;
 }) => (
-  <div className="flex items-end justify-center gap-2 py-4 sm:gap-5 lg:gap-8">
-    <div className="flex w-[92px] flex-col items-center sm:w-[150px] lg:w-[180px]">
-      <div className="flex h-14 w-14 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] sm:h-[72px] sm:w-[72px]">
-        <Flag teamName={runnerUp} size={36} />
-      </div>
-      <div className="mt-2 flex items-center gap-1 text-[10px] uppercase tracking-widest text-host-ice/50 sm:gap-1.5 sm:text-xs">
-        <Medal className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Runner-up
-      </div>
-      <span className="mt-1 text-center text-sm font-bold text-white/80 sm:text-base">{runnerUp}</span>
-      <div className="mt-3 flex h-[72px] w-full items-center justify-center rounded-t-2xl border border-b-0 border-white/10 bg-gradient-to-t from-white/[0.03] to-white/[0.08] sm:h-20">
-        <span className="text-4xl font-black text-white/[0.08] sm:text-5xl">2</span>
-      </div>
-    </div>
-
-    <div className="flex w-[110px] flex-col items-center sm:w-[170px] lg:w-[210px]">
-      <div className="relative">
-        <div className="absolute -inset-4 animate-pulse rounded-full bg-amber-400/15 blur-2xl sm:-inset-5" />
-        <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-amber-400/25 to-host-mexico/20 blur-sm sm:-inset-2" />
-        <div className="relative flex h-[76px] w-[76px] items-center justify-center rounded-full border-2 border-amber-400/40 bg-host-mexico/14 shadow-[0_0_20px_rgba(245,158,11,0.15)] sm:h-[100px] sm:w-[100px]">
-          <Flag teamName={champion} size={48} />
+  <div className="flex items-end justify-center gap-1 py-4 sm:gap-5 lg:gap-8">
+    <div className="flex w-[82px] flex-col items-center sm:w-[150px] lg:w-[180px]">
+      <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] sm:h-[72px] sm:w-[72px]">
+        <div className="block sm:hidden">
+          <Flag teamName={runnerUp} size={28} />
+        </div>
+        <div className="hidden sm:block">
+          <Flag teamName={runnerUp} size={36} />
         </div>
       </div>
-      <div className="mt-2 sm:mt-3">
-        <ChampionCup size={38} />
+      <div className="mt-2 flex items-center gap-0.5 sm:gap-1.5 text-[9px] sm:text-xs uppercase tracking-wider sm:tracking-widest text-host-ice/55">
+        <Medal className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 shrink-0" /> <span className="truncate">Runner-up</span>
       </div>
-      <div className="mt-1 flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.2em] text-host-mexico/80 sm:gap-1.5 sm:text-xs sm:tracking-[0.25em]">
-        <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Champion
-      </div>
-      <span className="mt-1 text-center text-base font-black text-white sm:text-xl">{champion}</span>
-      <div className="mt-3 flex h-[100px] w-full items-center justify-center rounded-t-2xl border border-b-0 border-host-mexico/20 bg-gradient-to-t from-host-mexico/[0.04] to-host-mexico/[0.12] sm:h-[120px]">
-        <span className="text-5xl font-black text-host-mexico/[0.12] sm:text-6xl">1</span>
+      <span className="mt-1 text-center text-xs sm:text-base font-bold text-white/80 truncate w-full max-w-full block">{runnerUp}</span>
+      <div className="mt-3 flex h-[52px] w-full items-center justify-center rounded-t-2xl border border-b-0 border-white/10 bg-gradient-to-t from-white/[0.03] to-white/[0.08] sm:h-20">
+        <span className="text-3xl font-black text-white/[0.08] sm:text-5xl">2</span>
       </div>
     </div>
 
-    <div className="flex w-[92px] flex-col items-center sm:w-[150px] lg:w-[180px]">
-      <div className="flex h-[52px] w-[52px] items-center justify-center rounded-full border border-white/15 bg-white/[0.06] sm:h-16 sm:w-16">
-        <Flag teamName={thirdPlace} size={32} />
+    <div className="flex w-[100px] flex-col items-center sm:w-[170px] lg:w-[210px]">
+      <div className="relative">
+        <div className="absolute -inset-3 animate-pulse rounded-full bg-amber-400/15 blur-2xl sm:-inset-5" />
+        <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-amber-400/25 to-host-mexico/20 blur-sm sm:-inset-2" />
+        <div className="relative flex h-[60px] w-[60px] items-center justify-center rounded-full border-2 border-amber-400/40 bg-host-mexico/14 shadow-[0_0_20px_rgba(245,158,11,0.15)] sm:h-[100px] sm:w-[100px]">
+          <div className="block sm:hidden">
+            <Flag teamName={champion} size={36} />
+          </div>
+          <div className="hidden sm:block">
+            <Flag teamName={champion} size={48} />
+          </div>
+        </div>
       </div>
-      <div className="mt-2 flex items-center gap-1 text-[10px] uppercase tracking-widest text-host-ice/50 sm:gap-1.5 sm:text-xs">
-        <Award className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Third Place
+      <div className="mt-1.5 sm:mt-3">
+        <ChampionCup size={28} className="sm:h-9" />
       </div>
-      <span className="mt-1 text-center text-sm font-bold text-white/80 sm:text-base">{thirdPlace}</span>
-      <div className="mt-3 flex h-[52px] w-full items-center justify-center rounded-t-2xl border border-b-0 border-white/10 bg-gradient-to-t from-white/[0.02] to-white/[0.06] sm:h-[60px]">
-        <span className="text-3xl font-black text-white/[0.06] sm:text-4xl">3</span>
+      <div className="mt-1 flex items-center gap-0.5 sm:gap-1.5 text-[9px] font-bold uppercase tracking-wider sm:tracking-[0.25em] text-host-mexico/80 sm:text-xs">
+        <Trophy className="h-2.5 w-2.5 sm:h-4 sm:w-4 shrink-0" /> <span className="truncate">Champion</span>
+      </div>
+      <span className="mt-1 text-center text-sm sm:text-xl font-black text-white truncate w-full max-w-full block">{champion}</span>
+      <div className="mt-3 flex h-[76px] w-full items-center justify-center rounded-t-2xl border border-b-0 border-host-mexico/20 bg-gradient-to-t from-host-mexico/[0.04] to-host-mexico/[0.12] sm:h-[120px]">
+        <span className="text-4xl font-black text-host-mexico/[0.12] sm:text-6xl">1</span>
+      </div>
+    </div>
+
+    <div className="flex w-[82px] flex-col items-center sm:w-[150px] lg:w-[180px]">
+      <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] sm:h-16 sm:w-16">
+        <div className="block sm:hidden">
+          <Flag teamName={thirdPlace} size={24} />
+        </div>
+        <div className="hidden sm:block">
+          <Flag teamName={thirdPlace} size={32} />
+        </div>
+      </div>
+      <div className="mt-2 flex items-center gap-0.5 sm:gap-1.5 text-[9px] sm:text-xs uppercase tracking-wider sm:tracking-widest text-host-ice/55">
+        <Award className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 shrink-0" /> <span className="truncate">Third Place</span>
+      </div>
+      <span className="mt-1 text-center text-xs sm:text-base font-bold text-white/80 truncate w-full max-w-full block">{thirdPlace}</span>
+      <div className="mt-3 flex h-[40px] w-full items-center justify-center rounded-t-2xl border border-b-0 border-white/10 bg-gradient-to-t from-white/[0.02] to-white/[0.06] sm:h-[60px]">
+        <span className="text-2xl font-black text-white/[0.06] sm:text-4xl">3</span>
       </div>
     </div>
   </div>

@@ -35,6 +35,8 @@ export interface GoalEvent {
   playerId: string;
   playerName: string;
   teamId: string;
+  isOwnGoal?: boolean;
+  isPenalty?: boolean;
 }
 
 export interface MatchScorers {
@@ -57,6 +59,8 @@ export interface TimelineEvent {
   side: 'home' | 'away';
   /** Whether this goal was from a penalty kick during play (not shootout) */
   isPenalty: boolean;
+  /** Whether this is an own goal */
+  isOwnGoal?: boolean;
   /** Phase: 'regulation' | 'extra-time' */
   phase: 'regulation' | 'extra-time';
 }

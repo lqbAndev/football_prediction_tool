@@ -83,6 +83,7 @@ const inferWinnerTeamId = (match: CompletedMatch) => {
 const buildGoalEvents = (match: CompletedMatch): MatchGoalEvent[] => {
   if (match.timeline?.length) {
     return [...match.timeline]
+      .filter((event) => !event.isOwnGoal)
       .sort((left, right) => left.sortMinute - right.sortMinute)
       .map((event) => ({
         playerId: event.playerId,
@@ -265,6 +266,7 @@ export const calculateMatchMOTM = (
   const goalEvents: { playerId: string; teamId: string }[] = [];
   if (match.timeline?.length) {
     for (const event of match.timeline) {
+      if (event.isOwnGoal) continue;
       goalEvents.push({ playerId: event.playerId, teamId: event.teamId });
     }
   } else if (match.scorers) {

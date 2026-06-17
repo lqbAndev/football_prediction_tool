@@ -298,8 +298,8 @@ export default function LeagueApp() {
                     </p>
                   </div>
                 ) : (
-                  <div className="overflow-hidden rounded-xl border border-emerald-500/10 bg-emerald-950/30 flex-1">
-                    <table className="w-full text-left border-collapse">
+                  <div className="overflow-x-auto rounded-xl border border-emerald-500/10 bg-emerald-950/30 flex-1 scrollbar-hide">
+                    <table className="w-full min-w-[280px] text-left border-collapse">
                       <thead>
                         <tr className="border-b border-emerald-500/10 bg-emerald-950/45 text-[10px] font-bold uppercase tracking-wider text-emerald-400/60">
                           <th className="py-3 px-4 w-12 text-center">Rank</th>
@@ -366,7 +366,7 @@ export default function LeagueApp() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4 mt-6">
+                  <div className="grid grid-cols-1 xs:grid-cols-3 gap-3 sm:gap-4 mt-6">
                     <div className="bg-emerald-950/30 rounded-xl p-4 text-center border border-emerald-500/10">
                       <div className="text-2xl font-black text-white">
                         {fixtures.filter((f) => f.status === 'completed').length}

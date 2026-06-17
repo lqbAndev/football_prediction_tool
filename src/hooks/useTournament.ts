@@ -157,22 +157,29 @@ export const useTournament = () => {
           data.scorers.forEach((s: any) => {
             const side = s.side;
             const teamId = side === 'home' ? match.homeTeamId : match.awayTeamId;
-            const team = side === 'home' ? homeTeam : awayTeam;
+            
+            // Resolve player's team: opposite if it's an own goal
+            const playerTeamId = s.teamId || (s.isOwnGoal 
+              ? (side === 'home' ? match.awayTeamId : match.homeTeamId)
+              : (side === 'home' ? match.homeTeamId : match.awayTeamId));
+            const playerTeam = TEAMS_BY_ID[playerTeamId];
 
             const queryName = s.playerName.trim().toUpperCase();
-            let matchedPlayer = team.players.find(p => p.name.toUpperCase() === queryName);
+            let matchedPlayer = playerTeam.players.find(p => p.name.toUpperCase() === queryName);
             if (!matchedPlayer) {
-              matchedPlayer = team.players.find(p => p.name.toUpperCase().includes(queryName) || queryName.includes(p.name.toUpperCase()));
+              matchedPlayer = playerTeam.players.find(p => p.name.toUpperCase().includes(queryName) || queryName.includes(p.name.toUpperCase()));
             }
             if (!matchedPlayer) {
-              matchedPlayer = team.players[0];
+              matchedPlayer = playerTeam.players[0];
             }
 
             const goalEvent: import('../types/tournament').GoalEvent = {
               minute: s.minute,
               playerId: matchedPlayer.id,
               playerName: matchedPlayer.name,
-              teamId: teamId
+              teamId: playerTeamId,
+              isOwnGoal: !!s.isOwnGoal,
+              isPenalty: !!s.isPenalty
             };
 
             if (side === 'home') {
@@ -181,14 +188,29 @@ export const useTournament = () => {
               scorers.away.push(goalEvent);
             }
 
+            // Format injury/added time for minutes > 90
+            let sortMinute = s.minute;
+            let displayMinute = `${s.minute}'`;
+            if (s.minute > 90) {
+              const added = s.minute - 90;
+              sortMinute = 90 + added * 0.1;
+              displayMinute = `90+${added}'`;
+            } else if (s.minute > 45 && s.minute <= 48 && s.isAddedTime) {
+              // Scrapers can pass s.isAddedTime or we can handle it if we want, but 90+ is the most common one we have.
+              const added = s.minute - 45;
+              sortMinute = 45 + added * 0.1;
+              displayMinute = `45+${added}'`;
+            }
+
             timeline.push({
-              sortMinute: s.minute,
-              displayMinute: `${s.minute}'`,
+              sortMinute: sortMinute,
+              displayMinute: displayMinute,
               playerName: matchedPlayer.name,
               playerId: matchedPlayer.id,
-              teamId: teamId,
+              teamId: playerTeamId,
               side: side,
               isPenalty: !!s.isPenalty,
+              isOwnGoal: !!s.isOwnGoal,
               phase: 'regulation'
             });
           });

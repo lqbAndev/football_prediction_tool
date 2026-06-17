@@ -26,24 +26,34 @@ export const HeroBranding = () => {
 
       <div className="relative flex flex-col gap-5">
         <div className="flex items-center justify-between gap-2">
-          <WorldCupLogo size={108} />
-          <h2 className="text-2xl font-bold text-white">FIFA WORLD CUP 2026</h2>
-          <TriondaBall size={96} className="shrink-0 animate-ball-float" />
+          <div className="block sm:hidden">
+            <WorldCupLogo size={64} />
+          </div>
+          <div className="hidden sm:block">
+            <WorldCupLogo size={108} />
+          </div>
+          <h2 className="text-lg sm:text-2xl font-bold text-white text-center flex-1">FIFA WORLD CUP 2026</h2>
+          <div className="block sm:hidden shrink-0 animate-ball-float">
+            <TriondaBall size={60} />
+          </div>
+          <div className="hidden sm:block shrink-0 animate-ball-float">
+            <TriondaBall size={96} />
+          </div>
         </div>
 
-        <div className="grid gap-2 sm:grid-cols-3">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
           {HOST_CHIPS.map((chip) => (
             <div
               key={chip.label}
-              className={`rounded-[22px] border px-3 py-3 ${chip.className}`}
+              className={`rounded-[22px] border px-2 py-2 sm:px-3 sm:py-3 ${chip.className}`}
             >
-              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.22em]">
+              <div className="flex items-center justify-center sm:justify-start gap-1 sm:gap-2 text-[9px] sm:text-xs uppercase tracking-[0.1em] sm:tracking-[0.22em]">
                 <img
                   src={TEAM_FLAG_MAP[chip.flagKey]}
                   alt={`${chip.label} flag`}
-                  className="h-4 w-4 rounded-sm object-cover"
+                  className="h-3 w-3 sm:h-4 sm:w-4 rounded-sm object-cover"
                 />
-                <span>{chip.label}</span>
+                <span className="truncate">{chip.label}</span>
               </div>
             </div>
           ))}

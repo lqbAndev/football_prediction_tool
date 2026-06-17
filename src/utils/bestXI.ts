@@ -94,7 +94,8 @@ const resolveTimeline = (match: GroupMatch | KnockoutMatch): TimelineEvent[] => 
         playerId: event.playerId,
         teamId: resolvedTeamId,
         side: 'home',
-        isPenalty: false,
+        isPenalty: !!event.isPenalty,
+        isOwnGoal: !!event.isOwnGoal,
         phase: 'regulation',
       });
     }
@@ -114,7 +115,8 @@ const resolveTimeline = (match: GroupMatch | KnockoutMatch): TimelineEvent[] => 
         playerId: event.playerId,
         teamId: resolvedTeamId,
         side: 'away',
-        isPenalty: false,
+        isPenalty: !!event.isPenalty,
+        isOwnGoal: !!event.isOwnGoal,
         phase: 'regulation',
       });
     }
@@ -325,6 +327,7 @@ export const buildBestXI = (
     // --- B. Individual Goal Points ---
     const timeline = resolveTimeline(match);
     for (const event of timeline) {
+      if (event.isOwnGoal) continue;
       if (!event.teamId) continue;
       const key = `${event.teamId}:${event.playerId}`;
       const player = registry.get(key);
