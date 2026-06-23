@@ -391,8 +391,8 @@
       "motm": { "playerName": "LIONEL MESSI", "teamName": "Argentina" }
     },
     "group-J-4": {
-      "homeScore": 0,
-      "awayScore": 0,
+      "homeScore": 1,
+      "awayScore": 2,
       "scorers": [
         { "playerName": "NIZAR AL RASHDAN", "minute": 36, "side": "home", "teamId": "jordan" },
         { "playerName": "NADHIR BENBOUALI", "minute": 69, "side": "away", "teamId": "algeria" },
