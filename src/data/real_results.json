@@ -17,7 +17,7 @@
       "scorers": [
         { "playerName": "LADISLAV KREJČÍ", "minute": 58, "side": "away", "teamId": "czech-republic" },
         { "playerName": "HWANG IN-BEOM", "minute": 67, "side": "home", "teamId": "south-korea" },
-        { "playerName": "OH HYEON-GYU", "minute": 80, "side": "home", "teamId": "south-korea" }
+        { "playerName": "OH HYUN-KYU", "minute": 80, "side": "home", "teamId": "south-korea" }
       ],
       "motm": { "playerName": "HWANG IN-BEOM", "teamName": "South Korea" }
     },
@@ -64,7 +64,7 @@
         { "playerName": "JONATHAN DAVID", "minute": 29, "side": "home", "teamId": "canada" },
         { "playerName": "JONATHAN DAVID", "minute": 48, "side": "home", "teamId": "canada" },
         { "playerName": "NATHAN SALIBA", "minute": 64, "side": "home", "teamId": "canada" },
-        { "playerName": "TAMEEM AL-MANNAI", "minute": 75, "side": "home", "teamId": "qatar", "isOwnGoal": true },
+        { "playerName": "MOHAMMED MANNAI", "minute": 75, "side": "home", "teamId": "qatar", "isOwnGoal": true },
         { "playerName": "JONATHAN DAVID", "minute": 92, "side": "home", "teamId": "canada" }
       ],
       "motm": { "playerName": "JONATHAN DAVID", "teamName": "Canada" }
@@ -76,7 +76,7 @@
         { "playerName": "JOHAN MANZAMBI", "minute": 74, "side": "home", "teamId": "switzerland" },
         { "playerName": "RUBÉN VARGAS", "minute": 84, "side": "home", "teamId": "switzerland" },
         { "playerName": "JOHAN MANZAMBI", "minute": 90, "side": "home", "teamId": "switzerland" },
-        { "playerName": "ERMIN MAHMIĆ", "minute": 93, "side": "away", "teamId": "bosnia-herzegovina" },
+        { "playerName": "ERMIN MAHMIC", "minute": 93, "side": "away", "teamId": "bosnia-herzegovina" },
         { "playerName": "GRANIT XHAKA", "minute": 97, "side": "home", "teamId": "switzerland", "isPenalty": true }
       ],
       "motm": { "playerName": "JOHAN MANZAMBI", "teamName": "Switzerland" }
@@ -272,9 +272,9 @@
       "awayScore": 3,
       "scorers": [
         { "playerName": "FINN SURMAN", "minute": 15, "side": "home", "teamId": "new-zealand" },
-        { "playerName": "AHMED SAYED ZIZO", "minute": 58, "side": "away", "teamId": "egypt" },
+        { "playerName": "MOSTAFA ZIKO", "minute": 58, "side": "away", "teamId": "egypt" },
         { "playerName": "MOHAMED SALAH", "minute": 67, "side": "away", "teamId": "egypt" },
-        { "playerName": "TRÉZÉGUET", "minute": 82, "side": "away", "teamId": "egypt" }
+        { "playerName": "MAHMOUD TREZEGUET", "minute": 82, "side": "away", "teamId": "egypt" }
       ],
       "motm": { "playerName": "MOHAMED SALAH", "teamName": "Egypt" }
     },
@@ -310,8 +310,8 @@
       "scorers": [
         { "playerName": "KEVIN PINA", "minute": 21, "side": "away", "teamId": "cape-verde" },
         { "playerName": "MAXIMILIANO ARAÚJO", "minute": 43, "side": "home", "teamId": "uruguay" },
-        { "playerName": "AGUSTÍN CANOBBIO", "minute": 45, "side": "home", "teamId": "uruguay" },
-        { "playerName": "HÉLIO VARELA", "minute": 61, "side": "away", "teamId": "cape-verde" }
+        { "playerName": "AGUSTÍN GANOBBIO", "minute": 45, "side": "home", "teamId": "uruguay" },
+        { "playerName": "HELIO VARELA", "minute": 61, "side": "away", "teamId": "cape-verde" }
       ],
       "motm": { "playerName": "KEVIN PINA", "teamName": "Cape Verde" }
     },
@@ -355,8 +355,8 @@
         { "playerName": "MARCUS PEDERSEN", "minute": 27, "side": "home", "teamId": "norway" },
         { "playerName": "ERLING HAALAND", "minute": 39, "side": "home", "teamId": "norway" },
         { "playerName": "ERLING HAALAND", "minute": 57, "side": "home", "teamId": "norway" },
-        { "playerName": "ISMAÏLA SARR", "minute": 73, "side": "away", "teamId": "senegal" },
-        { "playerName": "ISMAÏLA SARR", "minute": 92, "side": "away", "teamId": "senegal" }
+        { "playerName": "ISMAILA SARR", "minute": 73, "side": "away", "teamId": "senegal" },
+        { "playerName": "ISMAILA SARR", "minute": 92, "side": "away", "teamId": "senegal" }
       ],
       "motm": { "playerName": "ERLING HAALAND", "teamName": "Norway" }
     },
@@ -398,7 +398,7 @@
         { "playerName": "NADHIR BENBOUALI", "minute": 69, "side": "away", "teamId": "algeria" },
         { "playerName": "AMINE GOUIRI", "minute": 82, "side": "away", "teamId": "algeria" }
       ],
-      "motm": { "playerName": "YAZEED ABU LAYLA", "teamName": "Jordan" }
+      "motm": { "playerName": "IBRAHIM MAZA", "teamName": "Algeria" }
     },
     "group-K-1": {
       "homeScore": 1,
