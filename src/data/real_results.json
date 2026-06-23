@@ -393,7 +393,11 @@
     "group-J-4": {
       "homeScore": 0,
       "awayScore": 0,
-      "scorers": [],
+      "scorers": [
+        { "playerName": "NIZAR AL RASHDAN", "minute": 36, "side": "home", "teamId": "jordan" },
+        { "playerName": "NADHIR BENBOUALI", "minute": 69, "side": "away", "teamId": "algeria" },
+        { "playerName": "AMINE GOUIRI", "minute": 82, "side": "away", "teamId": "algeria" }
+      ],
       "motm": { "playerName": "YAZEED ABU LAYLA", "teamName": "Jordan" }
     },
     "group-K-1": {
@@ -401,7 +405,7 @@
       "awayScore": 1,
       "scorers": [
         { "playerName": "JOÃO NEVES", "minute": 6, "side": "home", "teamId": "portugal" },
-        { "playerName": "YOANE WISSA", "minute": 50, "side": "away", "teamId": "dr-congo" }
+        { "playerName": "YOANE WISSA", "minute": 45, "side": "away", "teamId": "dr-congo" }
       ],
       "motm": { "playerName": "YOANE WISSA", "teamName": "DR Congo" }
     },
