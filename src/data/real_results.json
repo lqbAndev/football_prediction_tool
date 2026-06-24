@@ -474,6 +474,6 @@
         { "playerName": "ANTE BUDIMIR", "minute": 54, "side": "away", "teamId": "croatia" }
       ],
       "motm": { "playerName": "CRISTIAN MARTÍNEZ", "teamName": "Panama" }
-    },
-  },
+    }
+  }
 }
