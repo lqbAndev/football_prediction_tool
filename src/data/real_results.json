@@ -52,7 +52,7 @@
       "homeScore": 1,
       "awayScore": 0,
       "scorers": [
-        { "playerName": "THAPELO MASEKO", "minute": 63, "side": "home", "teamId": "south-africa" },
+        { "playerName": "THAPELO MASEKO", "minute": 63, "side": "home", "teamId": "south-africa" }
       ],
       "motm": { "playerName": "RONWEN WILLIAMS", "teamName": "South Africa" }
     },
