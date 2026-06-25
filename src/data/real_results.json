@@ -38,6 +38,24 @@
       ],
       "motm": { "playerName": "TEBOHO MOKOENA", "teamName": "South Africa" }
     },
+    "group-A-5": {
+      "homeScore": 0,
+      "awayScore": 3,
+      "scorers": [
+        { "playerName": "MATEO CHÁVEZ", "minute": 55, "side": "away", "teamId": "mexico" },
+        { "playerName": "JULIÁN QUIÑONES", "minute": 61, "side": "away", "teamId": "mexico" },
+        { "playerName": "ÁLVARO FIDALGO", "minute": 94, "side": "away", "teamId": "mexico" }
+      ],
+      "motm": { "playerName": "MATEO CHÁVEZ", "teamName": "Mexico" }
+    },
+    "group-A-6": {
+      "homeScore": 1,
+      "awayScore": 0,
+      "scorers": [
+        { "playerName": "THAPELO MASEKO", "minute": 63, "side": "home", "teamId": "south-africa" },
+      ],
+      "motm": { "playerName": "RONWEN WILLIAMS", "teamName": "South Africa" }
+    },
     "group-B-1": {
       "homeScore": 1,
       "awayScore": 1,
@@ -81,6 +99,27 @@
       ],
       "motm": { "playerName": "JOHAN MANZAMBI", "teamName": "Switzerland" }
     },
+    "group-B-5": {
+      "homeScore": 2,
+      "awayScore": 1,
+      "scorers": [
+        { "playerName": "RUBEN VARGAS", "minute": 46, "side": "home", "teamId": "switzerland" },
+        { "playerName": "JOHAN MANZAMBI", "minute": 57, "side": "home", "teamId": "switzerland" },
+        { "playerName": "PROMISE DAVID", "minute": 76, "side": "away", "teamId": "canada" }
+      ],
+      "motm": { "playerName": "JOHAN MANZAMBI", "teamName": "Switzerland" }
+    },
+    "group-B-6": {
+      "homeScore": 3,
+      "awayScore": 1,
+      "scorers": [
+        { "playerName": "KERIM ALAJBEGOVIC", "minute": 29, "side": "home", "teamId": "bosnia-herzegovina" },
+        { "playerName": "SULTAN AL BRAKE", "minute": 34, "side": "home", "teamId": "qatar", "isOwnGoal": true },
+        { "playerName": "HASSAN AL-HAYDOS", "minute": 42, "side": "away", "teamId": "qatar" },
+        { "playerName": "ERMIN MAHMIC", "minute": 80, "side": "home", "teamId": "bosnia-herzegovina" }
+      ],
+      "motm": { "playerName": "KERIM ALAJBEGOVIC", "teamName": "Bosnia & Herzegovina" }
+    },
     "group-C-1": {
       "homeScore": 1,
       "awayScore": 1,
@@ -115,6 +154,29 @@
         { "playerName": "ISMAEL SAIBARI", "minute": 2, "side": "away", "teamId": "morocco" }
       ],
       "motm": { "playerName": "ISMAEL SAIBARI", "teamName": "Morocco" }
+    },
+    "group-C-5": {
+      "homeScore": 0,
+      "awayScore": 3,
+      "scorers": [
+        { "playerName": "VINÍCIUS JÚNIOR", "minute": 7, "side": "away", "teamId": "brazil" },
+        { "playerName": "VINÍCIUS JÚNIOR", "minute": 48, "side": "away", "teamId": "brazil" },
+        { "playerName": "MATHEUS CUNHA", "minute": 60, "side": "away", "teamId": "brazil" }
+      ],
+      "motm": { "playerName": "VINÍCIUS JÚNIOR", "teamName": "Brazil" }
+    },
+    "group-C-6": {
+      "homeScore": 4,
+      "awayScore": 2,
+      "scorers": [
+        { "playerName": "YASSINE BOUNOU", "minute": 10, "side": "away", "teamId": "morocco", "isOwnGoal": true },
+        { "playerName": "ACHRAF HAKIMI", "minute": 39, "side": "home", "teamId": "morocco" },
+        { "playerName": "WILSON ISIDOR", "minute": 43, "side": "away", "teamId": "haiti" },
+        { "playerName": "ISMAEL SAIBARI", "minute": 46, "side": "home", "teamId": "morocco" },
+        { "playerName": "SOUFIANE RAHIMI", "minute": 78, "side": "home", "teamId": "morocco" },
+        { "playerName": "GESSIME YASSINE", "minute": 89, "side": "home", "teamId": "morocco" }
+      ],
+      "motm": { "playerName": "ACHRAF HAKIMI", "teamName": "Morocco" }
     },
     "group-D-1": {
       "homeScore": 4,
