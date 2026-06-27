@@ -216,6 +216,24 @@
       ],
       "motm": { "playerName": "MATÍAS GALARZA", "teamName": "Paraguay" }
     },
+     "group-D-5": {
+      "homeScore": 3,
+      "awayScore": 2,
+      "scorers": [
+        { "playerName": "AUSTON TRUSTY", "minute": 3, "side": "away", "teamId": "united-states" },
+        { "playerName": "ARDA GULER", "minute": 10, "side": "home", "teamId": "turkey" },
+        { "playerName": "BARIS ALPER YILMAZ", "minute": 31, "side": "home", "teamId": "turkey" },
+        { "playerName": "SEBASTIAN BERHALTER", "minute": 49, "side": "away", "teamId": "united-states" },
+        { "playerName": "KAAN AYHAN", "minute": 98, "side": "home", "teamId": "turkey" }
+      ],
+      "motm": { "playerName": "ARDA GULER", "teamName": "Turkey" }
+    },
+     "group-D-6": {
+      "homeScore": 0,
+      "awayScore": 0,
+      "scorers": [],
+      "motm": { "playerName": "AIDEN O'NEILL", "teamName": "australia" }
+    },
     "group-E-1": {
       "homeScore": 7,
       "awayScore": 1,
@@ -254,6 +272,25 @@
       "awayScore": 0,
       "scorers": [],
       "motm": { "playerName": "ELOY ROOM", "teamName": "Curacao" }
+    },
+    "group-E-5": {
+      "homeScore": 2,
+      "awayScore": 1,
+      "scorers": [
+        { "playerName": "LEROY SANÉ", "minute": 2, "side": "away", "teamId": "germany" },
+        { "playerName": "NILSON ANGULO", "minute": 9, "side": "home", "teamId": "ecuador" },
+        { "playerName": "GONZALO PLATA", "minute": 77, "side": "home", "teamId": "ecuador" }
+      ],
+      "motm": { "playerName": "NILSON ANGULO", "teamName": "Ecuador" }
+    },
+    "group-E-6": {
+      "homeScore": 0,
+      "awayScore": 2,
+      "scorers": [
+        { "playerName": "NICOLAS PÉPÉ", "minute": 9, "side": "away", "teamId": "ivory-coast" },
+        { "playerName": "NICOLAS PÉPÉ", "minute": 77, "side": "away", "teamId": "ivory-coast" }
+      ],
+      "motm": { "playerName": "NICOLAS PÉPÉ", "teamName": "Ivory Coast" }
     },
     "group-F-1": {
       "homeScore": 2,
@@ -303,6 +340,26 @@
       ],
       "motm": { "playerName": "AYASE UEDA", "teamName": "Japan" }
     },
+    "group-F-5": {
+      "homeScore": 1,
+      "awayScore": 3,
+      "scorers": [
+        { "playerName": "ELLYES SKHIRI", "minute": 3, "side": "away", "teamId": "tunisia", "isOwnGoal": true},
+        { "playerName": "BRIAN BROBBEY", "minute": 7, "side": "away", "teamId": "netherlands" },
+        { "playerName": "HAZEM MASTOURI", "minute": 54, "side": "home", "teamId": "tunisia" },
+        { "playerName": "JAN PAUL VAN HECKE", "minute": 62, "side": "away", "teamId": "netherlands" }
+      ],
+      "motm": { "playerName": "BRIAN BROBBEY", "teamName": "Netherlands" }
+    },
+    "group-F-6": {
+      "homeScore": 1,
+      "awayScore": 1,
+      "scorers": [
+        { "playerName": "DAIZEN MAEDA", "minute": 56, "side": "home", "teamId": "japan" },
+        { "playerName": "ANTHONY ELANGA", "minute": 62, "side": "away", "teamId": "sweden" }
+      ],
+      "motm": { "playerName": "ANTHONY ELANGA", "teamName": "Sweden" }
+    },
     "group-G-1": {
       "homeScore": 1,
       "awayScore": 1,
@@ -340,6 +397,28 @@
       ],
       "motm": { "playerName": "MOHAMED SALAH", "teamName": "Egypt" }
     },
+    "group-G-5": {
+      "homeScore": 1,
+      "awayScore": 5,
+      "scorers": [
+        { "playerName": "LEANDRO TROSSARD", "minute": 28, "side": "away", "teamId": "belgium" },
+        { "playerName": "LEANDRO TROSSARD", "minute": 50, "side": "away", "teamId": "belgium" },
+        { "playerName": "KEVIN DE BRUYNE", "minute": 66, "side": "away", "teamId": "belgium" },
+        { "playerName": "ELI JUST", "minute": 84, "side": "home", "teamId": "new-zealand" },
+        { "playerName": "ROMELU LUKAKU", "minute": 86, "side": "away", "teamId": "belgium" },
+        { "playerName": "ALEXIS SAELEMAEKERS", "minute": , "side": "away", "teamId": "belgium" }
+      ],
+      "motm": { "playerName": "LEANDRO TROSSARD", "teamName": "Belgium" }
+    },
+    "group-G-6": {
+      "homeScore": 1,
+      "awayScore": 1,
+      "scorers": [
+        { "playerName": "MAHMOUD SABER", "minute": 5, "side": "home", "teamId": "egypt" },
+        { "playerName": "RAMIN REZAEIAN", "minute": 14, "side": "away", "teamId": "iran" }
+      ],
+      "motm": { "playerName": "RAMIN REZAEIAN", "teamName": "Iran" }
+    },
     "group-H-1": {
       "homeScore": 0,
       "awayScore": 0,
@@ -376,6 +455,20 @@
         { "playerName": "HELIO VARELA", "minute": 61, "side": "away", "teamId": "cape-verde" }
       ],
       "motm": { "playerName": "KEVIN PINA", "teamName": "Cape Verde" }
+    },
+    "group-H-5": {
+      "homeScore": 0,
+      "awayScore": 1,
+      "scorers": [
+        { "playerName": "ÁLEX BAENA", "minute": 42, "side": "away", "teamId": "spain" }
+      ],
+      "motm": { "playerName": "ÁLEX BAENA", "teamName": "Spain" }
+    },
+    "group-H-6": {
+      "homeScore": 0,
+      "awayScore": 0,
+      "scorers": [],
+      "motm": { "playerName": "DEROY DUARTE", "teamName": "Cape Verde" }
     },
     "group-I-1": {
       "homeScore": 3,
@@ -421,6 +514,30 @@
         { "playerName": "ISMAILA SARR", "minute": 92, "side": "away", "teamId": "senegal" }
       ],
       "motm": { "playerName": "ERLING HAALAND", "teamName": "Norway" }
+    },
+    "group-I-5": {
+      "homeScore": 1,
+      "awayScore": 4,
+      "scorers": [
+        { "playerName": "OUSMANE DEMBÉLÉ", "minute": 7, "side": "away", "teamId": "france" },
+        { "playerName": "OUSMANE DEMBÉLÉ", "minute": 20, "side": "away", "teamId": "france" },
+        { "playerName": "THELO AASGAARD", "minute": 21, "side": "home", "teamId": "norway" },
+        { "playerName": "OUSMANE DEMBÉLÉ", "minute": 32, "side": "away", "teamId": "france" },
+        { "playerName": "DÉSIRÉ DOUÉ", "minute": 94, "side": "away", "teamId": "france" }
+      ],
+      "motm": { "playerName": "OUSMANE DEMBÉLÉ", "teamName": "France" }
+    },
+    "group-I-6": {
+      "homeScore": 5,
+      "awayScore": 0,
+      "scorers": [
+        { "playerName": "HABIB DIARRA", "minute": 4, "side": "home", "teamId": "senegal" },
+        { "playerName": "ISMAILA SARR", "minute": 56, "side": "home", "teamId": "senegal" },
+        { "playerName": "PAPE GUEYE", "minute": 59, "side": "home", "teamId": "senegal" },
+        { "playerName": "PAPE GUEYE", "minute": 71, "side": "home", "teamId": "senegal" },
+        { "playerName": "ILIMAN NDIAYE", "minute": 82, "side": "home", "teamId": "senegal" }
+      ],
+      "motm": { "playerName": "PAPE GUEYE", "teamName": "Senegal" }
     },
     "group-J-1": {
       "homeScore": 3,
