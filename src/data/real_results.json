@@ -344,7 +344,7 @@
       "homeScore": 1,
       "awayScore": 3,
       "scorers": [
-        { "playerName": "ELLYES SKHIRI", "minute": 3, "side": "away", "teamId": "tunisia", "isOwnGoal": true},
+        { "playerName": "ELLYES SKHIRI", "minute": 3, "side": "away", "teamId": "tunisia", "isOwnGoal": true },
         { "playerName": "BRIAN BROBBEY", "minute": 7, "side": "away", "teamId": "netherlands" },
         { "playerName": "HAZEM MASTOURI", "minute": 54, "side": "home", "teamId": "tunisia" },
         { "playerName": "JAN PAUL VAN HECKE", "minute": 62, "side": "away", "teamId": "netherlands" }
@@ -406,7 +406,7 @@
         { "playerName": "KEVIN DE BRUYNE", "minute": 66, "side": "away", "teamId": "belgium" },
         { "playerName": "ELI JUST", "minute": 84, "side": "home", "teamId": "new-zealand" },
         { "playerName": "ROMELU LUKAKU", "minute": 86, "side": "away", "teamId": "belgium" },
-        { "playerName": "ALEXIS SAELEMAEKERS", "minute": , "side": "away", "teamId": "belgium" }
+        { "playerName": "ALEXIS SAELEMAEKERS", "minute": 94, "side": "away", "teamId": "belgium" }
       ],
       "motm": { "playerName": "LEANDRO TROSSARD", "teamName": "Belgium" }
     },
