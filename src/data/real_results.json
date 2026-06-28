@@ -583,27 +583,6 @@
       "homeScore": 1,
       "awayScore": 3,
       "scorers": [
-        { "playerName": "NIZAR AL RASHDAN", "minute": 36, "side": "home", "teamId": "jordan" },
-        { "playerName": "NADHIR BENBOUALI", "minute": 69, "side": "away", "teamId": "algeria" },
-        { "playerName": "NADHIR BENBOUALI", "minute": 69, "side": "away", "teamId": "algeria" },
-        { "playerName": "AMINE GOUIRI", "minute": 82, "side": "away", "teamId": "algeria" }
-      ],
-      "motm": { "playerName": "IBRAHIM MAZA", "teamName": "Algeria" }
-    },
-    "group-J-4": {
-      "homeScore": 1,
-      "awayScore": 2,
-      "scorers": [
-        { "playerName": "NIZAR AL RASHDAN", "minute": 36, "side": "home", "teamId": "jordan" },
-        { "playerName": "NADHIR BENBOUALI", "minute": 69, "side": "away", "teamId": "algeria" },
-        { "playerName": "AMINE GOUIRI", "minute": 82, "side": "away", "teamId": "algeria" }
-      ],
-      "motm": { "playerName": "IBRAHIM MAZA", "teamName": "Algeria" }
-    },
-    "group-J-5": {
-      "homeScore": 1,
-      "awayScore": 3,
-      "scorers": [
         { "playerName": "GIOVANI LO CELSO", "minute": 19, "side": "away", "teamId": "argentina" },
         { "playerName": "LAUTARO MARTÍNEZ", "minute": 31, "side": "away", "teamId": "argentina", "isPenalty": true },
         { "playerName": "MOUSA AL TAMARI", "minute": 55, "side": "home", "teamId": "jordan" },
@@ -734,5 +713,6 @@
         { "playerName": "NIKOLA VLASIC", "minute": 83, "side": "home", "teamId": "croatia" }
       ],
       "motm": { "playerName": "PETAR SUCIC", "teamName": "Croatia" }
-    },
+    }
   } 
+}
