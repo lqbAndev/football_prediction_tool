@@ -579,6 +579,51 @@
       ],
       "motm": { "playerName": "IBRAHIM MAZA", "teamName": "Algeria" }
     },
+    "group-J-5": {
+      "homeScore": 1,
+      "awayScore": 3,
+      "scorers": [
+        { "playerName": "NIZAR AL RASHDAN", "minute": 36, "side": "home", "teamId": "jordan" },
+        { "playerName": "NADHIR BENBOUALI", "minute": 69, "side": "away", "teamId": "algeria" },
+        { "playerName": "NADHIR BENBOUALI", "minute": 69, "side": "away", "teamId": "algeria" },
+        { "playerName": "AMINE GOUIRI", "minute": 82, "side": "away", "teamId": "algeria" }
+      ],
+      "motm": { "playerName": "IBRAHIM MAZA", "teamName": "Algeria" }
+    },
+    "group-J-4": {
+      "homeScore": 1,
+      "awayScore": 2,
+      "scorers": [
+        { "playerName": "NIZAR AL RASHDAN", "minute": 36, "side": "home", "teamId": "jordan" },
+        { "playerName": "NADHIR BENBOUALI", "minute": 69, "side": "away", "teamId": "algeria" },
+        { "playerName": "AMINE GOUIRI", "minute": 82, "side": "away", "teamId": "algeria" }
+      ],
+      "motm": { "playerName": "IBRAHIM MAZA", "teamName": "Algeria" }
+    },
+    "group-J-5": {
+      "homeScore": 1,
+      "awayScore": 3,
+      "scorers": [
+        { "playerName": "GIOVANI LO CELSO", "minute": 19, "side": "away", "teamId": "argentina" },
+        { "playerName": "LAUTARO MARTÍNEZ", "minute": 31, "side": "away", "teamId": "argentina", "isPenalty": true },
+        { "playerName": "MOUSA AL TAMARI", "minute": 55, "side": "home", "teamId": "jordan" },
+        { "playerName": "LIONEL MESSI", "minute": 80, "side": "away", "teamId": "argentina" }
+      ],
+      "motm": { "playerName": "GIOVANI LO CELSO", "teamName": "Argentina" }
+    },
+    "group-J-6": {
+      "homeScore": 3,
+      "awayScore": 3,
+      "scorers": [
+        { "playerName": "MARKO ARNAUTOVIC", "minute": 28, "side": "away", "teamId": "austria" },
+        { "playerName": "RAFIK BELGHALI", "minute": 45, "side": "home", "teamId": "algeria" },
+        { "playerName": "MARCEL SABITZER", "minute": 55, "side": "away", "teamId": "austria" },
+        { "playerName": "RIYAD MAHREZ", "minute": 60, "side": "home", "teamId": "algeria" },
+        { "playerName": "RIYAD MAHREZ", "minute": 93, "side": "home", "teamId": "algeria" },
+        { "playerName": "SASA KALAJDZIC", "minute": 96, "side": "away", "teamId": "austria" }
+      ],
+      "motm": { "playerName": "RIYAD MAHREZ", "teamName": "Algeria" }
+    },
     "group-K-1": {
       "homeScore": 1,
       "awayScore": 1,
@@ -619,6 +664,23 @@
       ],
       "motm": { "playerName": "LIONEL MPASI", "teamName": "DR Congo" }
     },
+    "group-K-5": {
+    "homeScore": 0,
+    "awayScore": 0,
+    "scorers": [],
+    "motm": { "playerName": "DIOGO COSTA", "teamName": "Portugal" }
+  },
+  "group-K-6": {
+    "homeScore": 3,
+    "awayScore": 1,
+    "scorers": [
+      { "playerName": "ELDOR SHOMURODOV", "minute": 10, "side": "away","teamId": "uzbekistan" },
+      { "playerName": "YOANE WISSA", "minute": 68, "side": "home", "teamId": "dr-congo", "isPenalty": true },
+      { "playerName": "FISTON MAYELE", "minute": 78, "side": "home", "teamId": "dr-congo" },
+      { "playerName": "YOANE WISSA", "minute": 91, "side": "home", "teamId": "dr-congo" }
+    ],
+    "motm": { "playerName": "YOANE WISSA", "teamName": "DR Congo" }
+  },
     "group-L-1": {
       "homeScore": 4,
       "awayScore": 2,
@@ -655,299 +717,23 @@
       "motm": { "playerName": "CRISTIAN MARTÍNEZ", "teamName": "Panama" }
     }
   },
-  "group-K-1": {
-    "homeScore": 1,
-    "awayScore": 1,
-    "scorers": [
-      {
-        "playerName": "JOÃO NEVES",
-        "minute": 6,
-        "side": "home",
-        "teamId": "portugal"
-      },
-      {
-        "playerName": "YOANE WISSA",
-        "minute": 45,
-        "side": "away",
-        "teamId": "dr-congo"
-      }
-    ],
-    "motm": {
-      "playerName": "YOANE WISSA",
-      "teamName": "DR Congo"
-    }
-  },
-  "group-K-2": {
-    "homeScore": 1,
-    "awayScore": 3,
-    "scorers": [
-      {
-        "playerName": "ABBOSBEK FAYZULLAEV",
-        "minute": 61,
-        "side": "home",
-        "teamId": "uzbekistan"
-      },
-      {
-        "playerName": "DANIEL MUÑOZ",
-        "minute": 40,
-        "side": "away",
-        "teamId": "colombia"
-      },
-      {
-        "playerName": "LUIS DÍAZ",
-        "minute": 65,
-        "side": "away",
-        "teamId": "colombia"
-      },
-      {
-        "playerName": "GUSTAVO PUERTA",
-        "minute": 99,
-        "side": "away",
-        "teamId": "colombia"
-      }
-    ],
-    "motm": {
-      "playerName": "LUIS DÍAZ",
-      "teamName": "Colombia"
-    }
-  },
-  "group-K-3": {
-    "homeScore": 5,
-    "awayScore": 0,
-    "scorers": [
-      {
-        "playerName": "CRISTIANO RONALDO",
-        "minute": 6,
-        "side": "home",
-        "teamId": "portugal"
-      },
-      {
-        "playerName": "CRISTIANO RONALDO",
-        "minute": 39,
-        "side": "home",
-        "teamId": "portugal"
-      },
-      {
-        "playerName": "NUNO MENDES",
-        "minute": 17,
-        "side": "home",
-        "teamId": "portugal"
-      },
-      {
-        "playerName": "ABDUVOHID NEMATOV",
-        "minute": 60,
-        "side": "home",
-        "teamId": "uzbekistan",
-        "isOwnGoal": true
-      },
-      {
-        "playerName": "RAFAEL LEÃO",
-        "minute": 87,
-        "side": "home",
-        "teamId": "portugal"
-      }
-    ],
-    "motm": {
-      "playerName": "CRISTIANO RONALDO",
-      "teamName": "Portugal"
-    }
-  },
-  "group-K-4": {
-    "homeScore": 1,
-    "awayScore": 0,
-    "scorers": [
-      {
-        "playerName": "DANIEL MUÑOZ",
-        "minute": 76,
-        "side": "home",
-        "teamId": "colombia"
-      }
-    ],
-    "motm": {
-      "playerName": "DANIEL MUÑOZ",
-      "teamName": "Colombia"
-    }
-  },
-  "group-K-5": {
-    "homeScore": 0,
-    "awayScore": 0,
-    "scorers": [],
-    "motm": {
-      "playerName": "DIOGO COSTA",
-      "teamName": "Portugal"
-    }
-  },
-  "group-K-6": {
-    "homeScore": 3,
-    "awayScore": 1,
-    "scorers": [
-      {
-        "playerName": "ELDOR SHOMURODOV",
-        "minute": 10,
-        "side": "away",
-        "teamId": "uzbekistan"
-      },
-      {
-        "playerName": "YOANE WISSA",
-        "minute": 68,
-        "side": "home",
-        "teamId": "dr-congo",
-        "isPenalty": true
-      },
-      {
-        "playerName": "FISTON MAYELE",
-        "minute": 78,
-        "side": "home",
-        "teamId": "dr-congo"
-      },
-      {
-        "playerName": "YOANE WISSA",
-        "minute": 91,
-        "side": "home",
-        "teamId": "dr-congo"
-      }
-    ],
-    "motm": {
-      "playerName": "YOANE WISSA",
-      "teamName": "DR Congo"
-    }
-  },
-  "group-L-1": {
-    "homeScore": 4,
-    "awayScore": 2,
-    "scorers": [
-      {
-        "playerName": "HARRY KANE",
-        "minute": 12,
-        "side": "home",
-        "teamId": "england",
-        "isPenalty": true
-      },
-      {
-        "playerName": "MARTIN BATURINA",
-        "minute": 36,
-        "side": "away",
-        "teamId": "croatia"
-      },
-      {
-        "playerName": "HARRY KANE",
-        "minute": 42,
-        "side": "home",
-        "teamId": "england"
-      },
-      {
-        "playerName": "JUDE BELLINGHAM",
-        "minute": 47,
-        "side": "home",
-        "teamId": "england"
-      },
-      {
-        "playerName": "PETAR MUSA",
-        "minute": 45,
-        "side": "away",
-        "teamId": "croatia"
-      },
-      {
-        "playerName": "MARCUS RASHFORD",
-        "minute": 85,
-        "side": "home",
-        "teamId": "england"
-      }
-    ],
-    "motm": {
-      "playerName": "HARRY KANE",
-      "teamName": "England"
-    }
-  },
-  "group-L-2": {
-    "homeScore": 1,
-    "awayScore": 0,
-    "scorers": [
-      {
-        "playerName": "CALEB YIRENKYI",
-        "minute": 95,
-        "side": "home",
-        "teamId": "ghana"
-      }
-    ],
-    "motm": {
-      "playerName": "ANTOINE SEMENYO",
-      "teamName": "Ghana"
-    }
-  },
-  "group-L-3": {
-    "homeScore": 0,
-    "awayScore": 0,
-    "scorers": [],
-    "motm": {
-      "playerName": "LAWRENCE ATI-ZIGI",
-      "teamName": "Ghana"
-    }
-  },
-  "group-L-4": {
-    "homeScore": 0,
-    "awayScore": 1,
-    "scorers": [
-      {
-        "playerName": "ANTE BUDIMIR",
-        "minute": 54,
-        "side": "away",
-        "teamId": "croatia"
-      }
-    ],
-    "motm": {
-      "playerName": "CRISTIAN MARTÍNEZ",
-      "teamName": "Panama"
-    }
-  },
   "group-L-5": {
     "homeScore": 0,
     "awayScore": 2,
     "scorers": [
-      {
-        "playerName": "JUDE BELLINGHAM",
-        "minute": 62,
-        "side": "away",
-        "teamId": "england"
-      },
-      {
-        "playerName": "HARRY KANE",
-        "minute": 67,
-        "side": "away",
-        "teamId": "england"
-      }
+      { "playerName": "JUDE BELLINGHAM", "minute": 62, "side": "away", "teamId": "england" },
+      { "playerName": "HARRY KANE", "minute": 67, "side": "away", "teamId": "england" }
     ],
-    "motm": {
-      "playerName": "JUDE BELLINGHAM",
-      "teamName": "England"
-    }
+    "motm": { "playerName": "JUDE BELLINGHAM", "teamName": "England" }
   },
   "group-L-6": {
     "homeScore": 2,
     "awayScore": 1,
     "scorers": [
-      {
-        "playerName": "PETAR SUCIC",
-        "minute": 31,
-        "side": "home",
-        "teamId": "croatia"
-      },
-      {
-        "playerName": "DERRICK LUCKASSEN",
-        "minute": 73,
-        "side": "away",
-        "teamId": "ghana"
-      },
-      {
-        "playerName": "NIKOLA VLASIC",
-        "minute": 83,
-        "side": "home",
-        "teamId": "croatia"
-      }
+      { "playerName": "PETAR SUCIC", "minute": 31,  "side": "home", "teamId": "croatia" },
+      { "playerName": "DERRICK LUCKASSEN", "minute": 73, "side": "away", "teamId": "ghana" },
+      { "playerName": "NIKOLA VLASIC", "minute": 83, "side": "home", "teamId": "croatia" }
     ],
-    "motm": {
-      "playerName": "PETAR SUCIC",
-      "teamName": "Croatia"
-    }
+    "motm": { "playerName": "PETAR SUCIC", "teamName": "Croatia" }
   }
 }
