@@ -1,4 +1,10 @@
-import { ROUND_LABELS } from '../data/tournament';
+import {
+  ROUND_LABELS,
+  R32_MATCH_NUMBERS,
+  R16_MATCH_NUMBERS,
+  QF_MATCH_NUMBERS,
+  SF_MATCH_NUMBERS,
+} from '../data/tournament';
 import type { KnockoutMatch, KnockoutRound, KnockoutTeamOrigin } from '../types/tournament';
 import { KnockoutMatchCard } from './KnockoutMatchCard';
 
@@ -66,17 +72,29 @@ export const BracketColumn = ({
       </div>
 
       <div className={stackClass}>
-        {matches.map((match) => (
-          <KnockoutMatchCard
-            key={match.id}
-            match={match}
-            round={round}
-            title={`Match ${match.slot + 1}`}
-            teamOrigins={teamOrigins}
-            onPredict={onPredict}
-            onResolvePenalty={onResolvePenalty}
-          />
-        ))}
+        {matches.map((match) => {
+          const matchNumber = (() => {
+            if (round === 'roundOf32') return R32_MATCH_NUMBERS[match.slot];
+            if (round === 'roundOf16') return R16_MATCH_NUMBERS[match.slot];
+            if (round === 'quarterfinals') return QF_MATCH_NUMBERS[match.slot];
+            if (round === 'semifinals') return SF_MATCH_NUMBERS[match.slot];
+            if (round === 'thirdPlace') return 103;
+            if (round === 'final') return 104;
+            return match.slot + 1;
+          })();
+
+          return (
+            <KnockoutMatchCard
+              key={match.id}
+              match={match}
+              round={round}
+              title={`Match ${matchNumber}`}
+              teamOrigins={teamOrigins}
+              onPredict={onPredict}
+              onResolvePenalty={onResolvePenalty}
+            />
+          );
+        })}
       </div>
     </div>
   );

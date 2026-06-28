@@ -105,26 +105,26 @@ interface R32SlotDef {
  * Slot index 0-15 correspond to matches 73-88.
  */
 const R32_SLOT_DEFINITIONS: R32SlotDef[] = [
-  /* Slot 0  – M73 */ { home: { pos: 2, group: 'A' }, away: { pos: 2, group: 'B' }, label: '2A vs 2B' },
-  /* Slot 1  – M74 */ { home: { pos: 1, group: 'E' }, away: { pos: 3, possibleGroups: ['A','B','C','D','F'] }, label: '1E vs 3rd' },
-  /* Slot 2  – M75 */ { home: { pos: 1, group: 'F' }, away: { pos: 2, group: 'C' }, label: '1F vs 2C' },
-  /* Slot 3  – M76 */ { home: { pos: 1, group: 'C' }, away: { pos: 2, group: 'F' }, label: '1C vs 2F' },
-  /* Slot 4  – M77 */ { home: { pos: 1, group: 'I' }, away: { pos: 3, possibleGroups: ['C','D','F','G','H'] }, label: '1I vs 3rd' },
-  /* Slot 5  – M78 */ { home: { pos: 2, group: 'E' }, away: { pos: 2, group: 'I' }, label: '2E vs 2I' },
-  /* Slot 6  – M79 */ { home: { pos: 1, group: 'A' }, away: { pos: 3, possibleGroups: ['C','E','F','H','I'] }, label: '1A vs 3rd' },
-  /* Slot 7  – M80 */ { home: { pos: 1, group: 'L' }, away: { pos: 3, possibleGroups: ['E','H','I','J','K'] }, label: '1L vs 3rd' },
-  /* Slot 8  – M81 */ { home: { pos: 1, group: 'D' }, away: { pos: 3, possibleGroups: ['B','E','F','I','J'] }, label: '1D vs 3rd' },
-  /* Slot 9  – M82 */ { home: { pos: 1, group: 'G' }, away: { pos: 3, possibleGroups: ['A','E','H','I','J'] }, label: '1G vs 3rd' },
-  /* Slot 10 – M83 */ { home: { pos: 2, group: 'K' }, away: { pos: 2, group: 'L' }, label: '2K vs 2L' },
-  /* Slot 11 – M84 */ { home: { pos: 1, group: 'H' }, away: { pos: 2, group: 'J' }, label: '1H vs 2J' },
-  /* Slot 12 – M85 */ { home: { pos: 1, group: 'B' }, away: { pos: 3, possibleGroups: ['E','F','G','I','J'] }, label: '1B vs 3rd' },
-  /* Slot 13 – M86 */ { home: { pos: 1, group: 'J' }, away: { pos: 2, group: 'H' }, label: '1J vs 2H' },
-  /* Slot 14 – M87 */ { home: { pos: 1, group: 'K' }, away: { pos: 3, possibleGroups: ['D','E','I','J','L'] }, label: '1K vs 3rd' },
-  /* Slot 15 – M88 */ { home: { pos: 2, group: 'D' }, away: { pos: 2, group: 'G' }, label: '2D vs 2G' },
+  /* Slot 0  – M74 */ { home: { pos: 1, group: 'E' }, away: { pos: 3, possibleGroups: ['A','B','C','D','F'] }, label: '1E vs 3rd' },
+  /* Slot 1  – M77 */ { home: { pos: 1, group: 'I' }, away: { pos: 3, possibleGroups: ['C','D','F','G','H'] }, label: '1I vs 3rd' },
+  /* Slot 2  – M73 */ { home: { pos: 2, group: 'A' }, away: { pos: 2, group: 'B' }, label: '2A vs 2B' },
+  /* Slot 3  – M75 */ { home: { pos: 1, group: 'F' }, away: { pos: 2, group: 'C' }, label: '1F vs 2C' },
+  /* Slot 4  – M83 */ { home: { pos: 2, group: 'K' }, away: { pos: 2, group: 'L' }, label: '2K vs 2L' },
+  /* Slot 5  – M84 */ { home: { pos: 1, group: 'H' }, away: { pos: 2, group: 'J' }, label: '1H vs 2J' },
+  /* Slot 6  – M81 */ { home: { pos: 1, group: 'D' }, away: { pos: 3, possibleGroups: ['B','E','F','I','J'] }, label: '1D vs 3rd' },
+  /* Slot 7  – M82 */ { home: { pos: 1, group: 'G' }, away: { pos: 3, possibleGroups: ['A','E','H','I','J'] }, label: '1G vs 3rd' },
+  /* Slot 8  – M76 */ { home: { pos: 1, group: 'C' }, away: { pos: 2, group: 'F' }, label: '1C vs 2F' },
+  /* Slot 9  – M78 */ { home: { pos: 2, group: 'E' }, away: { pos: 2, group: 'I' }, label: '2E vs 2I' },
+  /* Slot 10 – M79 */ { home: { pos: 1, group: 'A' }, away: { pos: 3, possibleGroups: ['C','E','F','H','I'] }, label: '1A vs 3rd' },
+  /* Slot 11 – M80 */ { home: { pos: 1, group: 'L' }, away: { pos: 3, possibleGroups: ['E','H','I','J','K'] }, label: '1L vs 3rd' },
+  /* Slot 12 – M86 */ { home: { pos: 1, group: 'J' }, away: { pos: 2, group: 'H' }, label: '1J vs 2H' },
+  /* Slot 13 – M88 */ { home: { pos: 2, group: 'D' }, away: { pos: 2, group: 'G' }, label: '2D vs 2G' },
+  /* Slot 14 – M85 */ { home: { pos: 1, group: 'B' }, away: { pos: 3, possibleGroups: ['E','F','G','I','J'] }, label: '1B vs 3rd' },
+  /* Slot 15 – M87 */ { home: { pos: 1, group: 'K' }, away: { pos: 3, possibleGroups: ['D','E','I','J','L'] }, label: '1K vs 3rd' },
 ];
 
 /**
- * The 8 third-place slots are at indices: 1, 4, 6, 7, 8, 9, 12, 14.
+ * The 8 third-place slots are at indices: 0, 1, 6, 7, 10, 11, 14, 15.
  * For each combination of 8 qualifying groups (sorted alphabetically),
  * this table says which qualifying group fills which slot index.
  *
@@ -137,7 +137,7 @@ const R32_SLOT_DEFINITIONS: R32SlotDef[] = [
  * (most constrained slots first) to guarantee a valid assignment
  * always exists—this mirrors the FIFA regulation design intent.
  */
-const THIRD_PLACE_SLOT_INDICES = [1, 4, 6, 7, 8, 9, 12, 14] as const;
+const THIRD_PLACE_SLOT_INDICES = [0, 1, 6, 7, 10, 11, 14, 15] as const;
 
 /**
  * Assign 8 best third-placed teams to slot positions using a

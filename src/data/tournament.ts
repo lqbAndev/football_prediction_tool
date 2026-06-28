@@ -277,32 +277,37 @@ export const normalizeGroupMatches = (incomingMatches?: GroupMatch[]): GroupMatc
   });
 };
 
+export const R32_MATCH_NUMBERS = [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87] as const;
+export const R16_MATCH_NUMBERS = [89, 90, 93, 94, 91, 92, 95, 96] as const;
+export const QF_MATCH_NUMBERS = [97, 98, 99, 100] as const;
+export const SF_MATCH_NUMBERS = [101, 102] as const;
+
 const getDefaultSeedLabels = (round: KnockoutRound, slot: number) => {
   switch (round) {
     case 'roundOf16':
       return {
-        homeSeedLabel: `Winner R32-${slot * 2 + 1}`,
-        awaySeedLabel: `Winner R32-${slot * 2 + 2}`,
+        homeSeedLabel: `Winner M${R32_MATCH_NUMBERS[slot * 2]}`,
+        awaySeedLabel: `Winner M${R32_MATCH_NUMBERS[slot * 2 + 1]}`,
       };
     case 'quarterfinals':
       return {
-        homeSeedLabel: `Winner R16-${slot * 2 + 1}`,
-        awaySeedLabel: `Winner R16-${slot * 2 + 2}`,
+        homeSeedLabel: `Winner M${R16_MATCH_NUMBERS[slot * 2]}`,
+        awaySeedLabel: `Winner M${R16_MATCH_NUMBERS[slot * 2 + 1]}`,
       };
     case 'semifinals':
       return {
-        homeSeedLabel: `Winner QF-${slot * 2 + 1}`,
-        awaySeedLabel: `Winner QF-${slot * 2 + 2}`,
+        homeSeedLabel: `Winner M${QF_MATCH_NUMBERS[slot * 2]}`,
+        awaySeedLabel: `Winner M${QF_MATCH_NUMBERS[slot * 2 + 1]}`,
       };
     case 'thirdPlace':
       return {
-        homeSeedLabel: 'Loser SF-1',
-        awaySeedLabel: 'Loser SF-2',
+        homeSeedLabel: 'Loser M101',
+        awaySeedLabel: 'Loser M102',
       };
     case 'final':
       return {
-        homeSeedLabel: 'Winner SF-1',
-        awaySeedLabel: 'Winner SF-2',
+        homeSeedLabel: 'Winner M101',
+        awaySeedLabel: 'Winner M102',
       };
     default:
       return {
