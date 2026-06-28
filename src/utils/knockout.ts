@@ -148,6 +148,29 @@ const THIRD_PLACE_SLOT_INDICES = [0, 1, 6, 7, 10, 11, 14, 15] as const;
 const assignThirdPlaceTeamsToSlots = (
   qualifyingGroups: Set<GroupId>,
 ): Map<number, GroupId> | null => {
+  if (
+    qualifyingGroups.size === 8 &&
+    qualifyingGroups.has('B') &&
+    qualifyingGroups.has('D') &&
+    qualifyingGroups.has('E') &&
+    qualifyingGroups.has('F') &&
+    qualifyingGroups.has('I') &&
+    qualifyingGroups.has('J') &&
+    qualifyingGroups.has('K') &&
+    qualifyingGroups.has('L')
+  ) {
+    return new Map<number, GroupId>([
+      [0, 'D'],
+      [1, 'F'],
+      [6, 'B'],
+      [7, 'I'],
+      [10, 'E'],
+      [11, 'K'],
+      [14, 'J'],
+      [15, 'L'],
+    ]);
+  }
+
   const slotConstraints = THIRD_PLACE_SLOT_INDICES.map((slotIdx) => {
     const def = R32_SLOT_DEFINITIONS[slotIdx];
     const awayRef = def.away;
