@@ -5,12 +5,12 @@ import ReactConfetti from 'react-confetti';
 
 // Import EPL data and configs
 import {
-  epl2526Config,
+  epl2627Config,
   EPL_TEAMS,
   EPL_TEAMS_BY_ID,
   EPL_LOGO_MAP,
   EPL_TIER_MAP,
-} from '../data/competitions/epl2526';
+} from '../data/competitions/epl2627';
 
 // Import engines and helpers
 import {
@@ -333,7 +333,7 @@ export default function EPLApp() {
         console.error("Failed to load EPL auto-save", e);
       }
 
-      const initialFixtures = generateRoundRobinFixtures(EPL_TEAMS, epl2526Config);
+      const initialFixtures = generateRoundRobinFixtures(EPL_TEAMS, epl2627Config);
       setFixtures(initialFixtures);
       setIsInitialized(true);
     }
@@ -377,7 +377,7 @@ export default function EPLApp() {
 
   const completedMatchweeksCount = useMemo(() => {
     let count = 0;
-    for (let mw = 1; mw <= epl2526Config.rounds; mw++) {
+    for (let mw = 1; mw <= epl2627Config.rounds; mw++) {
       if (isMatchweekCompleted(fixtures, mw)) {
         count++;
       }
@@ -416,7 +416,7 @@ export default function EPLApp() {
 
   const currentMatchweek = useMemo(() => {
     if (fixtures.length === 0) return 1;
-    return getCurrentMatchweek(fixtures, epl2526Config.rounds);
+    return getCurrentMatchweek(fixtures, epl2627Config.rounds);
   }, [fixtures]);
 
   const isSelectedMatchweekCompleted = useMemo(() => {
@@ -446,7 +446,7 @@ export default function EPLApp() {
     }
     const leader = standings[0];
     const second = standings[1];
-    const remainingMatches = epl2526Config.rounds - completedMatchweeksCount;
+    const remainingMatches = epl2627Config.rounds - completedMatchweeksCount;
     const maxPossiblePoints = remainingMatches * 3;
     
     const pointGap = leader.points - second.points;
@@ -492,7 +492,7 @@ export default function EPLApp() {
 
   const handleReset = () => {
     window.localStorage.removeItem('epl-prediction:v1');
-    const initialFixtures = generateRoundRobinFixtures(EPL_TEAMS, epl2526Config);
+    const initialFixtures = generateRoundRobinFixtures(EPL_TEAMS, epl2627Config);
     setFixtures(initialFixtures);
     setSelectedMatchweek(1);
     setIsChampionModalOpen(false);
@@ -516,7 +516,7 @@ export default function EPLApp() {
   const matchweekFixtures = fixtures.filter((m) => m.matchweek === selectedMatchweek);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0a12] via-[#0d0d18] to-[#060610] text-white relative font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a12] via-[#0f0818] to-[#080610] text-white relative font-sans">
       {/* EPL Ball Floating Watermark — center */}
       <div style={{
         position: 'fixed',
@@ -538,7 +538,7 @@ export default function EPLApp() {
       </div>
 
       {/* Header */}
-      <header className="relative z-10 bg-[#0c0c16]/90 border-b border-[#1e1e2e]/80 shadow-2xl overflow-hidden">
+      <header className="relative z-10 bg-[#0c0814]/90 border-b border-[#1e1e2e]/80 shadow-2xl overflow-hidden">
         {/* EPL Ball watermark in header corner */}
         <div className="absolute -right-6 -top-6 w-[140px] h-[140px] opacity-[0.05] pointer-events-none">
           <img src={eplBall} alt="" className="w-full h-full object-contain" />
@@ -554,11 +554,11 @@ export default function EPLApp() {
               />
             </div>
             <div>
-              <h1 className="text-5xl font-black bg-gradient-to-r from-white via-slate-200 to-[#e11d8f]/40 bg-clip-text text-transparent leading-none flex items-center gap-2">
+              <h1 className="text-5xl font-black bg-gradient-to-r from-white via-slate-200 to-[#963CFF]/40 bg-clip-text text-transparent leading-none flex items-center gap-2">
                 English Premier League
               </h1>
               <p className="text-slate-400 text-base font-black tracking-wider uppercase mt-1.5">
-                Official Season 2025/2026 Simulation
+                Official Season 2026/2027 Simulation
               </p>
             </div>
           </div>
@@ -605,10 +605,10 @@ export default function EPLApp() {
                 />
                 <div>
                   <h3 className="text-2xl font-black text-amber-300 tracking-wide uppercase">
-                    🏆 {leaderTeam.teamName} Champions 25/26
+                    🏆 {leaderTeam.teamName} Champions 26/27
                   </h3>
                   <p className="text-slate-300 font-semibold mt-1">
-                    Clinched the title with <span className="text-yellow-400 font-extrabold">{epl2526Config.rounds - completedMatchweeksCount}</span> matches to spare!
+                    Clinched the title with <span className="text-yellow-400 font-extrabold">{epl2627Config.rounds - completedMatchweeksCount}</span> matches to spare!
                   </p>
                 </div>
               </div>
@@ -649,7 +649,7 @@ export default function EPLApp() {
             {!isSelectedMatchweekCompleted && (
               <button
                 onClick={handleSimulateMatchweek}
-                className="px-6 py-4 bg-gradient-to-r from-[#e11d8f]/80 to-[#9e0556]/80 text-white font-black rounded-2xl hover:from-[#e11d8f]/90 hover:to-[#9e0556]/90 transition-all shadow-lg shadow-indigo-950/40 active:scale-95 text-lg uppercase tracking-wider"
+                className="px-6 py-4 bg-gradient-to-r from-[#963CFF]/80 to-[#3D195B]/80 text-white font-black rounded-2xl hover:from-[#963CFF]/90 hover:to-[#3D195B]/90 transition-all shadow-lg shadow-[#3D195B]/40 active:scale-95 text-lg uppercase tracking-wider"
               >
                 Simulate Matchweek {selectedMatchweek}
               </button>
@@ -686,9 +686,9 @@ export default function EPLApp() {
                       key={mw}
                       onClick={() => setSelectedMatchweek(mw)}
                       className={`flex-1 py-2 px-3 rounded-xl font-black text-xs sm:text-base shrink-0 min-w-[36px] sm:min-w-[44px] border transition-all text-center cursor-pointer ${isCurrent
-                        ? 'bg-[#e11d8f]/90 text-white border-[#e11d8f]/70 scale-105 shadow-md shadow-[#e11d8f]/20'
+                        ? 'bg-[#963CFF]/90 text-white border-[#963CFF]/70 scale-105 shadow-md shadow-[#963CFF]/20'
                         : isCompleted
-                          ? 'bg-[#111118] text-[#e11d8f]/80 border-[#1e1e2e]/50 hover:bg-[#1a1a24]'
+                          ? 'bg-[#111118] text-[#963CFF]/80 border-[#1e1e2e]/50 hover:bg-[#1a1a24]'
                           : 'bg-white/5 text-slate-400 border-white/5 hover:bg-white/10 hover:text-white'
                         }`}
                     >
@@ -711,9 +711,9 @@ export default function EPLApp() {
                       key={mw}
                       onClick={() => setSelectedMatchweek(mw)}
                       className={`flex-1 py-2 px-3 rounded-xl font-black text-xs sm:text-base shrink-0 min-w-[36px] sm:min-w-[44px] border transition-all text-center cursor-pointer ${isCurrent
-                        ? 'bg-[#e11d8f]/90 text-white border-[#e11d8f]/70 scale-105 shadow-md shadow-[#e11d8f]/20'
+                        ? 'bg-[#963CFF]/90 text-white border-[#963CFF]/70 scale-105 shadow-md shadow-[#963CFF]/20'
                         : isCompleted
-                          ? 'bg-[#111118] text-[#e11d8f]/80 border-[#1e1e2e]/50 hover:bg-[#1a1a24]'
+                          ? 'bg-[#111118] text-[#963CFF]/80 border-[#1e1e2e]/50 hover:bg-[#1a1a24]'
                           : 'bg-white/5 text-slate-400 border-white/5 hover:bg-white/10 hover:text-white'
                         }`}
                     >
@@ -725,8 +725,8 @@ export default function EPLApp() {
             </div>
 
             <button
-              onClick={() => setSelectedMatchweek(Math.min(epl2526Config.rounds, selectedMatchweek + 1))}
-              disabled={selectedMatchweek === epl2526Config.rounds}
+              onClick={() => setSelectedMatchweek(Math.min(epl2627Config.rounds, selectedMatchweek + 1))}
+              disabled={selectedMatchweek === epl2627Config.rounds}
               className="px-4 py-3 bg-white/5 hover:bg-white/10 text-slate-200 text-xl rounded-2xl disabled:opacity-20 disabled:cursor-not-allowed border border-white/5 font-extrabold transition-all shrink-0"
               title="Next Matchweek"
             >
@@ -748,16 +748,16 @@ export default function EPLApp() {
               return (
                 <div
                   key={match.id}
-                  className="bg-[#111118]/50 rounded-[28px] p-6 border border-[#1e1e2e]/40 hover:border-[#e11d8f]/30 transition-all duration-300 flex flex-col gap-5 shadow-xl hover:shadow-2xl"
+                  className="bg-[#111118]/50 rounded-[28px] p-6 border border-[#1e1e2e]/40 hover:border-[#963CFF]/30 transition-all duration-300 flex flex-col gap-5 shadow-xl hover:shadow-2xl"
                 >
                   {/* Horizontal Match Layout */}
                   <div className="flex items-center justify-between gap-3 py-2">
                     {/* Home Team (Left Side - occupies ~40% width) */}
                     <button
                       onClick={() => setSelectedTeamForRoster(homeTeam)}
-                      className="flex-1 flex items-center justify-end gap-2.5 sm:gap-4 text-right hover:text-[#e11d8f] transition-colors group cursor-pointer min-w-0"
+                      className="flex-1 flex items-center justify-end gap-2.5 sm:gap-4 text-right hover:text-[#963CFF] transition-colors group cursor-pointer min-w-0"
                     >
-                      <span className="font-black text-sm sm:text-base md:text-sm lg:text-base xl:text-lg text-slate-100 group-hover:text-[#e11d8f] transition-colors leading-tight text-right whitespace-normal break-words">
+                      <span className="font-black text-sm sm:text-base md:text-sm lg:text-base xl:text-lg text-slate-100 group-hover:text-[#963CFF] transition-colors leading-tight text-right whitespace-normal break-words">
                         {homeTeam.name}
                       </span>
                       <img
@@ -785,14 +785,14 @@ export default function EPLApp() {
                     {/* Away Team (Right Side - occupies ~40% width) */}
                     <button
                       onClick={() => setSelectedTeamForRoster(awayTeam)}
-                      className="flex-1 flex items-center justify-start gap-2.5 sm:gap-4 text-left hover:text-[#e11d8f] transition-colors group cursor-pointer min-w-0"
+                      className="flex-1 flex items-center justify-start gap-2.5 sm:gap-4 text-left hover:text-[#963CFF] transition-colors group cursor-pointer min-w-0"
                     >
                       <img
                         src={EPL_LOGO_MAP[awayTeam.id]}
                         alt=""
                         className="w-8 h-8 sm:w-10 sm:h-10 md:w-8 md:h-8 lg:w-10 lg:h-10 xl:w-12 xl:h-12 object-contain shrink-0 group-hover:scale-110 transition-transform"
                       />
-                      <span className="font-black text-sm sm:text-base md:text-sm lg:text-base xl:text-lg text-slate-100 group-hover:text-[#e11d8f] transition-colors leading-tight text-left whitespace-normal break-words">
+                      <span className="font-black text-sm sm:text-base md:text-sm lg:text-base xl:text-lg text-slate-100 group-hover:text-[#963CFF] transition-colors leading-tight text-left whitespace-normal break-words">
                         {awayTeam.name}
                       </span>
                     </button>
@@ -802,7 +802,7 @@ export default function EPLApp() {
                   {!isCompleted && (
                     <button
                       onClick={() => handlePredictMatch(match.id)}
-                      className="w-full py-4 bg-gradient-to-r from-[#e11d8f]/80 to-[#9e0556]/80 text-white rounded-2xl text-lg font-black uppercase tracking-wider hover:from-[#e11d8f]/90 hover:to-[#9e0556]/90 active:scale-[0.98] transition-all shadow-lg shadow-indigo-950/40"
+                      className="w-full py-4 bg-gradient-to-r from-[#963CFF]/80 to-[#3D195B]/80 text-white rounded-2xl text-lg font-black uppercase tracking-wider hover:from-[#963CFF]/90 hover:to-[#3D195B]/90 active:scale-[0.98] transition-all shadow-lg shadow-[#3D195B]/40"
                     >
                       Predict Match
                     </button>
@@ -816,7 +816,7 @@ export default function EPLApp() {
                         className="w-full flex items-center justify-between gap-1.5 px-4 py-2 bg-white/5 hover:bg-white/8 text-slate-300 rounded-xl text-base font-bold uppercase transition-all cursor-pointer"
                       >
                         <span className="flex items-center gap-1.5">
-                          <Clock className="h-4 w-4 text-[#e11d8f]/70" />
+                          <Clock className="h-4 w-4 text-[#963CFF]/70" />
                           <span>Timeline & MOTM</span>
                         </span>
                         <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform duration-200 ${expandedMatches[match.id] ? 'rotate-180' : ''}`} />
@@ -918,7 +918,7 @@ export default function EPLApp() {
                 <tbody className="divide-y divide-[#1e1e2e]/40 text-lg">
                   {standings.map((standing) => {
                     const isLeader = standing.position === 1;
-                    const zone = epl2526Config.qualificationZones.find(
+                    const zone = epl2627Config.qualificationZones.find(
                       (z) => standing.position >= z.startPosition && standing.position <= z.endPosition
                     );
                     const leftBorderColor = isLeader ? '#fbbf24' : (zone ? zone.color : 'transparent');
@@ -936,7 +936,7 @@ export default function EPLApp() {
                         <td className="py-4 px-4">
                           <button
                             onClick={() => setSelectedTeamForRoster(EPL_TEAMS_BY_ID[standing.teamId])}
-                            className="flex items-center gap-3 font-black text-slate-100 hover:text-[#e11d8f] transition-all cursor-pointer text-left text-lg"
+                            className="flex items-center gap-3 font-black text-slate-100 hover:text-[#963CFF] transition-all cursor-pointer text-left text-lg"
                           >
                             {/* Adjusted logo size (smaller: w-7 h-7 object-contain) */}
                             <img src={EPL_LOGO_MAP[standing.teamId]} alt="" className="w-7 h-7 object-contain shrink-0" />
@@ -980,7 +980,7 @@ export default function EPLApp() {
 
             {/* Zone Legend */}
             <div className="mt-6 flex flex-wrap gap-4 border-t border-[#1e1e2e]/20 pt-4">
-              {epl2526Config.qualificationZones.map((zone) => (
+              {epl2627Config.qualificationZones.map((zone) => (
                 <div key={zone.id} className="flex items-center gap-2 bg-[#0a0a12]/80 px-3.5 py-1.5 rounded-2xl border border-[#1e1e2e]/30 shadow-sm">
                   <div className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: zone.color }} />
                   <span className="text-base text-slate-200 font-bold">{zone.label}</span>
@@ -1032,7 +1032,7 @@ export default function EPLApp() {
                             {idx + 1}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 font-black text-white text-lg group-hover:text-[#e11d8f] transition-colors">{scorer.playerName}</td>
+                        <td className="py-3.5 px-4 font-black text-white text-lg group-hover:text-[#963CFF] transition-colors">{scorer.playerName}</td>
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-2 font-bold text-slate-200 text-lg">
                             <img src={EPL_LOGO_MAP[scorer.teamId]} alt="" className="w-7 h-7 object-contain shrink-0" />
@@ -1051,7 +1051,7 @@ export default function EPLApp() {
 
         {/* Title Race Chart Card */}
         <section className="bg-[#111118]/70 backdrop-blur-xl rounded-[32px] p-6 border border-[#1e1e2e]/50 shadow-2xl w-full mx-auto">
-          <TitleRaceChart standings={standings} fixtures={fixtures} totalRounds={epl2526Config.rounds} logoMap={EPL_LOGO_MAP} />
+          <TitleRaceChart standings={standings} fixtures={fixtures} totalRounds={epl2627Config.rounds} logoMap={EPL_LOGO_MAP} />
         </section>
 
         {/* Season Recap Card */}
@@ -1099,12 +1099,12 @@ export default function EPLApp() {
               <div className="space-y-6">
                 {/* GK */}
                 <div className="space-y-3">
-                  <h4 className="text-sm font-black text-[#e11d8f]/80 uppercase tracking-widest border-b border-[#1e1e2e] pb-1.5 flex items-center gap-1">
+                  <h4 className="text-sm font-black text-[#963CFF]/80 uppercase tracking-widest border-b border-[#1e1e2e] pb-1.5 flex items-center gap-1">
                     <span>🧤</span> GK
                   </h4>
                   <ul className="space-y-1.5">
                     {selectedTeamForRoster.players.filter((p) => p.position === 'GK').map((p) => (
-                      <li key={p.id} className="text-base font-bold text-slate-100 bg-[#0a0a12]/80 py-2.5 px-3.5 rounded-xl border border-[#1e1e2e]/25 hover:border-[#e11d8f]/20 transition-colors whitespace-normal break-words" title={p.name}>{p.name}</li>
+                      <li key={p.id} className="text-base font-bold text-slate-100 bg-[#0a0a12]/80 py-2.5 px-3.5 rounded-xl border border-[#1e1e2e]/25 hover:border-[#963CFF]/20 transition-colors whitespace-normal break-words" title={p.name}>{p.name}</li>
                     ))}
                   </ul>
                 </div>
@@ -1115,7 +1115,7 @@ export default function EPLApp() {
                   </h4>
                   <ul className="space-y-1.5">
                     {selectedTeamForRoster.players.filter((p) => p.position === 'DF').map((p) => (
-                      <li key={p.id} className="text-base font-bold text-slate-100 bg-[#0a0a12]/80 py-2.5 px-3.5 rounded-xl border border-[#1e1e2e]/25 hover:border-[#e11d8f]/20 transition-colors whitespace-normal break-words" title={p.name}>{p.name}</li>
+                      <li key={p.id} className="text-base font-bold text-slate-100 bg-[#0a0a12]/80 py-2.5 px-3.5 rounded-xl border border-[#1e1e2e]/25 hover:border-[#963CFF]/20 transition-colors whitespace-normal break-words" title={p.name}>{p.name}</li>
                     ))}
                   </ul>
                 </div>
@@ -1128,7 +1128,7 @@ export default function EPLApp() {
                 </h4>
                 <ul className="space-y-1.5">
                   {selectedTeamForRoster.players.filter((p) => p.position === 'MF').map((p) => (
-                    <li key={p.id} className="text-base font-bold text-slate-100 bg-[#0a0a12]/80 py-2.5 px-3.5 rounded-xl border border-[#1e1e2e]/25 hover:border-[#e11d8f]/20 transition-colors whitespace-normal break-words" title={p.name}>{p.name}</li>
+                    <li key={p.id} className="text-base font-bold text-slate-100 bg-[#0a0a12]/80 py-2.5 px-3.5 rounded-xl border border-[#1e1e2e]/25 hover:border-[#963CFF]/20 transition-colors whitespace-normal break-words" title={p.name}>{p.name}</li>
                   ))}
                 </ul>
               </div>
@@ -1140,7 +1140,7 @@ export default function EPLApp() {
                 </h4>
                 <ul className="space-y-1.5">
                   {selectedTeamForRoster.players.filter((p) => p.position === 'FW').map((p) => (
-                    <li key={p.id} className="text-base font-bold text-slate-100 bg-[#0a0a12]/80 py-2.5 px-3.5 rounded-xl border border-[#1e1e2e]/25 hover:border-[#e11d8f]/20 transition-colors whitespace-normal break-words" title={p.name}>{p.name}</li>
+                    <li key={p.id} className="text-base font-bold text-slate-100 bg-[#0a0a12]/80 py-2.5 px-3.5 rounded-xl border border-[#1e1e2e]/25 hover:border-[#963CFF]/20 transition-colors whitespace-normal break-words" title={p.name}>{p.name}</li>
                   ))}
                 </ul>
               </div>
