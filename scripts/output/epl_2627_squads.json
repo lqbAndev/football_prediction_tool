@@ -1,0 +1,162 @@
+[
+  {
+    "id": "arsenal",
+    "name": "Arsenal",
+    "shortName": "ARS",
+    "group": "A",
+    "rating": 91,
+    "players": []
+  },
+  {
+    "id": "aston-villa",
+    "name": "Aston Villa",
+    "shortName": "AVL",
+    "group": "A",
+    "rating": 85,
+    "players": []
+  },
+  {
+    "id": "afc-bournemouth",
+    "name": "AFC Bournemouth",
+    "shortName": "BOU",
+    "group": "A",
+    "rating": 80,
+    "players": []
+  },
+  {
+    "id": "brentford",
+    "name": "Brentford",
+    "shortName": "BRE",
+    "group": "A",
+    "rating": 84,
+    "players": []
+  },
+  {
+    "id": "brighton-and-hove-albion",
+    "name": "Brighton & Hove Albion",
+    "shortName": "BHA",
+    "group": "A",
+    "rating": 84,
+    "players": []
+  },
+  {
+    "id": "chelsea",
+    "name": "Chelsea",
+    "shortName": "CHE",
+    "group": "A",
+    "rating": 89,
+    "players": []
+  },
+  {
+    "id": "coventry-city",
+    "name": "Coventry City",
+    "shortName": "COV",
+    "group": "A",
+    "rating": 74,
+    "players": []
+  },
+  {
+    "id": "crystal-palace",
+    "name": "Crystal Palace",
+    "shortName": "CRY",
+    "group": "A",
+    "rating": 82,
+    "players": []
+  },
+  {
+    "id": "everton",
+    "name": "Everton",
+    "shortName": "EVE",
+    "group": "A",
+    "rating": 76,
+    "players": []
+  },
+  {
+    "id": "fulham",
+    "name": "Fulham",
+    "shortName": "FUL",
+    "group": "A",
+    "rating": 81,
+    "players": []
+  },
+  {
+    "id": "hull-city",
+    "name": "Hull City",
+    "shortName": "HUL",
+    "group": "A",
+    "rating": 73,
+    "players": []
+  },
+  {
+    "id": "ipswich-town",
+    "name": "Ipswich Town",
+    "shortName": "IPS",
+    "group": "A",
+    "rating": 75,
+    "players": []
+  },
+  {
+    "id": "leeds-united",
+    "name": "Leeds United",
+    "shortName": "LEE",
+    "group": "A",
+    "rating": 75,
+    "players": []
+  },
+  {
+    "id": "liverpool",
+    "name": "Liverpool",
+    "shortName": "LIV",
+    "group": "A",
+    "rating": 91,
+    "players": []
+  },
+  {
+    "id": "manchester-city",
+    "name": "Manchester City",
+    "shortName": "MCI",
+    "group": "A",
+    "rating": 92,
+    "players": []
+  },
+  {
+    "id": "manchester-united",
+    "name": "Manchester United",
+    "shortName": "MUN",
+    "group": "A",
+    "rating": 88,
+    "players": []
+  },
+  {
+    "id": "newcastle-united",
+    "name": "Newcastle United",
+    "shortName": "NEW",
+    "group": "A",
+    "rating": 86,
+    "players": []
+  },
+  {
+    "id": "nottingham-forest",
+    "name": "Nottingham Forest",
+    "shortName": "NFO",
+    "group": "A",
+    "rating": 79,
+    "players": []
+  },
+  {
+    "id": "sunderland",
+    "name": "Sunderland AFC",
+    "shortName": "SUN",
+    "group": "A",
+    "rating": 74,
+    "players": []
+  },
+  {
+    "id": "tottenham-hotspur",
+    "name": "Tottenham Hotspur",
+    "shortName": "TOT",
+    "group": "A",
+    "rating": 88,
+    "players": []
+  }
+]

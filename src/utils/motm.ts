@@ -1,5 +1,5 @@
 import { TEAMS_BY_ID } from '../data/tournament';
-import { EPL_TEAMS_BY_ID } from '../data/competitions/epl2526/teams';
+import { EPL_TEAMS_BY_ID } from '../data/competitions/epl2627/teamsEPL';
 import type {
   GroupMatch,
   KnockoutMatch,

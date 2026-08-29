@@ -1,6 +1,6 @@
 import type { LeagueConfig } from '../../../types/leagueConfig';
 
-export const epl2526Config: LeagueConfig = {
+export const epl2627Config: LeagueConfig = {
   id: 'epl',
   name: 'Premier League',
   type: 'league',
@@ -44,5 +44,5 @@ export const epl2526Config: LeagueConfig = {
       color: '#ef4444', // Red
     },
   ],
-  storageKey: 'vibe-epl2526-state',
+  storageKey: 'vibe-epl2627-state',
 };

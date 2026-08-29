@@ -17,10 +17,10 @@ body {
   min-height: 100vh;
   color: #f8fafc;
   background:
-    radial-gradient(circle at 16% 18%, rgba(34, 79, 151, 0.24), transparent 22%),
-    radial-gradient(circle at 84% 10%, rgba(165, 52, 72, 0.2), transparent 22%),
-    radial-gradient(circle at 50% 72%, rgba(24, 115, 91, 0.18), transparent 28%),
-    linear-gradient(145deg, #071018 0%, #0b1420 38%, #09130d 100%);
+    radial-gradient(circle at 16% 18%, rgba(61,25,91,0.2), transparent 22%),
+    radial-gradient(circle at 84% 10%, rgba(150,60,255,0.12), transparent 22%),
+    radial-gradient(circle at 50% 72%, rgba(0,255,135,0.08), transparent 28%),
+    linear-gradient(145deg, #050810 0%, #080c18 38%, #060812 100%);
 }
 
 body::before {
@@ -145,14 +145,15 @@ body::before {
   z-index: 0;
   background: linear-gradient(
     135deg,
-    #030810 0%,
-    #071428 16%,
-    #0a1e20 28%,
-    #061218 42%,
-    #0d0a1c 56%,
-    #081422 72%,
-    #051010 86%,
-    #030810 100%
+    #010205 0%,
+    #020610 12%,
+    #060d1e 24%,
+    #0a0f28 36%,
+    #080a20 48%,
+    #0c0820 60%,
+    #080618 72%,
+    #040812 84%,
+    #010205 100%
   );
   background-size: 400% 400%;
   animation: landing-gradient-shift 20s ease infinite;
@@ -171,7 +172,7 @@ body::before {
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  opacity: 0.03;
+  opacity: 0.008;
 }
 
 .landing-field::before {
@@ -203,11 +204,11 @@ body::before {
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  opacity: 0.04;
+  opacity: 0.06;
   background-image:
-    linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
-  background-size: 80px 80px;
+    linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
 }
 
 /* Floating ambient orbs */
@@ -222,38 +223,38 @@ body::before {
 }
 
 .landing-orb--1 {
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(34,79,151,0.35), transparent 70%);
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(61,25,91,0.35), transparent 70%);
   top: -15%;
   left: -10%;
   animation-delay: 0.2s;
 }
 
 .landing-orb--2 {
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(165,52,72,0.25), transparent 70%);
+  width: 550px;
+  height: 550px;
+  background: radial-gradient(circle, rgba(150,60,255,0.2), transparent 70%);
   bottom: -20%;
   right: -8%;
   animation-delay: 0.6s;
 }
 
 .landing-orb--3 {
-  width: 450px;
-  height: 450px;
-  background: radial-gradient(circle, rgba(99,102,241,0.18), transparent 70%);
-  top: 30%;
-  right: 15%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(96,165,250,0.22), transparent 70%);
+  top: 25%;
+  right: 12%;
   animation-delay: 1s;
 }
 
 .landing-orb--4 {
-  width: 550px;
-  height: 550px;
-  background: radial-gradient(circle, rgba(16,185,129,0.2), transparent 70%);
-  bottom: 10%;
-  left: 15%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(248,214,109,0.12), transparent 70%);
+  bottom: 5%;
+  left: 10%;
   animation-delay: 1.4s;
 }
 
@@ -273,28 +274,28 @@ body::before {
 
 .landing-beam--1 {
   top: -20%;
-  left: 0;
-  width: 350px;
-  height: 140vh;
-  background: linear-gradient(155deg, rgba(248,214,109,0.05) 0%, transparent 35%);
-  transform: rotate(-12deg);
+  left: -5%;
+  width: 400px;
+  height: 150vh;
+  background: linear-gradient(155deg, rgba(248,214,109,0.14) 0%, rgba(248,214,109,0.03) 20%, transparent 40%);
+  transform: rotate(-15deg);
 }
 
 .landing-beam--2 {
   top: -20%;
-  right: 0;
-  width: 350px;
-  height: 140vh;
-  background: linear-gradient(205deg, rgba(96,165,250,0.04) 0%, transparent 35%);
-  transform: rotate(12deg);
+  right: -5%;
+  width: 400px;
+  height: 150vh;
+  background: linear-gradient(205deg, rgba(150,60,255,0.10) 0%, rgba(96,165,250,0.04) 20%, transparent 40%);
+  transform: rotate(15deg);
 }
 
 .landing-beam--3 {
   top: -15%;
-  left: 40%;
-  width: 200px;
-  height: 130vh;
-  background: linear-gradient(180deg, rgba(52,211,153,0.025) 0%, transparent 30%);
+  left: 35%;
+  width: 250px;
+  height: 140vh;
+  background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.01) 15%, transparent 35%);
 }
 
 @keyframes landing-beam-in {
@@ -321,13 +322,13 @@ body::before {
   gap: 0.6rem;
   padding: 0.45rem 1.4rem;
   border-radius: 999px;
-  border: 1px solid rgba(52,211,153,0.2);
-  background: rgba(52,211,153,0.05);
+  border: 1px solid rgba(248,214,109,0.2);
+  background: rgba(248,214,109,0.05);
   font-family: "Inter", sans-serif;
   font-size: 0.6rem;
   font-weight: 700;
   letter-spacing: 0.24em;
-  color: rgba(52,211,153,0.65);
+  color: rgba(248,214,109,0.65);
   animation: landing-title-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -335,14 +336,14 @@ body::before {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #34d399;
-  box-shadow: 0 0 8px rgba(52,211,153,0.6);
+  background: #f8d66d;
+  box-shadow: 0 0 8px rgba(248,214,109,0.6);
   animation: landing-badge-blink 2s ease-in-out infinite;
 }
 
 @keyframes landing-badge-blink {
-  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(52,211,153,0.6); }
-  50%      { opacity: 0.3; box-shadow: 0 0 2px rgba(52,211,153,0.2); }
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(248,214,109,0.6); }
+  50%      { opacity: 0.3; box-shadow: 0 0 2px rgba(248,214,109,0.2); }
 }
 
 /* Headline — 3 tiers */
@@ -369,7 +370,7 @@ body::before {
   font-size: clamp(2rem, 7vw, 5rem);
   font-weight: 900;
   letter-spacing: 0.1em;
-  background: linear-gradient(135deg, #f8d66d 0%, #60a5fa 40%, #34d399 70%, #f8d66d 100%);
+  background: linear-gradient(135deg, #f8d66d 0%, #963CFF 35%, #60a5fa 65%, #f8d66d 100%);
   background-size: 300% 300%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -440,7 +441,7 @@ body::before {
 
 .landing-ball-ring--inner {
   inset: 20px;
-  border-color: rgba(96,165,250,0.1);
+  border-color: rgba(150,60,255,0.12);
   animation: landing-ring-pulse 3s ease-in-out infinite 0.5s;
 }
 
@@ -479,8 +480,8 @@ body::before {
   inset: -30px;
   border-radius: 50%;
   background: radial-gradient(circle,
-    rgba(248,214,109,0.12) 0%,
-    rgba(96,165,250,0.06) 40%,
+    rgba(248,214,109,0.18) 0%,
+    rgba(150,60,255,0.08) 40%,
     transparent 70%
   );
   animation: landing-ball-glow 2.4s ease-in-out infinite;
@@ -493,10 +494,10 @@ body::before {
   border-radius: 50%;
   border: 2px solid transparent;
   background: linear-gradient(135deg,
-    rgba(248,214,109,0.3),
-    rgba(96,165,250,0.25),
-    rgba(52,211,153,0.25),
-    rgba(248,214,109,0.3)
+    rgba(248,214,109,0.35),
+    rgba(150,60,255,0.3),
+    rgba(96,165,250,0.3),
+    rgba(248,214,109,0.35)
   ) border-box;
   -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
   mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
@@ -510,12 +511,12 @@ body::before {
   height: 160px;
   object-fit: contain;
   pointer-events: none;
-  filter: drop-shadow(0 0 30px rgba(248,214,109,0.2)) drop-shadow(0 0 60px rgba(96,165,250,0.1));
+  filter: drop-shadow(0 0 40px rgba(248,214,109,0.25)) drop-shadow(0 0 80px rgba(150,60,255,0.12));
   transition: filter 0.3s ease;
 }
 
 .landing-ball-btn:hover .landing-ball-img {
-  filter: drop-shadow(0 0 40px rgba(248,214,109,0.35)) drop-shadow(0 0 80px rgba(96,165,250,0.2));
+  filter: drop-shadow(0 0 50px rgba(248,214,109,0.4)) drop-shadow(0 0 100px rgba(150,60,255,0.2));
 }
 
 .landing-ball-btn--explode {
@@ -596,9 +597,9 @@ body::before {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at 20% 10%, rgba(34,79,151,0.18), transparent 40%),
-    radial-gradient(ellipse at 80% 80%, rgba(24,115,91,0.14), transparent 40%),
-    radial-gradient(ellipse at 50% 40%, rgba(99,102,241,0.08), transparent 50%);
+    radial-gradient(ellipse at 20% 10%, rgba(61,25,91,0.22), transparent 40%),
+    radial-gradient(ellipse at 80% 80%, rgba(0,255,135,0.08), transparent 40%),
+    radial-gradient(ellipse at 50% 40%, rgba(150,60,255,0.1), transparent 50%);
 }
 
 /* Header */
@@ -609,10 +610,10 @@ body::before {
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 2rem;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  background: rgba(7,16,24,0.7);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  background: rgba(5,8,16,0.85);
 }
 
 .hub-back-btn {
@@ -693,10 +694,12 @@ body::before {
 
 .hub-section__icon--gold {
   color: #f8d66d;
+  filter: drop-shadow(0 0 6px rgba(248,214,109,0.3));
 }
 
 .hub-section__icon--blue {
-  color: #60a5fa;
+  color: #963CFF;
+  filter: drop-shadow(0 0 6px rgba(150,60,255,0.3));
 }
 
 /* Card grid */
@@ -723,8 +726,8 @@ body::before {
 }
 
 .hub-card:not(:disabled):hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  transform: translateY(-6px);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.4), 0 0 40px rgba(150,60,255,0.06);
 }
 
 .hub-card:disabled {
@@ -761,11 +764,11 @@ body::before {
   border: 1px solid var(--card-border);
   background: linear-gradient(
     145deg,
-    rgba(11,20,32,0.92) 0%,
-    rgba(8,17,28,0.88) 100%
+    rgba(8,12,24,0.95) 0%,
+    rgba(6,10,20,0.92) 100%
   );
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   height: 100%;
 }
 
@@ -815,9 +818,9 @@ body::before {
 }
 
 .hub-card__badge--active {
-  background: rgba(52,211,153,0.12);
-  border: 1px solid rgba(52,211,153,0.25);
-  color: #6ee7b7;
+  background: rgba(0,255,135,0.1);
+  border: 1px solid rgba(0,255,135,0.25);
+  color: #00ff87;
 }
 
 .hub-card__badge--locked {
@@ -832,7 +835,8 @@ body::before {
   z-index: 10;
   text-align: center;
   padding: 1.5rem 2rem;
-  border-top: 1px solid rgba(255,255,255,0.05);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  background: rgba(5,8,16,0.5);
 }
 
 .hub-footer p {
@@ -842,6 +846,58 @@ body::before {
   color: rgba(226,232,240,0.25);
   letter-spacing: 0.06em;
   margin: 0;
+}
+
+/* WC26 Finished Card */
+.hub-card__ribbon {
+  position: absolute;
+  top: 18px;
+  right: -35px;
+  z-index: 20;
+  background: linear-gradient(135deg, rgba(148,163,184,0.6), rgba(100,116,139,0.5));
+  color: rgba(255,255,255,0.9);
+  font-family: "Inter", sans-serif;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0.3rem 2.5rem;
+  transform: rotate(45deg);
+  pointer-events: none;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+
+.hub-card__badge--closed {
+  background: rgba(148,163,184,0.1);
+  border: 1px solid rgba(148,163,184,0.2);
+  color: rgba(148,163,184,0.5);
+}
+
+.hub-card__champion {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 12px;
+  background: rgba(248,214,109,0.08);
+  border: 1px solid rgba(248,214,109,0.15);
+}
+
+.hub-card__champion img {
+  width: 20px;
+  height: 14px;
+  object-fit: cover;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.hub-card__champion span {
+  font-family: "Outfit", "Inter", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(248,214,109,0.75);
 }
 
 /* ─── Responsive ─── */

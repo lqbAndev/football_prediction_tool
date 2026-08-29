@@ -30,6 +30,13 @@ const config: Config = {
           canada: '#a53448',
           ice: '#dbe7f5',
         },
+        epl: {
+          purple: '#3D195B',
+          'deep-purple': '#360D3A',
+          neon: '#00ff87',
+          violet: '#963CFF',
+          magenta: '#E90052',
+        },
       },
       fontFamily: {
         display: ['"Outfit"', '"Inter"', '"Trebuchet MS"', '"Arial Narrow"', 'sans-serif'],
