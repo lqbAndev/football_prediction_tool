@@ -595,25 +595,34 @@ export const EPL_LOGO_MAP: Record<string, string> = {
   'tottenham': tottenhamLogo,
 };
 
+// Tier Map based on 25/26 Final Standings (S=3, A=2, B=1, C=0)
+// Higher number = stronger team (matches simulation logic in EPLApp.tsx)
 export const EPL_TIER_MAP: Record<string, number> = {
-  'arsenal': 1,
-  'man-city': 1,
-  'man-utd': 1,
-  'liverpool': 1,
-  'chelsea': 1,
-  'aston-villa': 2,
-  'bournemouth': 3,
-  'brentford': 3,
-  'brighton': 2,
-  'coventry': 4,
-  'crystal-palace': 3,
-  'everton': 3,
-  'fulham': 3,
-  'hull-city': 4,
-  'ipswich': 4,
-  'leeds': 4,
-  'newcastle': 2,
-  'nottingham': 4,
-  'sunderland': 3,
-  'tottenham': 2,
+  // Tier S (3) — Top 5 mùa 25/26
+  'arsenal': 3,       // #1, 85pts — Champions
+  'man-city': 3,      // #2, 78pts
+  'man-utd': 3,       // #3, 71pts
+  'aston-villa': 3,   // #4, 65pts
+  'liverpool': 3,     // #5, 60pts
+
+  // Tier A (2) — #6-10
+  'bournemouth': 2,   // #6, 57pts
+  'sunderland': 2,    // #7, 54pts
+  'brighton': 2,      // #8, 53pts
+  'brentford': 2,     // #9, 53pts
+  'chelsea': 2,       // #10, 52pts
+
+  // Tier B (1) — #11-17
+  'fulham': 1,        // #11, 52pts
+  'newcastle': 1,     // #12, 49pts
+  'everton': 1,       // #13, 49pts
+  'leeds': 1,         // #14, 47pts
+  'crystal-palace': 1, // #15, 45pts
+  'nottingham': 1,    // #16, 44pts
+  'tottenham': 1,     // #17, 41pts
+
+  // Tier C (0) — Promoted
+  'coventry': 0,      // Promoted from Championship
+  'hull-city': 0,     // Promoted from Championship
+  'ipswich': 0,       // Promoted from Championship
 };

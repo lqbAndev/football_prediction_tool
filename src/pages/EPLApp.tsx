@@ -73,33 +73,44 @@ const genGoalsForOutcome = (outcome: 'home' | 'draw' | 'away'): { homeGoals: num
 };
 
 const simulateEPLMatch = (match: LeagueMatch, homeTeam: Team, awayTeam: Team): LeagueMatch => {
-  let pHome = 0.40;
-  let pDraw = 0.20;
-  let pAway = 0.40;
+  let pHome = 0.37;
+  let pDraw = 0.26;
+  let pAway = 0.37;
 
-  // 1. Home advantage: 5-10% boost (widened from 5-7%)
-  const homeBoost = 0.05 + Math.random() * 0.05;
+  // 1. Home advantage: 5-8% boost
+  const homeBoost = 0.05 + Math.random() * 0.03;
   pHome += homeBoost;
   pAway -= homeBoost;
 
-  // 2. Tier advantage: up to 25% per tier gap for 20-25% win probability spread
+  // 2. Rating advantage (fine-grained, per-team strength)
+  const ratingDiff = (homeTeam.rating - awayTeam.rating) / 100;
+  pHome += ratingDiff * 0.5;
+  pAway -= ratingDiff * 0.5;
+
+  // 3. Tier advantage (group-level bonus, stacks with rating)
   const tierHome = EPL_TIER_MAP[homeTeam.id] ?? 0;
   const tierAway = EPL_TIER_MAP[awayTeam.id] ?? 0;
   const tierGap = tierHome - tierAway;
-  if (tierGap > 0) {
-    const boost = Math.min(0.25, tierGap * 0.125);
-    pHome += boost;
-    pAway -= boost;
-  } else if (tierGap < 0) {
-    const boost = Math.min(0.25, Math.abs(tierGap) * 0.125);
-    pAway += boost;
-    pHome -= boost;
+  if (tierGap !== 0) {
+    const tierBoost = tierGap * 0.05;
+    pHome += tierBoost;
+    pAway -= tierBoost;
   }
 
-  // 3. Clamp and normalize
-  pHome = Math.max(0.05, Math.min(0.90, pHome));
-  pAway = Math.max(0.05, Math.min(0.90, pAway));
-  pDraw = 1.0 - pHome - pAway;
+  // 4. Dynamic draw rate — higher when teams are evenly matched
+  const strengthGap = Math.abs(ratingDiff * 0.5 + tierGap * 0.05);
+  pDraw = Math.max(0.10, 0.26 - strengthGap * 0.4);
+
+  // 5. Clamp individual probabilities
+  pHome = Math.max(0.05, Math.min(0.85, pHome));
+  pAway = Math.max(0.05, Math.min(0.85, pAway));
+  pDraw = Math.max(0.08, pDraw);
+
+  // 6. Normalize to sum = 1.0
+  const total = pHome + pDraw + pAway;
+  pHome /= total;
+  pDraw /= total;
+  pAway /= total;
 
   // 4. Roll outcome
   const r = Math.random();
