@@ -82,10 +82,11 @@ const simulateEPLMatch = (match: LeagueMatch, homeTeam: Team, awayTeam: Team): L
   pHome += homeBoost;
   pAway -= homeBoost;
 
-  // 2. Tier advantage: up to 25% per tier gap for 20-25% win probability spread
+  // 2. Tier advantage: lower tier number is stronger (Tier 1 > Tier 2 > Tier 3 > Tier 4).
+  // A stronger side receives up to a 25% win-probability boost across the tier gap.
   const tierHome = EPL_TIER_MAP[homeTeam.id] ?? 0;
   const tierAway = EPL_TIER_MAP[awayTeam.id] ?? 0;
-  const tierGap = tierHome - tierAway;
+  const tierGap = tierAway - tierHome;
   if (tierGap > 0) {
     const boost = Math.min(0.25, tierGap * 0.125);
     pHome += boost;
@@ -1081,7 +1082,7 @@ export default function EPLApp() {
                 <div>
                   <h3 className="font-black text-3xl text-white flex items-center gap-1.5">{selectedTeamForRoster.name}</h3>
                   <p className="text-slate-300 text-base font-bold uppercase tracking-wider mt-0.5">
-                    Rating: <span className="text-slate-200">{selectedTeamForRoster.rating}</span> · Tier {EPL_TIER_MAP[selectedTeamForRoster.id] === 3 ? 'S' : EPL_TIER_MAP[selectedTeamForRoster.id] === 2 ? 'A' : EPL_TIER_MAP[selectedTeamForRoster.id] === 1 ? 'B' : 'C'}
+                    Rating: <span className="text-slate-200">{selectedTeamForRoster.rating}</span> · Tier {EPL_TIER_MAP[selectedTeamForRoster.id] === 1 ? 'S' : EPL_TIER_MAP[selectedTeamForRoster.id] === 2 ? 'A' : EPL_TIER_MAP[selectedTeamForRoster.id] === 3 ? 'B' : 'C'}
                   </p>
                 </div>
               </div>
