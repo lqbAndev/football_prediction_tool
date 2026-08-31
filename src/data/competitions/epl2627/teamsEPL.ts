@@ -46,7 +46,7 @@ export const EPL_TEAMS: Team[] = [
       { id: 'ars-mf5', name: 'Martin Zubimendi', position: 'MF' },
       { id: 'ars-mf6', name: 'Bruno Guimaraes', position: 'MF' },
       { id: 'ars-fw1', name: 'Bukayo Saka', position: 'FW' },
-      { id: 'ars-fw2', name: 'Gabriel Martinelli', position: 'FW' },
+      { id: 'ars-fw2', name: 'Christos Tzolis', position: 'FW' },
       { id: 'ars-fw3', name: 'Viktor Gyokeres', position: 'FW' },
       { id: 'ars-fw4', name: 'Kai Havertz', position: 'FW' },
       { id: 'ars-fw5', name: 'Noni Madueke', position: 'FW' }
