@@ -71,12 +71,12 @@ export const EPL_TEAMS: Team[] = [
       { id: 'mci-mf3', name: 'Matheus Nunes', position: 'MF' },
       { id: 'mci-mf4', name: 'Claudio Echeverri', position: 'MF' },
       { id: 'mci-mf5', name: 'Rayan Cherki', position: 'MF' },
+      { id: 'mci-mf6', name: 'Jack Grealish', position: 'MF' },
+      { id: 'mci-mf7', name: 'Nico O\'Reilly', position: 'MF' },
+      { id: 'mci-mf8', name: 'Antoine Semenyo', position: 'MF' },
       { id: 'mci-fw1', name: 'Erling Haaland', position: 'FW' },
-      { id: 'mci-fw2', name: 'Nico O\'Reilly', position: 'FW' },
-      { id: 'mci-fw3', name: 'Jeremy Doku', position: 'FW' },
-      { id: 'mci-fw4', name: 'Savinho', position: 'FW' },
-      { id: 'mci-fw5', name: 'Antoine Semenyo', position: 'FW' },
-      { id: 'mci-fw6', name: 'Omar Marmoush', position: 'FW' }
+      { id: 'mci-fw2', name: 'Jeremy Doku', position: 'FW' },
+      { id: 'mci-fw3', name: 'Ryan McAidoo', position: 'FW' }
     ]
   },
   {
