@@ -333,7 +333,7 @@ export const EPL_TEAMS: Team[] = [
       { id: 'new-df4', name: 'Lewis Hall', position: 'DF' },
       { id: 'new-df5', name: 'Dan Burn', position: 'DF' },
       { id: 'new-df6', name: 'Malick Thiaw', position: 'DF' },
-      { id: 'new-mf1', name: 'Bruno Guimaraes', position: 'MF' },
+      { id: 'new-mf1', name: 'Aladji Bamba', position: 'MF' },
       { id: 'new-mf2', name: 'Joelinton', position: 'MF' },
       { id: 'new-mf3', name: 'Joe Willock', position: 'MF' },
       { id: 'new-mf4', name: 'Jacob Ramsey', position: 'MF' },
