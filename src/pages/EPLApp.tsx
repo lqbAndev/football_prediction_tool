@@ -73,44 +73,34 @@ const genGoalsForOutcome = (outcome: 'home' | 'draw' | 'away'): { homeGoals: num
 };
 
 const simulateEPLMatch = (match: LeagueMatch, homeTeam: Team, awayTeam: Team): LeagueMatch => {
-  let pHome = 0.37;
-  let pDraw = 0.26;
-  let pAway = 0.37;
+  let pHome = 0.40;
+  let pDraw = 0.20;
+  let pAway = 0.40;
 
-  // 1. Home advantage: 5-8% boost
-  const homeBoost = 0.05 + Math.random() * 0.03;
+  // 1. Home advantage: 5-10% boost (widened from 5-7%)
+  const homeBoost = 0.05 + Math.random() * 0.05;
   pHome += homeBoost;
   pAway -= homeBoost;
 
-  // 2. Rating advantage (fine-grained, per-team strength)
-  const ratingDiff = (homeTeam.rating - awayTeam.rating) / 100;
-  pHome += ratingDiff * 0.5;
-  pAway -= ratingDiff * 0.5;
-
-  // 3. Tier advantage (group-level bonus, stacks with rating)
+  // 2. Tier advantage: lower tier number is stronger (Tier 1 > Tier 2 > Tier 3 > Tier 4).
+  // A stronger side receives up to a 25% win-probability boost across the tier gap.
   const tierHome = EPL_TIER_MAP[homeTeam.id] ?? 0;
   const tierAway = EPL_TIER_MAP[awayTeam.id] ?? 0;
-  const tierGap = tierHome - tierAway;
-  if (tierGap !== 0) {
-    const tierBoost = tierGap * 0.05;
-    pHome += tierBoost;
-    pAway -= tierBoost;
+  const tierGap = tierAway - tierHome;
+  if (tierGap > 0) {
+    const boost = Math.min(0.25, tierGap * 0.125);
+    pHome += boost;
+    pAway -= boost;
+  } else if (tierGap < 0) {
+    const boost = Math.min(0.25, Math.abs(tierGap) * 0.125);
+    pAway += boost;
+    pHome -= boost;
   }
 
-  // 4. Dynamic draw rate — higher when teams are evenly matched
-  const strengthGap = Math.abs(ratingDiff * 0.5 + tierGap * 0.05);
-  pDraw = Math.max(0.10, 0.26 - strengthGap * 0.4);
-
-  // 5. Clamp individual probabilities
-  pHome = Math.max(0.05, Math.min(0.85, pHome));
-  pAway = Math.max(0.05, Math.min(0.85, pAway));
-  pDraw = Math.max(0.08, pDraw);
-
-  // 6. Normalize to sum = 1.0
-  const total = pHome + pDraw + pAway;
-  pHome /= total;
-  pDraw /= total;
-  pAway /= total;
+  // 3. Clamp and normalize
+  pHome = Math.max(0.05, Math.min(0.90, pHome));
+  pAway = Math.max(0.05, Math.min(0.90, pAway));
+  pDraw = 1.0 - pHome - pAway;
 
   // 4. Roll outcome
   const r = Math.random();
@@ -1092,7 +1082,7 @@ export default function EPLApp() {
                 <div>
                   <h3 className="font-black text-3xl text-white flex items-center gap-1.5">{selectedTeamForRoster.name}</h3>
                   <p className="text-slate-300 text-base font-bold uppercase tracking-wider mt-0.5">
-                    Rating: <span className="text-slate-200">{selectedTeamForRoster.rating}</span> · Tier {EPL_TIER_MAP[selectedTeamForRoster.id] === 3 ? 'S' : EPL_TIER_MAP[selectedTeamForRoster.id] === 2 ? 'A' : EPL_TIER_MAP[selectedTeamForRoster.id] === 1 ? 'B' : 'C'}
+                    Rating: <span className="text-slate-200">{selectedTeamForRoster.rating}</span> · Tier {EPL_TIER_MAP[selectedTeamForRoster.id] === 1 ? 'S' : EPL_TIER_MAP[selectedTeamForRoster.id] === 2 ? 'A' : EPL_TIER_MAP[selectedTeamForRoster.id] === 3 ? 'B' : 'C'}
                   </p>
                 </div>
               </div>
@@ -1253,7 +1243,7 @@ export default function EPLApp() {
 
               {/* Season Badge */}
               <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-[#1e1e2e]/60 bg-white/5 px-4 py-1">
-                <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-300">Season 2025/2026</span>
+                <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-300">Season 2026/2027</span>
               </div>
 
               {/* Champion Team Name */}

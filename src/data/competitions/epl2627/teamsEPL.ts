@@ -46,7 +46,7 @@ export const EPL_TEAMS: Team[] = [
       { id: 'ars-mf5', name: 'Martin Zubimendi', position: 'MF' },
       { id: 'ars-mf6', name: 'Bruno Guimaraes', position: 'MF' },
       { id: 'ars-fw1', name: 'Bukayo Saka', position: 'FW' },
-      { id: 'ars-fw2', name: 'Gabriel Martinelli', position: 'FW' },
+      { id: 'ars-fw2', name: 'Christos Tzolis', position: 'FW' },
       { id: 'ars-fw3', name: 'Viktor Gyokeres', position: 'FW' },
       { id: 'ars-fw4', name: 'Kai Havertz', position: 'FW' },
       { id: 'ars-fw5', name: 'Noni Madueke', position: 'FW' }
@@ -71,12 +71,12 @@ export const EPL_TEAMS: Team[] = [
       { id: 'mci-mf3', name: 'Matheus Nunes', position: 'MF' },
       { id: 'mci-mf4', name: 'Claudio Echeverri', position: 'MF' },
       { id: 'mci-mf5', name: 'Rayan Cherki', position: 'MF' },
+      { id: 'mci-mf6', name: 'Jack Grealish', position: 'MF' },
+      { id: 'mci-mf7', name: 'Nico O\'Reilly', position: 'MF' },
+      { id: 'mci-mf8', name: 'Antoine Semenyo', position: 'MF' },
       { id: 'mci-fw1', name: 'Erling Haaland', position: 'FW' },
-      { id: 'mci-fw2', name: 'Nico O\'Reilly', position: 'FW' },
-      { id: 'mci-fw3', name: 'Jeremy Doku', position: 'FW' },
-      { id: 'mci-fw4', name: 'Savinho', position: 'FW' },
-      { id: 'mci-fw5', name: 'Antoine Semenyo', position: 'FW' },
-      { id: 'mci-fw6', name: 'Omar Marmoush', position: 'FW' }
+      { id: 'mci-fw2', name: 'Jeremy Doku', position: 'FW' },
+      { id: 'mci-fw3', name: 'Ryan McAidoo', position: 'FW' }
     ]
   },
   {
@@ -115,8 +115,8 @@ export const EPL_TEAMS: Team[] = [
     group: 'A',
     rating: 85,
     players: [
-      { id: 'avl-gk1', name: 'Emiliano Martinez', position: 'GK' },
-      { id: 'avl-gk2', name: 'Zion Suzuki', position: 'GK' },
+      { id: 'avl-gk1', name: 'Zion Suzuki', position: 'GK' },
+      { id: 'avl-gk2', name: 'Marco Bizot', position: 'GK' },
       { id: 'avl-df1', name: 'Matty Cash', position: 'DF' },
       { id: 'avl-df2', name: 'Pau Torres', position: 'DF' },
       { id: 'avl-df3', name: 'Tyrone Mings', position: 'DF' },
@@ -272,7 +272,7 @@ export const EPL_TEAMS: Team[] = [
     rating: 82,
     players: [
       { id: 'che-gk1', name: 'Robert Sanchez', position: 'GK' },
-      { id: 'che-gk2', name: 'Gaga Slonina', position: 'GK' },
+      { id: 'che-gk2', name: 'Emiliano Martinez', position: 'GK' },
       { id: 'che-df1', name: 'Levi Colwill', position: 'DF' },
       { id: 'che-df2', name: 'Wesley Fofana', position: 'DF' },
       { id: 'che-df3', name: 'Maxence Lacroix', position: 'DF' },
@@ -286,7 +286,7 @@ export const EPL_TEAMS: Team[] = [
       { id: 'che-fw1', name: 'Pedro Neto', position: 'FW' },
       { id: 'che-fw2', name: 'Joao Pedro', position: 'FW' },
       { id: 'che-fw3', name: 'Nicolas Jackson', position: 'FW' },
-      { id: 'che-fw4', name: 'Mykhailo Mudryk', position: 'FW' },
+      { id: 'che-fw4', name: 'Estevao', position: 'FW' },
       { id: 'che-fw5', name: 'Morgan Rogers', position: 'FW' },
       { id: 'che-fw6', name: 'Danny Welbeck', position: 'FW' }
     ]
@@ -333,7 +333,7 @@ export const EPL_TEAMS: Team[] = [
       { id: 'new-df4', name: 'Lewis Hall', position: 'DF' },
       { id: 'new-df5', name: 'Dan Burn', position: 'DF' },
       { id: 'new-df6', name: 'Malick Thiaw', position: 'DF' },
-      { id: 'new-mf1', name: 'Bruno Guimaraes', position: 'MF' },
+      { id: 'new-mf1', name: 'Aladji Bamba', position: 'MF' },
       { id: 'new-mf2', name: 'Joelinton', position: 'MF' },
       { id: 'new-mf3', name: 'Joe Willock', position: 'MF' },
       { id: 'new-mf4', name: 'Jacob Ramsey', position: 'MF' },
@@ -477,7 +477,7 @@ export const EPL_TEAMS: Team[] = [
       { id: 'tot-mf5', name: 'Pape Matar Sarr', position: 'MF' },
       { id: 'tot-mf6', name: 'Dejan Kulusevski', position: 'MF' },
       { id: 'tot-fw1', name: 'Dominic Solanke', position: 'FW' },
-      { id: 'tot-fw2', name: 'Richarlison', position: 'FW' },
+      { id: 'tot-fw2', name: 'Mykhailo Mudryk', position: 'FW' },
       { id: 'tot-fw3', name: 'Omar Marmoush', position: 'FW' },
       { id: 'tot-fw4', name: 'Mohammed Kudus', position: 'FW' },
       { id: 'tot-fw5', name: 'Xavi Simons', position: 'FW' }

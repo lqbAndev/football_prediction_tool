@@ -26,13 +26,6 @@ pnpm-debug.log*
 deploy.ps1
 Project-update.md
 private-docs/
-*.local-backup
-src/App.dev.tsx
-
-# Project update notes (local only)
-project_updates/
-
-# Test Cup — local engine validation only, never pushed/deployed
-# Only the testCup data is excluded — all other dynamic engine files
-# are shared infrastructure needed by WC26 and must be in git.
-src/data/competitions/testCup/
+# Local deployment scripts — not pushed to git
+deploy.ps1
+git_workflow_scenarios.ps1
