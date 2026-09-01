@@ -115,8 +115,8 @@ export const EPL_TEAMS: Team[] = [
     group: 'A',
     rating: 85,
     players: [
-      { id: 'avl-gk1', name: 'Emiliano Martinez', position: 'GK' },
-      { id: 'avl-gk2', name: 'Zion Suzuki', position: 'GK' },
+      { id: 'avl-gk1', name: 'Zion Suzuki', position: 'GK' },
+      { id: 'avl-gk2', name: 'Marco Bizot', position: 'GK' },
       { id: 'avl-df1', name: 'Matty Cash', position: 'DF' },
       { id: 'avl-df2', name: 'Pau Torres', position: 'DF' },
       { id: 'avl-df3', name: 'Tyrone Mings', position: 'DF' },
@@ -272,7 +272,7 @@ export const EPL_TEAMS: Team[] = [
     rating: 82,
     players: [
       { id: 'che-gk1', name: 'Robert Sanchez', position: 'GK' },
-      { id: 'che-gk2', name: 'Gaga Slonina', position: 'GK' },
+      { id: 'che-gk2', name: 'Emiliano Martinez', position: 'GK' },
       { id: 'che-df1', name: 'Levi Colwill', position: 'DF' },
       { id: 'che-df2', name: 'Wesley Fofana', position: 'DF' },
       { id: 'che-df3', name: 'Maxence Lacroix', position: 'DF' },
