@@ -286,7 +286,7 @@ export const EPL_TEAMS: Team[] = [
       { id: 'che-fw1', name: 'Pedro Neto', position: 'FW' },
       { id: 'che-fw2', name: 'Joao Pedro', position: 'FW' },
       { id: 'che-fw3', name: 'Nicolas Jackson', position: 'FW' },
-      { id: 'che-fw4', name: 'Mykhailo Mudryk', position: 'FW' },
+      { id: 'che-fw4', name: 'Estevao', position: 'FW' },
       { id: 'che-fw5', name: 'Morgan Rogers', position: 'FW' },
       { id: 'che-fw6', name: 'Danny Welbeck', position: 'FW' }
     ]
@@ -477,7 +477,7 @@ export const EPL_TEAMS: Team[] = [
       { id: 'tot-mf5', name: 'Pape Matar Sarr', position: 'MF' },
       { id: 'tot-mf6', name: 'Dejan Kulusevski', position: 'MF' },
       { id: 'tot-fw1', name: 'Dominic Solanke', position: 'FW' },
-      { id: 'tot-fw2', name: 'Richarlison', position: 'FW' },
+      { id: 'tot-fw2', name: 'Mykhailo Mudryk', position: 'FW' },
       { id: 'tot-fw3', name: 'Omar Marmoush', position: 'FW' },
       { id: 'tot-fw4', name: 'Mohammed Kudus', position: 'FW' },
       { id: 'tot-fw5', name: 'Xavi Simons', position: 'FW' }
