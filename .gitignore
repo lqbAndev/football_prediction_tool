@@ -29,3 +29,6 @@ private-docs/
 # Local deployment scripts — not pushed to git
 deploy.ps1
 git_workflow_scenarios.ps1
+
+# Local test competitions — not pushed to git
+src/data/competitions/testCup/
