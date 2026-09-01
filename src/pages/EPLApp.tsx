@@ -1243,7 +1243,7 @@ export default function EPLApp() {
 
               {/* Season Badge */}
               <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-[#1e1e2e]/60 bg-white/5 px-4 py-1">
-                <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-300">Season 2025/2026</span>
+                <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-300">Season 2026/2027</span>
               </div>
 
               {/* Champion Team Name */}
