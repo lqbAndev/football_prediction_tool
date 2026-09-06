@@ -23,7 +23,9 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Local scripts & private docs — not pushed to git
+scripts/
 deploy.ps1
+git_workflow_scenarios.ps1
 Project-update.md
 private-docs/
 *.local-backup

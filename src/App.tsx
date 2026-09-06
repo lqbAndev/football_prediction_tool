@@ -6,9 +6,11 @@ import WC26App from './pages/WC26App';
 import CompetitionApp from './pages/CompetitionApp';
 import LeagueApp from './pages/LeagueApp';
 import SavedSimulations from './pages/SavedSimulations';
+import { UCLApp } from './pages/UCLApp';
 import EPLApp from './pages/EPLApp';
 
 // Favicon assets
+import uclFavicon from './img/CUP COMPETITION/UCL/tournaments_uefa-champions-league--no-text-white_64x64.football-logos.cc.png';
 import eplFavicon from './img/LEAGUE COMPETITION/EPL/england_english-premier-league--no-text-white_64x64.football-logos.cc.png';
 import wc26Favicon from './img/tournaments_fifa-world-cup-2026_64x64.football-logos.cc.png';
 import defaultFavicon from './img/icons8-football-96.png';
@@ -36,6 +38,8 @@ function App() {
 
     if (location.pathname.includes('/competition/epl')) {
       link.href = eplFavicon;
+    } else if (location.pathname.includes('/competition/ucl')) {
+      link.href = uclFavicon;
     } else if (location.pathname.includes('/competition/wc26')) {
       link.href = wc26Favicon;
     } else {
@@ -53,6 +57,9 @@ function App() {
 
       {/* Premier League 25/26 - uses dedicated EPLApp */}
       <Route path="/competition/epl" element={<EPLApp />} />
+
+      {/* UEFA Champions League - uses dedicated UCLApp */}
+      <Route path="/competition/ucl" element={<UCLApp />} />
 
       {/* Test League (dev-only) - uses dedicated LeagueApp */}
       {import.meta.env.DEV && <Route path="/competition/test-league" element={<LeagueApp />} />}

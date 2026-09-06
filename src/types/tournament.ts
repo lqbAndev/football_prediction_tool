@@ -27,6 +27,11 @@ export interface Team {
   shortName: string;
   group: GroupId;
   rating: number;
+  tier?: string;
+  pot?: number;
+  manager?: string;
+  stadium?: string;
+  logo?: string;
   players: PlayerProfile[];
 }
 

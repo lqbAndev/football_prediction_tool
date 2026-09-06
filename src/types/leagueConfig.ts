@@ -86,6 +86,8 @@ export interface LeagueMatch {
     teamName: string;
     reason: string;
   } | null;
+  /** Per-match player ratings generated from the simulated match performance. */
+  playerRatings?: Record<string, number>;
 }
 
 /**

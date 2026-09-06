@@ -9,17 +9,28 @@ import type {
 
 type BestXILineupPosition = 'GK' | 'DEF' | 'MID' | 'ATT';
 
+export interface PlayerScoreBreakdown {
+  goalPoints: number;
+  cleanSheetPoints: number;
+  motmPoints: number;
+  teamWinPoints: number;
+  achievementPoints: number;
+}
+
 export interface BestXIPlayer {
   playerId: string;
   playerName: string;
   teamId: string;
   teamName: string;
+  teamLogo?: string;
   naturalPosition: BestXILineupPosition;
   lineupPosition: BestXILineupPosition;
   goals: number;
   cleanSheets: number;
   motmCount: number;
   totalScore: number;
+  averageRating?: number;
+  scoreBreakdown?: PlayerScoreBreakdown;
   knockoutImpact: number;
   semiFinalImpact: number;
   progressScore: number;

@@ -441,7 +441,7 @@ export const buildRegulationTimeline = (
   };
 };
 
-const buildKnockoutTimeline = (
+export const buildKnockoutTimeline = (
   homeTeam: Team,
   awayTeam: Team,
   regulationHomeGoals: number,

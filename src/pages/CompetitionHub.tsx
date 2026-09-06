@@ -171,7 +171,7 @@ export default function CompetitionHub() {
               icon={<img src={uclLogo} alt="UCL" style={{ width: 44, height: 44, objectFit: 'contain' }} />}
               gradient="linear-gradient(135deg, rgba(30,64,175,0.3), rgba(99,102,241,0.2))"
               borderColor="rgba(99,102,241,0.25)"
-              locked
+              onClick={() => navigate('/competition/ucl')}
             />
 
             <CompetitionCard
