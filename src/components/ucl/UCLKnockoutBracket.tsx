@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
-import { ChevronDown, ChevronRight, Lock, Sparkles } from 'lucide-react';
+import { ChevronDown, ChevronRight, Lock, MapPin, Sparkles } from 'lucide-react';
 import type { TwoLegMatch } from '../../types/uclConfig';
 import type { Team } from '../../types/tournament';
+import { getClubTheme } from '../../data/competitions/ucl2627/clubThemes';
 import { UCLPenaltyModal } from './UCLPenaltyModal';
 import uclCupImg from '../../img/CUP COMPETITION/UCL/ucl_cup.png';
 import patchUclImg from '../../img/CUP COMPETITION/UCL/patch_ucl.png';
@@ -113,7 +114,7 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
 
     if (timeline.length > 0) {
       return timeline.map((event, index) => (
-        <li key={`${event.playerId}-${event.displayMinute}-${index}`} className="flex items-center gap-2 text-xs text-white/70">
+        <li key={`${event.playerId}-${event.displayMinute}-${index}`} className="flex items-center gap-2 text-xs text-white/85">
           <span className="font-mono font-black text-sky-300">{event.displayMinute}</span>
           <span>{event.playerName}</span>
           {event.isPenalty && <span className="text-[9px] font-black text-amber-300">PEN</span>}
@@ -125,22 +126,22 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
     const scorers = leg.scorers?.[side] || [];
     if (scorers.length > 0) {
       return scorers.map((scorer, index) => (
-        <li key={`${scorer.playerId}-${scorer.minute}-${index}`} className="flex items-center gap-2 text-xs text-white/70">
+        <li key={`${scorer.playerId}-${scorer.minute}-${index}`} className="flex items-center gap-2 text-xs text-white/85">
           <span className="font-mono font-black text-sky-300">{scorer.minute}'</span>
           <span>{scorer.playerName}</span>
         </li>
       ));
     }
 
-    return <li className="text-xs italic text-white/30">No goals</li>;
+    return <li className="text-xs italic text-white/50">No goals</li>;
   };
 
   const renderExtraTimeScorers = (tie: TwoLegMatch, side: 'home' | 'away') => {
     const timeline = (tie.leg2.etTimeline || []).filter((event) => event.side === side);
-    if (timeline.length === 0) return <li className="text-xs italic text-white/30">No goals</li>;
+    if (timeline.length === 0) return <li className="text-xs italic text-white/50">No goals</li>;
 
     return timeline.map((event, index) => (
-      <li key={`et-${event.playerId}-${event.displayMinute}-${index}`} className="flex items-center gap-2 text-xs text-white/75">
+      <li key={`et-${event.playerId}-${event.displayMinute}-${index}`} className="flex items-center gap-2 text-xs text-white/90">
         <span className="font-mono font-black text-amber-300">{event.displayMinute}</span>
         <span>{event.playerName}</span>
         {event.isPenalty && <span className="text-[9px] font-black text-amber-200">PEN</span>}
@@ -159,9 +160,9 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
     if (leg.status !== 'completed') return null;
 
     return (
-      <section className="rounded-2xl border border-white/10 bg-black/20 p-3" aria-label={`${label} goals`}>
-        <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-2">
-          <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/45">{label}</h5>
+      <section className="rounded-2xl border border-white/20 bg-white/[0.055] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]" aria-label={`${label} goals`}>
+        <div className="flex items-center justify-between gap-3 border-b border-white/20 pb-2">
+          <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/65">{label}</h5>
           <span className="font-mono text-sm font-black text-white">{leg.homeScore ?? 0}–{leg.awayScore ?? 0}</span>
         </div>
         <div className="mt-3 space-y-3">
@@ -170,7 +171,7 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
             <ul className="mt-1.5 space-y-1">{renderLegScorers(tie, legKey, 'home')}</ul>
           </div>
           <div>
-            <p className="text-[9px] font-black uppercase tracking-wider text-white/45">Away · {awayTeam.shortName}</p>
+            <p className="text-[9px] font-black uppercase tracking-wider text-white/65">Away · {awayTeam.shortName}</p>
             <ul className="mt-1.5 space-y-1">{renderLegScorers(tie, legKey, 'away')}</ul>
           </div>
         </div>
@@ -223,6 +224,13 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
     const homeTeam = teamsById[tie.homeTeamId];
     const awayTeam = teamsById[tie.awayTeamId];
     if (!homeTeam || !awayTeam) return null;
+    const isFinal = roundKey === 'final';
+    const venueTeam = tie.leg1.status === 'pending' ? awayTeam : homeTeam;
+    const venueTheme = getClubTheme(venueTeam.id);
+    const venueName = isFinal ? 'Estadio Metropolitano, Madrid' : venueTeam.stadium || 'Home Arena';
+    const venueClasses = isFinal
+      ? 'border-amber-400/50 bg-amber-400/10 text-amber-200'
+      : `${venueTheme.badgeBorder} ${venueTheme.badgeBg} ${venueTheme.badgeText}`;
 
     return (
       <article
@@ -237,22 +245,26 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
           {tie.leg2.extraTime && <span className="rounded bg-amber-400/15 px-1.5 py-0.5 text-[8px] font-black text-amber-300">AET</span>}
           {tie.leg2.penalties && <span className="rounded bg-rose-400/15 px-1.5 py-0.5 text-[8px] font-black text-rose-200">PEN</span>}
         </div>
+        <div className={`mb-3 flex min-w-0 items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-[9px] font-bold ${venueClasses}`}>
+          <MapPin className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">{venueName}</span>
+        </div>
 
         <div className="space-y-0.5">
           {renderTeamRow(homeTeam, tie, 'home')}
           {renderTeamRow(awayTeam, tie, 'away')}
         </div>
 
-        <div className={`mt-2 grid gap-1 text-center font-mono text-[9px] text-white/45 ${roundKey === 'final' ? 'grid-cols-1' : 'grid-cols-2'}`}>
-          {roundKey !== 'final' && (
+        {roundKey !== 'final' && (
+          <div className="mt-2 grid grid-cols-2 gap-1 text-center font-mono text-[9px] text-white/45">
             <span className="rounded-lg bg-white/[0.035] px-1.5 py-1">
               L1 {awayTeam.shortName} {tie.leg1.homeScore ?? '–'}–{tie.leg1.awayScore ?? '–'} {homeTeam.shortName}
             </span>
-          )}
-          <span className="rounded-lg bg-white/[0.035] px-1.5 py-1">
-            {roundKey === 'final' ? '90 MIN' : 'L2'} {homeTeam.shortName} {tie.leg2.homeScore ?? '–'}–{tie.leg2.awayScore ?? '–'} {awayTeam.shortName}
-          </span>
-        </div>
+            <span className="rounded-lg bg-white/[0.035] px-1.5 py-1">
+              L2 {homeTeam.shortName} {tie.leg2.homeScore ?? '–'}–{tie.leg2.awayScore ?? '–'} {awayTeam.shortName}
+            </span>
+          </div>
+        )}
 
         {(tie.leg1.status === 'completed' || tie.leg2.status === 'completed') && (
           <div className="mt-3">
@@ -261,7 +273,7 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
               aria-expanded={Boolean(expandedTies[tie.id])}
               aria-controls={`ucl-tie-details-${tie.id}`}
               onClick={() => setExpandedTies((current) => ({ ...current, [tie.id]: !current[tie.id] }))}
-              className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.16em] text-white/60 transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-sky-300/25 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+              className="flex w-full items-center justify-between rounded-xl border border-white/20 bg-white/[0.055] px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.16em] text-white/75 transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-sky-300/40 hover:bg-white/[0.08] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
             >
               Match Details
               <ChevronDown className={`h-4 w-4 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${expandedTies[tie.id] ? 'rotate-180' : ''}`} />
@@ -274,14 +286,14 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
                 {roundKey !== 'final' && renderLegDetails(tie, 'leg1', awayTeam, homeTeam, 'Leg 1')}
                 {renderLegDetails(tie, 'leg2', homeTeam, awayTeam, roundKey === 'final' ? 'Final' : 'Leg 2')}
                 {tie.leg2.extraTime && (
-                  <section className="rounded-2xl border border-amber-300/20 bg-amber-300/[0.055] p-3" aria-label="Extra-time goals">
+                  <section className="rounded-2xl border border-amber-300/30 bg-amber-300/[0.075] p-3" aria-label="Extra-time goals">
                     <div className="flex items-center justify-between gap-3 border-b border-amber-200/10 pb-2">
-                      <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-200">Extra time · 91–120'</h5>
+                      <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-200">Extra Time</h5>
                       <span className="font-mono text-sm font-black text-amber-200">{tie.leg2.etHomeGoals || 0}–{tie.leg2.etAwayGoals || 0}</span>
                     </div>
                     <div className="mt-3 grid gap-3 sm:grid-cols-2">
                       <div><p className="text-[9px] font-black uppercase tracking-wider text-sky-300">Home · {homeTeam.shortName}</p><ul className="mt-1.5 space-y-1">{renderExtraTimeScorers(tie, 'home')}</ul></div>
-                      <div><p className="text-[9px] font-black uppercase tracking-wider text-white/45">Away · {awayTeam.shortName}</p><ul className="mt-1.5 space-y-1">{renderExtraTimeScorers(tie, 'away')}</ul></div>
+                      <div><p className="text-[9px] font-black uppercase tracking-wider text-white/65">Away · {awayTeam.shortName}</p><ul className="mt-1.5 space-y-1">{renderExtraTimeScorers(tie, 'away')}</ul></div>
                     </div>
                   </section>
                 )}

@@ -44,6 +44,7 @@ interface MatchSnapshot {
 
 export interface UCLRecapStats {
   playerOfTheSeason: {
+    playerId: string;
     playerName: string;
     teamName: string;
     teamLogo?: string;
@@ -55,7 +56,7 @@ export interface UCLRecapStats {
   } | null;
   topScorers: TopScorerEntry[];
   mostMotmAwards: { playerName: string; teamName: string; teamLogo?: string; awards: number }[];
-  goldenGlove: { playerName: string; teamName: string; teamLogo?: string; cleanSheets: number } | null;
+  goldenGlove: { playerId: string; playerName: string; teamName: string; teamLogo?: string; cleanSheets: number } | null;
   bestAttackingTeam: { teamName: string; teamLogo?: string; goals: number; average: string } | null;
   bestDefensiveTeam: { teamName: string; teamLogo?: string; conceded: number } | null;
   highestScoringMatch: {
@@ -79,12 +80,72 @@ export interface UCLRecapStats {
   bestXI: BestXIResult | null;
 }
 
+export interface UCLBestXIConstraints {
+  goldenGlovePlayerId?: string;
+  goldenBootPlayerId?: string;
+  potsPlayerId?: string;
+}
+
+type BestXILine = BestXIPlayer['lineupPosition'];
+
+const BEST_XI_SLOT_COUNTS: Record<BestXILine, number> = {
+  GK: 1,
+  DEF: 4,
+  MID: 3,
+  ATT: 3,
+};
+
+const selectConstrainedBestXI = (
+  candidates: BestXIPlayer[],
+  constraints: UCLBestXIConstraints,
+): BestXIResult | null => {
+  const byId = new Map(candidates.map((player) => [player.playerId, player]));
+  const selectedIds = new Set<string>();
+  const lines: Record<BestXILine, BestXIPlayer[]> = { GK: [], DEF: [], MID: [], ATT: [] };
+
+  const lockPlayer = (playerId: string | undefined, line: BestXILine) => {
+    if (!playerId || selectedIds.has(playerId) || lines[line].length >= BEST_XI_SLOT_COUNTS[line]) return;
+    const player = byId.get(playerId);
+    if (!player) return;
+    lines[line].push({ ...player, lineupPosition: line });
+    selectedIds.add(playerId);
+  };
+
+  lockPlayer(constraints.goldenGlovePlayerId, 'GK');
+  lockPlayer(constraints.goldenBootPlayerId, 'ATT');
+
+  const potsPlayer = constraints.potsPlayerId ? byId.get(constraints.potsPlayerId) : undefined;
+  if (potsPlayer && !selectedIds.has(potsPlayer.playerId)) {
+    lockPlayer(potsPlayer.playerId, potsPlayer.naturalPosition);
+  }
+
+  (Object.keys(BEST_XI_SLOT_COUNTS) as BestXILine[]).forEach((line) => {
+    candidates
+      .filter((player) => player.naturalPosition === line && !selectedIds.has(player.playerId))
+      .slice(0, BEST_XI_SLOT_COUNTS[line] - lines[line].length)
+      .forEach((player) => lockPlayer(player.playerId, line));
+  });
+
+  if ((Object.keys(BEST_XI_SLOT_COUNTS) as BestXILine[]).some((line) => lines[line].length !== BEST_XI_SLOT_COUNTS[line])) {
+    return null;
+  }
+
+  return {
+    goalkeeper: lines.GK[0],
+    defenders: lines.DEF,
+    midfielders: lines.MID,
+    attackers: lines.ATT,
+    bestPlayer: potsPlayer || candidates[0],
+  };
+};
+
 const clampRating = (rating: number) => Math.max(4, Math.min(10, Number(rating.toFixed(1))));
 
 export const computeUclRecapStats = (
   leagueMatches: LeagueMatch[],
   knockoutMatches: TwoLegMatch[],
   teams: Team[],
+  bestXIConstraints: UCLBestXIConstraints = {},
 ): UCLRecapStats => {
   const teamMap = new Map(teams.map((team) => [team.id, team]));
   const playerStats = new Map<string, PlayerTournamentStats>();
@@ -370,6 +431,7 @@ export const computeUclRecapStats = (
     .filter((player) => player.position === 'GK')
     .sort((left, right) => right.cleanSheets - left.cleanSheets || averageRating(right) - averageRating(left))[0];
   const goldenGlove = goalkeeper && goalkeeper.cleanSheets > 0 ? {
+    playerId: goalkeeper.playerId,
     playerName: goalkeeper.name,
     teamName: teamMap.get(goalkeeper.teamId)?.name || goalkeeper.teamId,
     teamLogo: teamMap.get(goalkeeper.teamId)?.logo,
@@ -397,6 +459,7 @@ export const computeUclRecapStats = (
 
   const potsPlayer = rankedPlayers[0];
   const playerOfTheSeason = potsPlayer ? {
+    playerId: potsPlayer.playerId,
     playerName: potsPlayer.name,
     teamName: teamMap.get(potsPlayer.teamId)?.name || potsPlayer.teamId,
     teamLogo: teamMap.get(potsPlayer.teamId)?.logo,
@@ -433,21 +496,11 @@ export const computeUclRecapStats = (
     semiFinalImpact: 0,
     progressScore: 0,
   });
-  const selectPosition = (position: PlayerTournamentStats['position'], count: number) =>
-    rankedPlayers.filter((player) => player.position === position).slice(0, count).map(toBestXIPlayer);
-  const bestGoalkeeper = selectPosition('GK', 1)[0];
-  const defenders = selectPosition('DF', 4);
-  const midfielders = selectPosition('MF', 3);
-  const attackers = selectPosition('FW', 3);
-  const bestXI = bestGoalkeeper && defenders.length === 4 && midfielders.length === 3 && attackers.length === 3
-    ? {
-        goalkeeper: bestGoalkeeper,
-        defenders,
-        midfielders,
-        attackers,
-        bestPlayer: toBestXIPlayer(rankedPlayers[0]),
-      }
-    : null;
+  const bestXI = selectConstrainedBestXI(rankedPlayers.map(toBestXIPlayer), {
+    goldenGlovePlayerId: bestXIConstraints.goldenGlovePlayerId || goldenGlove?.playerId,
+    goldenBootPlayerId: bestXIConstraints.goldenBootPlayerId || topScorers[0]?.playerId,
+    potsPlayerId: bestXIConstraints.potsPlayerId || playerOfTheSeason?.playerId,
+  });
 
   const averagePerMatch = totalMatches > 0 ? (totalGoals / totalMatches).toFixed(2) : '0.00';
   const penaltyPercentValue = totalGoals > 0 ? Math.round((totalPenalties / totalGoals) * 100) : 0;
@@ -470,3 +523,18 @@ export const computeUclRecapStats = (
     bestXI,
   };
 };
+
+type UCLAwardWinnerRef = { playerId: string } | null | undefined;
+
+export const buildUCLBestXI = (
+  leagueMatches: LeagueMatch[],
+  knockoutMatches: TwoLegMatch[],
+  teams: Team[],
+  goldenGloveWinner?: UCLAwardWinnerRef,
+  goldenBootWinner?: UCLAwardWinnerRef,
+  potsWinner?: UCLAwardWinnerRef,
+): BestXIResult | null => computeUclRecapStats(leagueMatches, knockoutMatches, teams, {
+  goldenGlovePlayerId: goldenGloveWinner?.playerId,
+  goldenBootPlayerId: goldenBootWinner?.playerId,
+  potsPlayerId: potsWinner?.playerId,
+}).bestXI;

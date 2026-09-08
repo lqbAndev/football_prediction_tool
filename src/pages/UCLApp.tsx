@@ -33,6 +33,9 @@ import { UCLChampionModal } from '../components/ucl/UCLChampionModal';
 import { UCLTeamModal } from '../components/ucl/UCLTeamModal';
 import { UCLPlayerGoalModal } from '../components/ucl/UCLPlayerGoalModal';
 import { UCLRecap } from '../components/ucl/UCLRecap';
+import { UCLPot1DrawTable } from '../components/ucl/UCLPot1DrawTable';
+import { UCLCountrySummaryTable } from '../components/ucl/UCLCountrySummaryTable';
+import { BackToTopButton } from '../components/BackToTopButton';
 
 // Assets & Icons
 import {
@@ -243,6 +246,21 @@ export const UCLApp: React.FC = () => {
 
   const isKnockoutUnlocked = isLeaguePhaseComplete || playoffs.length > 0;
   const isTournamentComplete = Boolean(champion);
+
+  const eliminatedTeamIds = useMemo(() => {
+    const eliminated = new Set<string>();
+
+    if (isLeaguePhaseComplete) {
+      standings.slice(24).forEach((standing) => eliminated.add(standing.teamId));
+    }
+
+    allKnockoutMatches.forEach((tie) => {
+      if (!tie.isCompleted || !tie.winnerId) return;
+      eliminated.add(tie.winnerId === tie.homeTeamId ? tie.awayTeamId : tie.homeTeamId);
+    });
+
+    return eliminated;
+  }, [allKnockoutMatches, isLeaguePhaseComplete, standings]);
 
   // ── Auto-initialize Play-offs after League Phase completes ──
   const triggerKnockoutDraw = (currentStandings: LeagueStanding[]) => {
@@ -726,6 +744,8 @@ export const UCLApp: React.FC = () => {
             onSelectMatchday={setCurrentMatchday}
           />
 
+          <UCLPot1DrawTable leagueMatches={leagueMatches} teams={UCL_TEAMS} />
+
           {/* Matchday Fixtures Header with Simulate Matchday Button */}
           <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-white/10 bg-[#060d1a]/70 p-4 sm:flex-row sm:p-5">
             <div>
@@ -769,6 +789,7 @@ export const UCLApp: React.FC = () => {
                 <UCLMatchCard
                   key={match.id}
                   match={match}
+                  matchday={match.matchweek}
                   homeTeam={homeTeam}
                   awayTeam={awayTeam}
                   onPredict={simulateSingleLeagueMatch}
@@ -778,6 +799,8 @@ export const UCLApp: React.FC = () => {
             })}
           </div>
         </section>
+
+        <UCLCountrySummaryTable teams={UCL_TEAMS} eliminatedTeamIds={eliminatedTeamIds} />
 
         {/* ═══════════════════════════════════════════════════════════════
             SECTION 2: STANDINGS & LIVE TOP SCORERS (#standings-scorers)
@@ -865,6 +888,8 @@ export const UCLApp: React.FC = () => {
           )}
         </section>
       </div>
+
+      <BackToTopButton />
 
       {/* ═══════════════════════════════════════════════════════════════
           MODALS

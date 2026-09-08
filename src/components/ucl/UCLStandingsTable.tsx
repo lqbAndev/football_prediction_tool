@@ -145,7 +145,7 @@ export const UCLStandingsTable: React.FC<UCLStandingsTableProps> = ({
                   {/* Country Badge (Flag & Country Color as requested) */}
                   <td className="py-3 px-3 text-center">
                     <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-xs font-bold ${theme.countryBg} ${theme.countryText}`}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-xs font-bold ${theme.countryBg} ${theme.countryText} ${theme.countryBorder}`}
                     >
                       <span>{theme.countryCode}</span>
                     </span>

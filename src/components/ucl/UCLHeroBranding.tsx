@@ -23,6 +23,12 @@ export const UCLHeroBranding: React.FC<UCLHeroBrandingProps> = ({
   isRecapUnlocked,
   onNavigateSection,
 }) => {
+  const knockoutStatus = isRecapUnlocked
+    ? 'Completed'
+    : completedKnockoutMatches > 0
+    ? 'In progress'
+    : 'Awaiting';
+
   return (
     <div className="w-full space-y-6">
       {/* ── Main Hero Shell ── */}
@@ -173,8 +179,9 @@ export const UCLHeroBranding: React.FC<UCLHeroBrandingProps> = ({
             </span>
           </div>
           <div className="mt-3 text-3xl sm:text-4xl font-black text-white font-mono flex items-center justify-between">
-            <span>
-              {completedKnockoutMatches} <span className="text-lg text-white/40">/ 29 Ties</span>
+            <span>{completedKnockoutMatches}</span>
+            <span className={`rounded-lg border px-2 py-1 font-sans text-[9px] font-black uppercase tracking-wider ${isRecapUnlocked ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300' : completedKnockoutMatches > 0 ? 'border-sky-300/25 bg-sky-300/10 text-sky-200' : 'border-white/10 bg-white/5 text-white/35'}`}>
+              {knockoutStatus}
             </span>
             <ArrowRight className="w-5 h-5 text-white/30 group-hover:text-sky-300 group-hover:translate-x-1 transition-all" />
           </div>

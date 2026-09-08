@@ -19,11 +19,11 @@ export const UCLMatchdaySlider: React.FC<UCLMatchdaySliderProps> = ({
 
   return (
     <div className="w-full rounded-3xl border border-white/10 bg-[#060d1a]/70 p-5 shadow-[0_18px_48px_rgba(0,6,20,0.3)] sm:p-6">
-      <div className="flex items-center gap-3 overflow-x-auto max-w-full pb-1 scrollbar-none">
+      <div className="flex max-w-full items-center gap-3 overflow-x-auto overflow-y-visible px-3 py-4 scrollbar-none">
         <button
           onClick={() => onSelectMatchday(Math.max(1, currentMatchday - 1))}
           disabled={currentMatchday === 1}
-          className="p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white/70 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-all shrink-0"
+          className="my-2 shrink-0 rounded-2xl border border-white/10 bg-white/5 p-3.5 text-white/70 transition-all hover:bg-white/10 hover:text-white disabled:pointer-events-none disabled:opacity-30"
           title="Previous Matchday"
         >
           <ChevronLeft className="w-5 h-5" />
@@ -41,7 +41,7 @@ export const UCLMatchdaySlider: React.FC<UCLMatchdaySliderProps> = ({
               <button
                 key={md}
                 onClick={() => onSelectMatchday(md)}
-                className={`flex-1 flex flex-col items-center justify-center py-4 px-7 rounded-2xl border transition-all shrink-0 min-w-[145px] ${
+                className={`my-2 flex min-w-[145px] flex-1 shrink-0 flex-col items-center justify-center rounded-2xl border px-7 py-4 transition-all ${
                   isSelected
                     ? 'bg-gradient-to-b from-cyan-500/25 to-blue-600/30 border-cyan-400 text-white shadow-[0_0_25px_rgba(0,240,255,0.4)] scale-105'
                     : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white/70'
@@ -69,7 +69,7 @@ export const UCLMatchdaySlider: React.FC<UCLMatchdaySliderProps> = ({
         <button
           onClick={() => onSelectMatchday(Math.min(totalMatchdays, currentMatchday + 1))}
           disabled={currentMatchday === totalMatchdays}
-          className="p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white/70 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-all shrink-0"
+          className="my-2 shrink-0 rounded-2xl border border-white/10 bg-white/5 p-3.5 text-white/70 transition-all hover:bg-white/10 hover:text-white disabled:pointer-events-none disabled:opacity-30"
           title="Next Matchday"
         >
           <ChevronRight className="w-5 h-5" />

@@ -151,13 +151,13 @@ export const UCLTeamModal: React.FC<UCLTeamModalProps> = ({ isOpen, team, onClos
                   </div>
 
                   {/* Clean, Roomy Cards without 2-letter abbreviation as requested */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
                     {players.map((p, idx) => (
                       <div
                         key={p.id || idx}
-                        className="space-y-1 rounded-2xl border border-white/10 bg-white/[0.04] p-3 transition-all hover:border-cyan-400/40 hover:bg-white/[0.08] sm:p-4"
+                        className="space-y-1 rounded-2xl border border-white/10 bg-white/[0.04] p-2.5 transition-all hover:border-cyan-400/40 hover:bg-white/[0.08]"
                       >
-                        <div className="text-sm font-bold text-white sm:text-lg">
+                        <div className="text-sm font-semibold text-white sm:text-base">
                           {p.name}
                         </div>
                         <div className="text-xs text-white/50 font-mono flex items-center justify-between">

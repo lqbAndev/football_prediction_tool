@@ -8,9 +8,37 @@ export interface ClubTheme {
   countryName: string;
   countryBg: string;
   countryText: string;
+  countryBorder: string;
 }
 
-export const UCL_CLUB_THEMES: Record<string, ClubTheme> = {
+type CountryBadgeTheme = Pick<ClubTheme, 'countryBg' | 'countryText' | 'countryBorder'>;
+
+const COUNTRY_BADGE_THEMES: Record<string, CountryBadgeTheme> = {
+  ESP: { countryBg: 'bg-[#AA151B]/20', countryText: 'text-[#F1BF00]', countryBorder: 'border-[#F1BF00]/40' },
+  ENG: { countryBg: 'bg-white/10', countryText: 'text-white', countryBorder: 'border-red-500/50' },
+  GER: { countryBg: 'bg-black/40', countryText: 'text-[#FFCC00]', countryBorder: 'border-[#DD0000]/40' },
+  ITA: { countryBg: 'bg-emerald-950/40', countryText: 'text-emerald-300', countryBorder: 'border-rose-500/40' },
+  FRA: { countryBg: 'bg-blue-950/40', countryText: 'text-blue-200', countryBorder: 'border-red-500/40' },
+  POR: { countryBg: 'bg-rose-950/40', countryText: 'text-emerald-300', countryBorder: 'border-emerald-500/40' },
+  NED: { countryBg: 'bg-orange-500/20', countryText: 'text-orange-300', countryBorder: 'border-orange-400/50' },
+  TUR: { countryBg: 'bg-red-700/20', countryText: 'text-red-300', countryBorder: 'border-red-600/40' },
+  UKR: { countryBg: 'bg-blue-600/15', countryText: 'text-yellow-300', countryBorder: 'border-yellow-400/40' },
+  NOR: { countryBg: 'bg-red-900/20', countryText: 'text-blue-200', countryBorder: 'border-blue-500/40' },
+  CZE: { countryBg: 'bg-red-900/20', countryText: 'text-white', countryBorder: 'border-blue-500/30' },
+  AUT: { countryBg: 'bg-red-700/20', countryText: 'text-red-200', countryBorder: 'border-white/30' },
+  BEL: { countryBg: 'bg-black/40', countryText: 'text-yellow-400', countryBorder: 'border-red-500/40' },
+  GRE: { countryBg: 'bg-blue-900/30', countryText: 'text-blue-200', countryBorder: 'border-white/30' },
+  AZE: { countryBg: 'bg-sky-700/15', countryText: 'text-red-300', countryBorder: 'border-emerald-500/30' },
+  SVK: { countryBg: 'bg-blue-900/20', countryText: 'text-white', countryBorder: 'border-red-500/30' },
+};
+
+const DEFAULT_COUNTRY_BADGE_THEME: CountryBadgeTheme = {
+  countryBg: 'bg-cyan-500/15',
+  countryText: 'text-cyan-300',
+  countryBorder: 'border-cyan-500/40',
+};
+
+const RAW_UCL_CLUB_THEMES: Record<string, Omit<ClubTheme, 'countryBorder'>> = {
   'bayern': {
     primary: '#DC052D',
     secondary: '#0066B2',
@@ -25,9 +53,9 @@ export const UCL_CLUB_THEMES: Record<string, ClubTheme> = {
   'real-madrid': {
     primary: '#FEBE10',
     secondary: '#00529F',
-    badgeBg: 'bg-[#FEBE10]/20',
-    badgeText: 'text-[#FEBE10]',
-    badgeBorder: 'border-[#FEBE10]/50',
+    badgeBg: 'bg-white/15',
+    badgeText: 'text-white',
+    badgeBorder: 'border-white/50',
     countryCode: 'ESP',
     countryName: 'Spain',
     countryBg: 'bg-red-500/15 border-red-500/30',
@@ -409,6 +437,16 @@ export const UCL_CLUB_THEMES: Record<string, ClubTheme> = {
   },
 };
 
+export const UCL_CLUB_THEMES: Record<string, ClubTheme> = Object.fromEntries(
+  Object.entries(RAW_UCL_CLUB_THEMES).map(([teamId, theme]) => [
+    teamId,
+    {
+      ...theme,
+      ...(COUNTRY_BADGE_THEMES[theme.countryCode] || DEFAULT_COUNTRY_BADGE_THEME),
+    },
+  ]),
+);
+
 export const getClubTheme = (teamId: string): ClubTheme => {
   return (
     UCL_CLUB_THEMES[teamId] || {
@@ -419,8 +457,7 @@ export const getClubTheme = (teamId: string): ClubTheme => {
       badgeBorder: 'border-cyan-500/40',
       countryCode: 'EUR',
       countryName: 'Europe',
-      countryBg: 'bg-cyan-500/15 border-cyan-500/30',
-      countryText: 'text-cyan-300',
+      ...DEFAULT_COUNTRY_BADGE_THEME,
     }
   );
 };

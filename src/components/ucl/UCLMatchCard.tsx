@@ -5,9 +5,11 @@ import { getClubTheme } from '../../data/competitions/ucl2627/clubThemes';
 import { ChevronDown, Clock, Star } from 'lucide-react';
 import uclBallImg from '../../img/CUP COMPETITION/UCL/ball/ucl_ball_26-27.png';
 import patchUclImg from '../../img/CUP COMPETITION/UCL/patch_ucl.png';
+import badgeUclImg from '../../img/CUP COMPETITION/UCL/badge_ucl.png';
 
 interface UCLMatchCardProps {
   match: LeagueMatch;
+  matchday: number;
   homeTeam: Team;
   awayTeam: Team;
   onPredict: (matchId: string) => void;
@@ -42,6 +44,7 @@ const GoalLine: React.FC<GoalLineProps> = ({ event, side }) => (
 
 export const UCLMatchCard: React.FC<UCLMatchCardProps> = ({
   match,
+  matchday,
   homeTeam,
   awayTeam,
   onPredict,
@@ -67,16 +70,22 @@ export const UCLMatchCard: React.FC<UCLMatchCardProps> = ({
 
   return (
     <article className="w-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#071329] via-[#050d1d] to-[#020817] shadow-[0_20px_60px_rgba(0,6,20,0.36)] transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-sky-300/30">
-      <header className="flex items-center justify-between gap-3 border-b border-white/10 bg-black/25 px-4 py-3">
-        <div className={`flex min-w-0 items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold ${homeTheme.badgeBg} ${homeTheme.badgeText} ${homeTheme.badgeBorder}`}>
+      <header className="grid grid-cols-[1fr_minmax(0,1.45fr)_1fr] items-center gap-2 border-b border-white/10 bg-black/25 px-3 py-3 sm:gap-3 sm:px-4">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <img src={patchUclImg} alt="UEFA Champions League" className="h-5 w-5 shrink-0 object-contain opacity-80" />
+          <span className="truncate rounded-lg border border-cyan-200/20 bg-white/[0.055] px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-cyan-100 sm:text-[9px]">
+            Matchday {matchday}
+          </span>
+        </div>
+        <div className={`flex min-w-0 items-center justify-self-center rounded-full border px-2 py-1 text-[8px] font-bold sm:gap-2 sm:px-3 sm:text-[10px] ${homeTheme.badgeBg} ${homeTheme.badgeText} ${homeTheme.badgeBorder}`}>
           <StadiumIcon />
           <span className="truncate">{homeTeam.stadium || 'Home Arena'}</span>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <img src={patchUclImg} alt="UEFA Champions League" className="h-5 w-5 object-contain opacity-70" />
+        <div className="flex min-w-0 items-center justify-end gap-1.5 sm:gap-2">
           <span className={`rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${isCompleted ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300' : 'border-white/10 bg-white/5 text-white/40'}`}>
-            {isCompleted ? 'Full time' : 'Pending'}
+            {isCompleted ? 'FT' : 'Pending'}
           </span>
+          <img src={badgeUclImg} alt="UEFA Champions League badge" className="h-5 w-5 shrink-0 object-contain opacity-85 sm:h-6 sm:w-6" />
         </div>
       </header>
 
