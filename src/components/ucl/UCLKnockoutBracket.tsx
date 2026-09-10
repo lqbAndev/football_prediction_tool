@@ -6,6 +6,7 @@ import { getClubTheme } from '../../data/competitions/ucl2627/clubThemes';
 import { UCLPenaltyModal } from './UCLPenaltyModal';
 import uclCupImg from '../../img/CUP COMPETITION/UCL/ucl_cup.png';
 import patchUclImg from '../../img/CUP COMPETITION/UCL/patch_ucl.png';
+import uclMvpCupImg from '../../img/CUP COMPETITION/UCL/ucl_mvp_cup.png';
 
 interface UCLKnockoutBracketProps {
   playoffs: TwoLegMatch[];
@@ -165,6 +166,16 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
           <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/65">{label}</h5>
           <span className="font-mono text-sm font-black text-white">{leg.homeScore ?? 0}–{leg.awayScore ?? 0}</span>
         </div>
+        {leg.motm && (
+          <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-amber-300/25 bg-amber-300/[0.08] px-2.5 py-2">
+            <img src={uclMvpCupImg} alt="MVP trophy" className="h-8 w-8 shrink-0 object-contain drop-shadow-[0_0_9px_rgba(251,191,36,0.35)]" />
+            <div className="min-w-0">
+              <p className="text-[8px] font-black uppercase tracking-[0.18em] text-amber-300">Man of the Match</p>
+              <p className="truncate text-xs font-black text-white">{leg.motm.playerName}</p>
+            </div>
+            <span className="ml-auto truncate text-[9px] font-semibold text-white/45">{leg.motm.teamName}</span>
+          </div>
+        )}
         <div className="mt-3 space-y-3">
           <div>
             <p className="text-[9px] font-black uppercase tracking-wider text-sky-300">Home · {homeTeam.shortName}</p>

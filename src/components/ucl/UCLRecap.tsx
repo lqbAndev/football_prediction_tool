@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Activity, Award, Flame, Shield, Star, Target, X } from 'lucide-react';
+import { Activity, Award, Flame, Shield, Target, X } from 'lucide-react';
 import type { Team } from '../../types/tournament';
 import type { BestXIPlayer } from '../../utils/bestXI';
 import type { UCLRecapStats } from '../../utils/uclRecapStats';
 import uclBallImg from '../../img/CUP COMPETITION/UCL/ball/ucl_ball_26-27.png';
 import uclCupImg from '../../img/CUP COMPETITION/UCL/ucl_cup.png';
 import badgeUclImg from '../../img/CUP COMPETITION/UCL/badge_ucl.png';
+import uclMvpCupImg from '../../img/CUP COMPETITION/UCL/ucl_mvp_cup.png';
 
 interface UCLRecapProps {
   stats: UCLRecapStats;
@@ -133,7 +134,7 @@ export const UCLRecap: React.FC<UCLRecapProps> = ({ stats, champion, runnerUp })
           <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
             <div className="rounded-[30px] border border-cyan-400/20 bg-white/[0.035] p-1.5">
               <div className="h-full rounded-[24px] bg-gradient-to-br from-cyan-400/12 to-[#000B29] p-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
-                <div className="flex items-center justify-between text-cyan-300"><Star className="h-5 w-5 fill-cyan-300" /><span className="text-[9px] font-black uppercase tracking-[0.22em]">POTS</span></div>
+                <div className="flex items-center justify-between text-cyan-300"><img src={uclMvpCupImg} alt="Player of the Season trophy" className="h-12 w-12 object-contain drop-shadow-[0_0_12px_rgba(34,211,238,0.35)]" /><span className="text-[9px] font-black uppercase tracking-[0.22em]">POTS</span></div>
                 <h3 className="mt-7 text-xl font-black">{stats.playerOfTheSeason?.playerName || '—'}</h3>
                 <p className="mt-1 text-xs text-white/45">{stats.playerOfTheSeason?.teamName || 'No data'}</p>
                 <div className="mt-5 flex items-end justify-between border-t border-white/10 pt-4">

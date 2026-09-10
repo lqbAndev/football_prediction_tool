@@ -2,10 +2,11 @@ import { useState } from 'react';
 import type { LeagueMatch } from '../../types/leagueConfig';
 import type { Team, TimelineEvent } from '../../types/tournament';
 import { getClubTheme } from '../../data/competitions/ucl2627/clubThemes';
-import { ChevronDown, Clock, Star } from 'lucide-react';
+import { ChevronDown, Clock } from 'lucide-react';
 import uclBallImg from '../../img/CUP COMPETITION/UCL/ball/ucl_ball_26-27.png';
 import patchUclImg from '../../img/CUP COMPETITION/UCL/patch_ucl.png';
 import badgeUclImg from '../../img/CUP COMPETITION/UCL/badge_ucl.png';
+import uclMvpCupImg from '../../img/CUP COMPETITION/UCL/ucl_mvp_cup.png';
 
 interface UCLMatchCardProps {
   match: LeagueMatch;
@@ -116,6 +117,17 @@ export const UCLMatchCard: React.FC<UCLMatchCardProps> = ({
 
       {isCompleted && (
         <div className="border-t border-white/10 px-4 py-4 sm:px-6">
+          {match.motm && (
+            <div className="mb-3 flex items-center gap-3 rounded-2xl border border-amber-300/25 bg-amber-300/[0.08] px-3 py-2.5">
+              <img src={uclMvpCupImg} alt="MVP trophy" className="h-9 w-9 shrink-0 object-contain drop-shadow-[0_0_10px_rgba(251,191,36,0.35)] sm:h-10 sm:w-10" />
+              <div className="min-w-0">
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-300">Man of the Match</p>
+                <p className="truncate text-sm font-black text-white">{match.motm.playerName}</p>
+              </div>
+              <span className="ml-auto hidden truncate text-[10px] font-semibold text-white/45 sm:block">{match.motm.teamName}</span>
+            </div>
+          )}
+
           <button
             type="button"
             aria-expanded={expanded}
@@ -143,13 +155,6 @@ export const UCLMatchCard: React.FC<UCLMatchCardProps> = ({
               </div>
             </div>
 
-            {match.motm && (
-              <div className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-amber-400/20 bg-amber-400/[0.07] px-3 py-2 text-xs">
-                <Star className="h-4 w-4 shrink-0 fill-amber-400 text-amber-400" />
-                <span className="text-[9px] font-black uppercase tracking-wider text-amber-300">MOTM</span>
-                <span className="truncate font-black text-white">{match.motm.playerName}</span>
-              </div>
-            )}
           </div>
         </div>
       )}

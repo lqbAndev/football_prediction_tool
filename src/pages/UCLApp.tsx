@@ -800,8 +800,6 @@ export const UCLApp: React.FC = () => {
           </div>
         </section>
 
-        <UCLCountrySummaryTable teams={UCL_TEAMS} eliminatedTeamIds={eliminatedTeamIds} />
-
         {/* ═══════════════════════════════════════════════════════════════
             SECTION 2: STANDINGS & LIVE TOP SCORERS (#standings-scorers)
            ═══════════════════════════════════════════════════════════════ */}
@@ -811,6 +809,8 @@ export const UCLApp: React.FC = () => {
             teamsById={UCL_TEAMS_BY_ID}
             onSelectTeam={setSelectedTeamId}
           />
+
+          <UCLCountrySummaryTable teams={UCL_TEAMS} eliminatedTeamIds={eliminatedTeamIds} />
 
           <UCLTopScorersTable
             topScorers={recapStats.topScorers}
