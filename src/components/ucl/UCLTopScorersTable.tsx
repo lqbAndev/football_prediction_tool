@@ -46,7 +46,23 @@ export const UCLTopScorersTable: React.FC<UCLTopScorersTableProps> = ({
       {displayScorers.length === 0 ? (
         <div className="py-16 text-center text-sm text-white/40">Simulate fixtures to begin the Golden Boot race.</div>
       ) : (
-        <div className="mt-5 overflow-x-auto overscroll-x-contain">
+        <>
+        <div className="mt-5 space-y-2 md:hidden">
+          {displayScorers.map((entry, index) => {
+            const team = UCL_TEAMS_BY_ID[entry.teamId];
+            const rank = index + 1;
+            const penaltyGoals = penaltyGoalsByPlayer[entry.playerId] || 0;
+            return (
+              <button key={entry.playerId} type="button" onClick={() => onSelectPlayer?.(entry.playerId, entry.playerName, entry.teamId, entry.teamName)} className={`flex w-full items-center gap-3 rounded-2xl border border-white/[0.08] px-3 py-2.5 text-left transition active:scale-[0.99] ${rowStyle(rank)}`}>
+                <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border font-mono text-sm font-black ${rankStyle(rank)}`}>{rank}</span>
+                {team?.logo && <img src={team.logo} alt="" className="h-8 w-8 shrink-0 object-contain" />}
+                <span className="min-w-0 flex-1"><span className="block truncate text-sm font-black text-white">{entry.playerName}</span><span className="block truncate text-[10px] text-white/45">{entry.teamName}{penaltyGoals > 0 ? ` · ${penaltyGoals} pen` : ''}</span></span>
+                <span className="font-mono text-2xl font-black text-amber-300">{entry.goals}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="mt-5 hidden overflow-x-auto overscroll-x-contain md:block">
           <table className="w-full min-w-[720px] border-collapse text-left" aria-label="UEFA Champions League top goalscorers">
             <thead>
               <tr className="border-b border-white/10 text-sm font-extrabold uppercase tracking-wider text-white/45">
@@ -106,6 +122,7 @@ export const UCLTopScorersTable: React.FC<UCLTopScorersTableProps> = ({
             </tbody>
           </table>
         </div>
+        </>
       )}
     </section>
   );

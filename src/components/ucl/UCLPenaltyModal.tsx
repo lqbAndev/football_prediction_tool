@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { CircleCheck, X, XCircle } from 'lucide-react';
+import { CircleCheck, ShieldCheck, X, XCircle } from 'lucide-react';
 import type { TwoLegMatch, UCLPenaltyKick } from '../../types/uclConfig';
 import type { Team } from '../../types/tournament';
 import uclBallImg from '../../img/CUP COMPETITION/UCL/ball/ucl_ball_26-27.png';
@@ -11,9 +11,17 @@ interface UCLPenaltyModalProps {
   onClose: () => void;
 }
 
+const getKickResultLabel = (kick: UCLPenaltyKick) => kick.scored
+  ? 'Goal'
+  : kick.outcome === 'saved'
+  ? 'Saved'
+  : kick.outcome === 'off-target'
+  ? 'Off target'
+  : 'Miss';
+
 const KickBall = ({ kick }: { kick: UCLPenaltyKick }) => (
   <span
-    title={`${kick.playerName}: ${kick.scored ? 'Goal' : 'Miss'}`}
+    title={`${kick.playerName}: ${getKickResultLabel(kick)}`}
     className={`relative inline-flex h-7 w-7 items-center justify-center transition-transform hover:scale-110 ${kick.scored ? 'opacity-100' : 'opacity-25 grayscale'}`}
   >
     <img src={uclBallImg} alt="" className="h-6 w-6 object-contain" />
@@ -52,6 +60,12 @@ export const UCLPenaltyModal: React.FC<UCLPenaltyModalProps> = ({ tie, teamsById
   const renderKickRow = (kick: UCLPenaltyKick, index: number) => {
     const kickingTeam = kick.team === 'home' ? homeTeam : awayTeam;
     const goalkeeper = kick.team === 'home' ? awayKeeper : homeKeeper;
+    const resultLabel = getKickResultLabel(kick);
+    const resultClass = kick.scored
+      ? 'text-emerald-300'
+      : kick.outcome === 'saved'
+      ? 'text-amber-300'
+      : 'text-rose-300';
 
     return (
       <div
@@ -64,9 +78,9 @@ export const UCLPenaltyModal: React.FC<UCLPenaltyModalProps> = ({ tie, teamsById
           <p className={`truncate text-xs font-bold sm:text-sm ${kick.scored ? 'text-white/90' : 'text-white/55'}`}>{kick.playerName}</p>
           <p className="truncate text-[9px] text-white/35 sm:text-[10px]">vs {goalkeeper}</p>
         </div>
-        <span className={`inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider sm:text-[10px] ${kick.scored ? 'text-emerald-300' : 'text-rose-300'}`}>
-          {kick.scored ? <CircleCheck className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
-          {kick.scored ? 'Goal' : 'Miss'}
+        <span className={`inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider sm:text-[10px] ${resultClass}`}>
+          {kick.scored ? <CircleCheck className="h-4 w-4" /> : kick.outcome === 'saved' ? <ShieldCheck className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+          {resultLabel}
         </span>
       </div>
     );

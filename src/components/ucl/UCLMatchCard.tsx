@@ -71,11 +71,11 @@ export const UCLMatchCard: React.FC<UCLMatchCardProps> = ({
 
   return (
     <article className="w-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#071329] via-[#050d1d] to-[#020817] shadow-[0_20px_60px_rgba(0,6,20,0.36)] transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-sky-300/30">
-      <header className="grid grid-cols-[1fr_minmax(0,1.45fr)_1fr] items-center gap-2 border-b border-white/10 bg-black/25 px-3 py-3 sm:gap-3 sm:px-4">
+      <header className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-b border-white/10 bg-black/25 px-3 py-2.5 sm:grid-cols-[1fr_minmax(0,1.45fr)_1fr] sm:gap-3 sm:px-4 sm:py-3">
         <div className="flex min-w-0 items-center gap-1.5">
           <img src={patchUclImg} alt="UEFA Champions League" className="h-5 w-5 shrink-0 object-contain opacity-80" />
-          <span className="truncate rounded-lg border border-cyan-200/20 bg-white/[0.055] px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-cyan-100 sm:text-[9px]">
-            Matchday {matchday}
+          <span className="truncate rounded-lg border border-cyan-200/20 bg-white/[0.055] px-2 py-1 text-[8px] font-black uppercase tracking-[0.08em] text-cyan-100 sm:text-[9px] sm:tracking-[0.12em]">
+            MD {matchday}<span className="hidden sm:inline"> · Matchday</span>
           </span>
         </div>
         <div className={`flex min-w-0 items-center justify-self-center rounded-full border px-2 py-1 text-[8px] font-bold sm:gap-2 sm:px-3 sm:text-[10px] ${homeTheme.badgeBg} ${homeTheme.badgeText} ${homeTheme.badgeBorder}`}>
@@ -146,11 +146,11 @@ export const UCLMatchCard: React.FC<UCLMatchCardProps> = ({
             id={`ucl-timeline-${match.id}`}
             className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${expanded ? 'mt-3 max-h-[600px] opacity-100' : 'max-h-0 opacity-0'}`}
           >
-            <div className="grid grid-cols-2 gap-4 rounded-2xl bg-black/15 p-3">
-              <div className="min-w-0 space-y-2 border-r border-white/10 pr-2">
+            <div className="grid gap-3 rounded-2xl bg-black/15 p-3 sm:grid-cols-2 sm:gap-4">
+              <div className="min-w-0 space-y-2 border-b border-white/10 pb-3 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-2">
                 {displayedHomeEvents.length > 0 ? displayedHomeEvents.map((event, index) => <GoalLine key={index} event={event} side="home" />) : <span className="text-xs italic text-white/25">No goals</span>}
               </div>
-              <div className="min-w-0 space-y-2 pl-2">
+              <div className="min-w-0 space-y-2 sm:pl-2">
                 {displayedAwayEvents.length > 0 ? displayedAwayEvents.map((event, index) => <GoalLine key={index} event={event} side="away" />) : <span className="block text-right text-xs italic text-white/25">No goals</span>}
               </div>
             </div>

@@ -24,6 +24,7 @@ interface UCLKnockoutBracketProps {
 }
 
 type BracketView = 'pathway1' | 'pathway2' | 'finals';
+type PathwayRound = 'playoffs' | 'roundOf16' | 'quarterfinals' | 'semifinals';
 
 const VIEW_TABS: Array<{ id: BracketView; label: string }> = [
   { id: 'pathway1', label: 'Pathway 1' },
@@ -54,6 +55,7 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
   onSelectTeam,
 }) => {
   const [activeView, setActiveView] = useState<BracketView>('pathway1');
+  const [activeMobileRound, setActiveMobileRound] = useState<PathwayRound>('playoffs');
   const [selectedPenaltyTieId, setSelectedPenaltyTieId] = useState<string | null>(null);
   const [expandedTies, setExpandedTies] = useState<Record<string, boolean>>({});
 
@@ -82,6 +84,13 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
     },
   ] as const;
   const activePathway = activeView === 'pathway2' ? pathways[1] : pathways[0];
+  const mobileRounds: Array<{ id: PathwayRound; label: string; matches: TwoLegMatch[] }> = [
+    { id: 'playoffs', label: 'Play-offs', matches: activePathway.playoffs },
+    { id: 'roundOf16', label: 'R16', matches: activePathway.roundOf16 },
+    { id: 'quarterfinals', label: 'QF', matches: activePathway.quarterfinals },
+    { id: 'semifinals', label: 'SF', matches: activePathway.semifinals },
+  ];
+  const mobileRound = mobileRounds.find((round) => round.id === activeMobileRound) || mobileRounds[0];
 
   const renderTeamRow = (team: Team, tie: TwoLegMatch, side: 'home' | 'away') => {
     const isWinner = tie.isCompleted && tie.winnerId === team.id;
@@ -159,6 +168,8 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
   ) => {
     const leg = tie[legKey];
     if (leg.status !== 'completed') return null;
+    const motmPending = legKey === 'leg2' && !leg.motm && !tie.isCompleted;
+    const pendingPhase = tie.tieStatus === 'aet' ? 'Awaiting penalties' : 'Awaiting extra time';
 
     return (
       <section className="rounded-2xl border border-white/20 bg-white/[0.055] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]" aria-label={`${label} goals`}>
@@ -166,16 +177,26 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
           <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/65">{label}</h5>
           <span className="font-mono text-sm font-black text-white">{leg.homeScore ?? 0}–{leg.awayScore ?? 0}</span>
         </div>
-        {leg.motm && (
+        {leg.motm ? (
           <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-amber-300/25 bg-amber-300/[0.08] px-2.5 py-2">
             <img src={uclMvpCupImg} alt="MVP trophy" className="h-8 w-8 shrink-0 object-contain drop-shadow-[0_0_9px_rgba(251,191,36,0.35)]" />
             <div className="min-w-0">
               <p className="text-[8px] font-black uppercase tracking-[0.18em] text-amber-300">Man of the Match</p>
               <p className="truncate text-xs font-black text-white">{leg.motm.playerName}</p>
             </div>
-            <span className="ml-auto truncate text-[9px] font-semibold text-white/45">{leg.motm.teamName}</span>
+            <div className="ml-auto min-w-0 text-right">
+              <p className="truncate text-[9px] font-semibold text-white/45">{leg.motm.teamName}</p>
+              <p className="text-[8px] font-black uppercase tracking-wider text-amber-200/60">
+                {leg.motm.finalizedAt === 'penalties' ? 'After penalties' : `After ${leg.motm.finalizedAt}′`}
+              </p>
+            </div>
           </div>
-        )}
+        ) : motmPending ? (
+          <div className="mt-3 rounded-xl border border-sky-300/20 bg-sky-300/[0.06] px-3 py-2 text-center">
+            <p className="text-[8px] font-black uppercase tracking-[0.18em] text-sky-200/65">MOTM pending</p>
+            <p className="mt-0.5 text-[10px] font-semibold text-white/55">{pendingPhase}</p>
+          </div>
+        ) : null}
         <div className="mt-3 space-y-3">
           <div>
             <p className="text-[9px] font-black uppercase tracking-wider text-sky-300">Home · {homeTeam.shortName}</p>
@@ -377,7 +398,21 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
                 <Sparkles className={`h-5 w-5 ${activePathway.accent === 'cyan' ? 'text-sky-300' : 'text-blue-300'}`} />
               </header>
 
-              <div className="overflow-x-auto overscroll-x-contain p-5">
+              <div className="p-3 lg:hidden">
+                <div className="mb-3 grid grid-cols-4 gap-1 rounded-2xl border border-white/10 bg-black/20 p-1" role="tablist" aria-label="Pathway rounds">
+                  {mobileRounds.map((round) => (
+                    <button key={round.id} type="button" role="tab" aria-selected={activeMobileRound === round.id} onClick={() => setActiveMobileRound(round.id)} className={`min-h-10 rounded-xl px-1 text-[9px] font-black uppercase tracking-wide transition ${activeMobileRound === round.id ? 'bg-sky-300 text-[#00081E]' : 'text-white/55 hover:bg-white/5 hover:text-white'}`}>{round.label}</button>
+                  ))}
+                </div>
+                <div className="mb-3 flex items-center justify-between px-1">
+                  <span className="text-[10px] font-black uppercase tracking-[0.16em] text-white/55">{mobileRound.label}</span>
+                  <span className="font-mono text-[10px] text-white/35">{mobileRound.matches.filter((tie) => tie.isCompleted).length}/{mobileRound.matches.length}</span>
+                </div>
+                <div className="space-y-3">
+                  {mobileRound.matches.length > 0 ? mobileRound.matches.map((tie) => renderTieCard(tie, mobileRound.id)) : <div className="rounded-2xl border border-dashed border-white/10 py-10 text-center text-xs text-white/35">Awaiting draw</div>}
+                </div>
+              </div>
+              <div className="hidden overflow-x-auto overscroll-x-contain p-5 lg:block">
                 <div
                   className="relative mx-auto grid min-w-[1180px] max-w-[1500px] items-center gap-8"
                   style={{ gridTemplateColumns: 'repeat(4, minmax(260px, 1fr))' }}

@@ -1,10 +1,11 @@
 import type { Team, MatchScorers, TimelineEvent } from '../types/tournament';
-import type { LeagueMatch } from '../types/leagueConfig';
+import type { UCLMatchMOTM } from '../types/uclConfig';
 import { buildRegulationTimeline } from './random';
-import { computeLeagueMatchMOTM } from './motm';
+import { calculateUCLMatchMOTM } from './uclMotm';
 
 export interface SimulateUCLMatchOptions {
   isNeutralVenue?: boolean;
+  deferMotm?: boolean;
 }
 
 const clampRating = (rating: number) => Math.max(4, Math.min(10, Number(rating.toFixed(1))));
@@ -15,7 +16,6 @@ const buildPlayerRatings = (
   homeScore: number,
   awayScore: number,
   timeline: TimelineEvent[],
-  motm: ReturnType<typeof computeLeagueMatchMOTM>,
 ) => {
   const ratings: Record<string, number> = {};
   const winningTeamId = homeScore === awayScore ? null : homeScore > awayScore ? homeTeam.id : awayTeam.id;
@@ -48,8 +48,6 @@ const buildPlayerRatings = (
   };
   if (awayScore === 0) awardCleanSheet(homeTeam);
   if (homeScore === 0) awardCleanSheet(awayTeam);
-
-  if (motm) ratings[motm.playerId] = Math.max(ratings[motm.playerId] || 0, 8.5 + Math.random() * 0.8);
 
   Object.keys(ratings).forEach((playerId) => {
     ratings[playerId] = clampRating(ratings[playerId]);
@@ -84,7 +82,7 @@ export const simulateUCLMatch = (
   awayScore: number;
   scorers: MatchScorers;
   timeline: TimelineEvent[];
-  motm: ReturnType<typeof computeLeagueMatchMOTM>;
+  motm: UCLMatchMOTM | null;
   playerRatings: Record<string, number>;
 } => {
   const isNeutral = options?.isNeutralVenue ?? false;
@@ -175,21 +173,20 @@ export const simulateUCLMatch = (
     aScore
   );
 
-  // Compute MOTM
-  const dummyMatch: LeagueMatch = {
-    id: 'ucl-temp',
-    matchweek: 1,
-    homeTeamId: homeTeam.id,
-    awayTeamId: awayTeam.id,
-    homeScore: hScore,
-    awayScore: aScore,
-    status: 'completed',
-    predictedAt: new Date().toISOString(),
-    scorers,
-    timeline,
-  };
-  const motm = computeLeagueMatchMOTM(dummyMatch, homeTeam, awayTeam);
-  const playerRatings = buildPlayerRatings(homeTeam, awayTeam, hScore, aScore, timeline, motm);
+  const playerRatings = buildPlayerRatings(homeTeam, awayTeam, hScore, aScore, timeline);
+  const winnerTeamId = hScore === aScore ? null : hScore > aScore ? homeTeam.id : awayTeam.id;
+  const motm = options?.deferMotm
+    ? null
+    : calculateUCLMatchMOTM({
+        homeTeam,
+        awayTeam,
+        homeScore: hScore,
+        awayScore: aScore,
+        timeline,
+        playerRatings,
+        winnerTeamId,
+        finalizedAt: '90',
+      });
 
   return { homeScore: hScore, awayScore: aScore, scorers, timeline, motm, playerRatings };
 };

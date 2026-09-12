@@ -81,7 +81,35 @@ export const UCLStandingsTable: React.FC<UCLStandingsTableProps> = ({
       </div>
 
       {/* Table Body with Roomy Spacing and Large Typography */}
-      <div className="relative z-10 mt-6 overflow-x-auto overscroll-x-contain [scrollbar-color:#00F0FF33_transparent]">
+      <div className="relative z-10 mt-5 space-y-2 md:hidden">
+        {standings.map((row) => {
+          const team = teamsById[row.teamId];
+          const zone = getZoneStyle(row.position);
+          const theme = getClubTheme(row.teamId);
+          return (
+            <button
+              key={row.teamId}
+              type="button"
+              onClick={() => onSelectTeam?.(row.teamId)}
+              className={`w-full rounded-2xl border border-white/10 p-3 text-left transition active:scale-[0.99] ${zone.rowBorder}`}
+            >
+              <div className="flex items-center gap-3">
+                <span className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border font-mono text-xs font-black ${zone.badgeBg}`}>{row.position}</span>
+                {team?.logo && <img src={team.logo} alt="" className="h-9 w-9 shrink-0 object-contain" />}
+                <span className="min-w-0 flex-1 truncate font-black text-white">{team?.name || row.teamId}</span>
+                <span className="font-mono text-xl font-black text-sky-200">{row.points}</span>
+              </div>
+              <div className="mt-3 grid grid-cols-4 gap-2 border-t border-white/10 pt-2.5 text-center text-[10px]">
+                <span className="text-white/45">Pld <b className="ml-1 font-mono text-white">{row.played}</b></span>
+                <span className="text-white/45">W <b className="ml-1 font-mono text-emerald-300">{row.wins}</b></span>
+                <span className="text-white/45">GD <b className={`ml-1 font-mono ${row.goalDifference > 0 ? 'text-emerald-300' : row.goalDifference < 0 ? 'text-rose-300' : 'text-white'}`}>{row.goalDifference > 0 ? `+${row.goalDifference}` : row.goalDifference}</b></span>
+                <span className={`truncate font-bold ${theme.countryText}`}>{theme.countryCode}</span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+      <div className="relative z-10 mt-6 hidden overflow-x-auto overscroll-x-contain [scrollbar-color:#00F0FF33_transparent] md:block">
         <table className="w-full min-w-[1080px] whitespace-nowrap text-left" aria-label="UEFA Champions League league phase standings">
           <thead>
             <tr className="border-b border-white/10 text-base font-extrabold uppercase tracking-wider text-white/50">

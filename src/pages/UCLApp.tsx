@@ -17,6 +17,7 @@ import {
 } from '../utils/uclKnockout';
 import { calculateLeagueTable } from '../utils/leagueEngine';
 import { computeUclRecapStats } from '../utils/uclRecapStats';
+import { calculateUCLMatchMOTM } from '../utils/uclMotm';
 import { loadUCLState, saveUCLState, clearUCLState } from '../utils/uclStorage';
 import type { LeagueMatch, LeagueStanding } from '../types/leagueConfig';
 import type { TwoLegMatch } from '../types/uclConfig';
@@ -72,13 +73,86 @@ const getCompletedRoundWinners = (
   return winners.length === expectedTieCount ? winners : null;
 };
 
-const restoreExtraTimeDetails = (matches: TwoLegMatch[]): TwoLegMatch[] =>
+const restoreLeagueMatchMOTM = (matches: LeagueMatch[]): LeagueMatch[] =>
+  matches.map((match) => {
+    if (match.status !== 'completed' || match.homeScore === null || match.awayScore === null) return match;
+    const homeTeam = UCL_TEAMS_BY_ID[match.homeTeamId];
+    const awayTeam = UCL_TEAMS_BY_ID[match.awayTeamId];
+    if (!homeTeam || !awayTeam) return match;
+    const winnerTeamId = match.homeScore === match.awayScore
+      ? null
+      : match.homeScore > match.awayScore
+      ? homeTeam.id
+      : awayTeam.id;
+    return {
+      ...match,
+      motm: calculateUCLMatchMOTM({
+        homeTeam,
+        awayTeam,
+        homeScore: match.homeScore,
+        awayScore: match.awayScore,
+        timeline: match.timeline,
+        playerRatings: match.playerRatings,
+        winnerTeamId,
+        finalizedAt: '90',
+      }),
+    };
+  });
+
+const restoreKnockoutMOTM = (matches: TwoLegMatch[]): TwoLegMatch[] =>
   matches.map((match) => {
     const homeTeam = UCL_TEAMS_BY_ID[match.homeTeamId];
     const awayTeam = UCL_TEAMS_BY_ID[match.awayTeamId];
-    return homeTeam && awayTeam
-      ? ensureExtraTimeDetails(match, homeTeam, awayTeam)
-      : match;
+    if (!homeTeam || !awayTeam) return match;
+
+    const restored = ensureExtraTimeDetails(match, homeTeam, awayTeam);
+    const leg1WinnerId = restored.leg1.homeScore === restored.leg1.awayScore
+      ? null
+      : (restored.leg1.homeScore || 0) > (restored.leg1.awayScore || 0)
+      ? awayTeam.id
+      : homeTeam.id;
+    const leg1Motm = restored.leg1.status === 'completed' && restored.leg1.homeScore !== null && restored.leg1.awayScore !== null
+      ? calculateUCLMatchMOTM({
+          homeTeam: awayTeam,
+          awayTeam: homeTeam,
+          homeScore: restored.leg1.homeScore,
+          awayScore: restored.leg1.awayScore,
+          timeline: restored.leg1.timeline,
+          playerRatings: restored.leg1.playerRatings,
+          winnerTeamId: leg1WinnerId,
+          finalizedAt: '90',
+        })
+      : restored.leg1.motm;
+
+    let leg2Motm = restored.leg2.motm;
+    if (restored.leg2.status === 'completed') {
+      if (!restored.isCompleted) {
+        leg2Motm = null;
+      } else {
+        const finalizedAt = restored.leg2.penalties
+          ? 'penalties'
+          : restored.leg2.extraTime
+          ? '120'
+          : '90';
+        leg2Motm = calculateUCLMatchMOTM({
+          homeTeam,
+          awayTeam,
+          homeScore: (restored.leg2.homeScore || 0) + (restored.leg2.etHomeGoals || 0),
+          awayScore: (restored.leg2.awayScore || 0) + (restored.leg2.etAwayGoals || 0),
+          timeline: [...(restored.leg2.timeline || []), ...(restored.leg2.etTimeline || [])],
+          playerRatings: restored.leg2.playerRatings,
+          winnerTeamId: restored.winnerId,
+          finalizedAt,
+          penalties: restored.leg2.penalties,
+        });
+      }
+    }
+
+    return {
+      ...restored,
+      leg1: { ...restored.leg1, motm: leg1Motm },
+      leg2: { ...restored.leg2, motm: leg2Motm },
+    };
   });
 
 export const UCLApp: React.FC = () => {
@@ -88,7 +162,7 @@ export const UCLApp: React.FC = () => {
   const savedState = useMemo(() => loadUCLState(), []);
 
   const [leagueMatches, setLeagueMatches] = useState<LeagueMatch[]>(() =>
-    savedState ? savedState.leagueMatches : generatePresetSwissDraw(UCL_TEAMS)
+    savedState ? restoreLeagueMatchMOTM(savedState.leagueMatches) : generatePresetSwissDraw(UCL_TEAMS)
   );
   const [currentMatchday, setCurrentMatchday] = useState(
     savedState ? savedState.currentMatchday : 1
@@ -96,19 +170,19 @@ export const UCLApp: React.FC = () => {
 
   // Knockout Bracket State
   const [playoffs, setPlayoffs] = useState<TwoLegMatch[]>(() =>
-    savedState ? restoreExtraTimeDetails(savedState.playoffs) : []
+    savedState ? restoreKnockoutMOTM(savedState.playoffs) : []
   );
   const [roundOf16, setRoundOf16] = useState<TwoLegMatch[]>(() =>
-    savedState ? restoreExtraTimeDetails(savedState.roundOf16) : []
+    savedState ? restoreKnockoutMOTM(savedState.roundOf16) : []
   );
   const [quarterfinals, setQuarterfinals] = useState<TwoLegMatch[]>(() =>
-    savedState ? restoreExtraTimeDetails(savedState.quarterfinals) : []
+    savedState ? restoreKnockoutMOTM(savedState.quarterfinals) : []
   );
   const [semifinals, setSemifinals] = useState<TwoLegMatch[]>(() =>
-    savedState ? restoreExtraTimeDetails(savedState.semifinals) : []
+    savedState ? restoreKnockoutMOTM(savedState.semifinals) : []
   );
   const [finalMatch, setFinalMatch] = useState<TwoLegMatch | null>(() =>
-    savedState?.finalMatch ? restoreExtraTimeDetails([savedState.finalMatch])[0] : null
+    savedState?.finalMatch ? restoreKnockoutMOTM([savedState.finalMatch])[0] : null
   );
   const [champion, setChampion] = useState<Team | null>(() =>
     savedState ? savedState.champion : null
@@ -683,7 +757,7 @@ export const UCLApp: React.FC = () => {
       )}
 
       {/* ── MAIN CONTAINER (FULL WIDTH, UP TO 1700PX, CONTINUOUS SCROLL ARCHITECTURE) ── */}
-      <div className="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-10 py-6 space-y-16 relative z-10">
+      <div className="relative z-10 mx-auto max-w-[1700px] space-y-10 px-4 py-6 sm:space-y-16 sm:px-6 lg:px-10">
         {/* ── HERO BRANDING (Modeled after WC26) ── */}
         <UCLHeroBranding
           completedLeagueMatches={completedLeagueMatches}
@@ -712,7 +786,7 @@ export const UCLApp: React.FC = () => {
               </p>
             </div>
 
-            <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:gap-3">
               <button
                 onClick={handleRealDraw}
                 className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-amber-500/20 border border-amber-400/50 hover:bg-amber-500/30 text-amber-300 font-bold text-xs uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(245,158,11,0.25)]"
@@ -878,7 +952,7 @@ export const UCLApp: React.FC = () => {
 
         <section id="ucl-recap" className="scroll-mt-20 pt-4" aria-label="UCL season recap">
           {champion ? (
-            <UCLRecap stats={recapStats} champion={champion} runnerUp={runnerUp} />
+            <UCLRecap stats={recapStats} champion={champion} runnerUp={runnerUp} knockoutMatches={allKnockoutMatches} teamsById={UCL_TEAMS_BY_ID} />
           ) : (
             <div className="rounded-3xl border border-dashed border-white/15 bg-[#060d1a]/70 px-6 py-20 text-center">
               <img src={uclBallSideImg} alt="UEFA Champions League starball" className="mx-auto h-20 w-20 object-contain opacity-30" />

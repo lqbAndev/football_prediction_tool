@@ -1,6 +1,7 @@
 import type { Team } from '../types/tournament';
 import type { TwoLegMatch, UCLPenaltyShootout, UCLPenaltyKick, TieStatus } from '../types/uclConfig';
 import { simulateUCLMatch } from './uclEngine';
+import { calculateUCLMatchMOTM } from './uclMotm';
 import { buildKnockoutTimeline } from './random';
 
 export const FINAL_VENUE = 'Estadio Metropolitano, Madrid';
@@ -64,8 +65,13 @@ export const simulatePenaltyShootout = (homeTeam: Team, awayTeam: Team): UCLPena
       const kickIndex = side === 'home' ? homeKicks : awayKicks;
       const player = pool[kickIndex % pool.length];
       const scored = Math.random() < CONVERSION_RATE;
+      const outcome: UCLPenaltyKick['outcome'] = scored
+        ? 'goal'
+        : Math.random() < 0.7
+        ? 'saved'
+        : 'off-target';
 
-      kicks.push({ team: side, playerName: player.name, scored, round });
+      kicks.push({ team: side, playerId: player.id, playerName: player.name, scored, outcome, round });
 
       if (side === 'home') { homeKicks++; if (scored) home++; }
       else { awayKicks++; if (scored) away++; }
@@ -127,11 +133,24 @@ export const simulateKnockoutLeg1 = (match: TwoLegMatch, homeTeam: Team, awayTea
 export const simulateKnockoutLeg2 = (match: TwoLegMatch, homeTeam: Team, awayTeam: Team): TwoLegMatch => {
   // If final, just simulate the 90 min. If tied, go to ET.
   const isFinal = match.round === 'final';
-  const sim = simulateUCLMatch(homeTeam, awayTeam, { isNeutralVenue: isFinal });
+  const sim = simulateUCLMatch(homeTeam, awayTeam, { isNeutralVenue: isFinal, deferMotm: true });
 
   let aggHome = isFinal ? sim.homeScore : (match.leg1.awayScore || 0) + sim.homeScore;
   let aggAway = isFinal ? sim.awayScore : (match.leg1.homeScore || 0) + sim.awayScore;
   let tieStatus: TieStatus = aggHome === aggAway ? 'leg2-done' : 'completed';
+  const winnerId = aggHome === aggAway ? null : (aggHome > aggAway ? homeTeam.id : awayTeam.id);
+  const motm = tieStatus === 'completed'
+    ? calculateUCLMatchMOTM({
+        homeTeam,
+        awayTeam,
+        homeScore: sim.homeScore,
+        awayScore: sim.awayScore,
+        timeline: sim.timeline,
+        playerRatings: sim.playerRatings,
+        winnerTeamId: winnerId,
+        finalizedAt: '90',
+      })
+    : null;
 
   return {
     ...match,
@@ -144,11 +163,11 @@ export const simulateKnockoutLeg2 = (match: TwoLegMatch, homeTeam: Team, awayTea
       status: 'completed',
       scorers: sim.scorers,
       timeline: sim.timeline,
-      motm: sim.motm,
+      motm,
       playerRatings: sim.playerRatings,
     },
     aggregate: { homeScore: aggHome, awayScore: aggAway },
-    winnerId: aggHome === aggAway ? null : (aggHome > aggAway ? homeTeam.id : awayTeam.id),
+    winnerId,
     isCompleted: tieStatus === 'completed',
   };
 };
@@ -169,6 +188,23 @@ export const simulateExtraTime = (match: TwoLegMatch, homeTeam: Team, awayTeam: 
   const newAggAway = (match.aggregate.awayScore || 0) + et.awayGoals;
 
   const tieStatus: TieStatus = newAggHome === newAggAway ? 'aet' : 'completed';
+  const winnerId = newAggHome === newAggAway ? null : (newAggHome > newAggAway ? homeTeam.id : awayTeam.id);
+  const fullTimeline = [...(match.leg2.timeline || []), ...etTimeline]
+    .sort((left, right) => left.sortMinute - right.sortMinute);
+  const fullHomeScore = (match.leg2.homeScore || 0) + et.homeGoals;
+  const fullAwayScore = (match.leg2.awayScore || 0) + et.awayGoals;
+  const motm = tieStatus === 'completed'
+    ? calculateUCLMatchMOTM({
+        homeTeam,
+        awayTeam,
+        homeScore: fullHomeScore,
+        awayScore: fullAwayScore,
+        timeline: fullTimeline,
+        playerRatings: match.leg2.playerRatings,
+        winnerTeamId: winnerId,
+        finalizedAt: '120',
+      })
+    : null;
 
   return {
     ...match,
@@ -180,9 +216,10 @@ export const simulateExtraTime = (match: TwoLegMatch, homeTeam: Team, awayTeam: 
       etAwayGoals: et.awayGoals,
       etScorers,
       etTimeline,
+      motm,
     },
     aggregate: { homeScore: newAggHome, awayScore: newAggAway },
-    winnerId: newAggHome === newAggAway ? null : (newAggHome > newAggAway ? homeTeam.id : awayTeam.id),
+    winnerId,
     isCompleted: tieStatus === 'completed',
   };
 };
@@ -227,6 +264,19 @@ export const ensureExtraTimeDetails = (
 export const simulatePenalties = (match: TwoLegMatch, homeTeam: Team, awayTeam: Team): TwoLegMatch => {
   const pens = simulatePenaltyShootout(homeTeam, awayTeam);
   const winnerId = pens.homeScore > pens.awayScore ? homeTeam.id : awayTeam.id;
+  const fullTimeline = [...(match.leg2.timeline || []), ...(match.leg2.etTimeline || [])]
+    .sort((left, right) => left.sortMinute - right.sortMinute);
+  const motm = calculateUCLMatchMOTM({
+    homeTeam,
+    awayTeam,
+    homeScore: (match.leg2.homeScore || 0) + (match.leg2.etHomeGoals || 0),
+    awayScore: (match.leg2.awayScore || 0) + (match.leg2.etAwayGoals || 0),
+    timeline: fullTimeline,
+    playerRatings: match.leg2.playerRatings,
+    winnerTeamId: winnerId,
+    finalizedAt: 'penalties',
+    penalties: pens,
+  });
 
   return {
     ...match,
@@ -234,6 +284,7 @@ export const simulatePenalties = (match: TwoLegMatch, homeTeam: Team, awayTeam: 
     leg2: {
       ...match.leg2,
       penalties: pens,
+      motm,
     },
     winnerId,
     isCompleted: true,

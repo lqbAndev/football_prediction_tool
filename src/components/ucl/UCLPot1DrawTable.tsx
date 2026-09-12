@@ -93,6 +93,8 @@ export const UCLPot1DrawTable: React.FC<UCLPot1DrawTableProps> = ({ leagueMatche
         </div>
       </header>
 
+      <p className="border-b border-white/[0.06] px-4 py-2 text-[10px] text-white/45 sm:hidden">Vuốt ngang để xem đủ đối thủ sân nhà và sân khách.</p>
+
       <div className="overflow-x-auto overscroll-x-contain [scrollbar-color:#38BDF833_transparent]">
         <table className="w-full min-w-[980px] border-collapse text-left" aria-label="Pot 1 home and away opponents by pot">
           <thead>

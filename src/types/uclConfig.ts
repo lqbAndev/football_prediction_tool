@@ -15,7 +15,28 @@ export interface UclConfig {
 }
 
 import type { MatchScorers, TimelineEvent } from './tournament';
-import type { computeLeagueMatchMOTM } from '../utils/motm';
+
+export type UCLMOTMFinalizedAt = '90' | '120' | 'penalties';
+
+export interface UCLMOTMScoreBreakdown {
+  ratingPoints: number;
+  goalPoints: number;
+  decisivePoints: number;
+  cleanSheetPoints: number;
+  winnerPoints: number;
+  shootoutPoints: number;
+}
+
+export interface UCLMatchMOTM {
+  playerId: string;
+  playerName: string;
+  teamId: string;
+  teamName: string;
+  reason: 'ucl-performance';
+  performanceScore: number;
+  finalizedAt: UCLMOTMFinalizedAt;
+  breakdown: UCLMOTMScoreBreakdown;
+}
 
 /**
  * Per-kick penalty detail for UCL shootouts.
@@ -23,8 +44,10 @@ import type { computeLeagueMatchMOTM } from '../utils/motm';
  */
 export interface UCLPenaltyKick {
   team: 'home' | 'away';
+  playerId?: string;
   playerName: string;
   scored: boolean;
+  outcome?: 'goal' | 'saved' | 'off-target';
   round: number; // 1-5 regulation, 6+ sudden death
 }
 
@@ -60,7 +83,7 @@ export interface TwoLegMatch {
     status: 'pending' | 'completed';
     scorers?: MatchScorers;
     timeline?: TimelineEvent[];
-    motm?: ReturnType<typeof computeLeagueMatchMOTM>;
+    motm?: UCLMatchMOTM | null;
     playerRatings?: Record<string, number>;
   };
   leg2: {
@@ -75,7 +98,7 @@ export interface TwoLegMatch {
     penalties?: UCLPenaltyShootout; // Full per-kick penalty details
     scorers?: MatchScorers;
     timeline?: TimelineEvent[];
-    motm?: ReturnType<typeof computeLeagueMatchMOTM>;
+    motm?: UCLMatchMOTM | null;
     playerRatings?: Record<string, number>;
   };
   aggregate: {

@@ -30,9 +30,9 @@ export const UCLHeroBranding: React.FC<UCLHeroBrandingProps> = ({
     : 'Awaiting';
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-4 sm:space-y-6">
       {/* ── Main Hero Shell ── */}
-      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-[#060d1a] via-[#030a18] to-[#071329] p-6 shadow-[0_28px_80px_rgba(0,6,20,0.4)] sm:p-8 lg:p-10">
+      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-[#060d1a] via-[#030a18] to-[#071329] p-4 shadow-[0_28px_80px_rgba(0,6,20,0.4)] sm:p-8 lg:p-10">
         {/* Ambient Floating Ball Watermarks */}
         <img
           src={uclBallSide1Img}
@@ -49,33 +49,33 @@ export const UCLHeroBranding: React.FC<UCLHeroBrandingProps> = ({
         <div className="absolute -top-24 -left-24 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 right-1/4 w-96 h-96 bg-blue-700/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
+        <div className="relative z-10 flex flex-col items-center justify-between gap-5 lg:flex-row lg:gap-12">
           {/* Left: Official Pure White Tournament Logo & Typography */}
-          <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-6 flex-1 min-w-0">
+          <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:gap-6 sm:text-left lg:flex-1 lg:min-w-0">
             {/* Pure White UCL Starball Emblem (Single clean logo, no overlapping badges!) */}
             <div className="relative shrink-0 flex items-center justify-center p-3 rounded-2xl bg-white/[0.04] border border-white/10 shadow-[0_0_30px_rgba(255,255,255,0.15)]">
               <img
                 src={uclLogoImg}
                 alt="UEFA Champions League"
-                className="w-24 h-24 sm:w-28 sm:h-28 object-contain brightness-0 invert drop-shadow-[0_0_20px_rgba(255,255,255,0.75)]"
+                className="h-16 w-16 object-contain brightness-0 invert drop-shadow-[0_0_20px_rgba(255,255,255,0.75)] sm:h-28 sm:w-28"
               />
             </div>
 
             {/* Typography */}
             <div className="space-y-3 min-w-0">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-400/30 text-cyan-300 text-xs font-bold uppercase tracking-[0.25em]">
+              <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-500/15 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-cyan-300 sm:text-xs sm:tracking-[0.25em]">
                 <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
                 <span>Season 2026/27 · Swiss System & Knockout</span>
               </div>
 
-              <h1 className="text-3xl sm:text-5xl xl:text-6xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-cyan-400 drop-shadow-[0_0_30px_rgba(0,240,255,0.3)]">
+              <h1 className="text-2xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-cyan-400 drop-shadow-[0_0_30px_rgba(0,240,255,0.3)] sm:text-5xl xl:text-6xl">
                 UEFA CHAMPIONS LEAGUE
               </h1>
 
               {/* Slogan Banner */}
-              <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-gradient-to-r from-amber-500/20 via-cyan-500/15 to-amber-500/20 border border-amber-400/40 text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+              <div className="inline-flex max-w-full items-center gap-2 rounded-2xl border border-amber-400/40 bg-gradient-to-r from-amber-500/20 via-cyan-500/15 to-amber-500/20 px-3 py-2 text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
                 <img src={uclCupImg} alt="" className="h-5 w-5 shrink-0 object-contain" />
-                <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-white to-cyan-200">
+                <span className="text-[10px] font-black uppercase tracking-[0.08em] text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-white to-cyan-200 sm:text-sm sm:tracking-widest">
                   FINAL: MADRID 27 - ROAD TO Estadio Metropolitano
                 </span>
               </div>
@@ -83,7 +83,7 @@ export const UCLHeroBranding: React.FC<UCLHeroBrandingProps> = ({
           </div>
 
           {/* Right: Majestic UCL Trophy & Floating Ball */}
-          <div className="flex items-center gap-6 sm:gap-10 shrink-0">
+          <div className="hidden shrink-0 items-center gap-6 sm:flex sm:gap-10">
             {/* The Prestigious Big Trophy */}
             <div className="relative group flex flex-col items-center">
               <div className="absolute inset-0 bg-cyan-400/25 blur-3xl rounded-full scale-125 group-hover:bg-cyan-400/40 transition-all" />
@@ -119,11 +119,11 @@ export const UCLHeroBranding: React.FC<UCLHeroBrandingProps> = ({
       </div>
 
       {/* ── 4 Key Competition Status Counters (Clickable Interactive Cards) ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         {/* 1. League Phase Matches (Clicks to scroll to League Phase) */}
         <div
           onClick={() => onNavigateSection?.('league-phase')}
-          className="group cursor-pointer rounded-3xl border border-sky-300/20 bg-[#060d1a]/70 p-5 shadow-[0_18px_45px_rgba(0,6,20,0.3)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:border-sky-300/45"
+          className="group cursor-pointer rounded-2xl border border-sky-300/20 bg-[#060d1a]/70 p-3 shadow-[0_18px_45px_rgba(0,6,20,0.3)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:border-sky-300/45 sm:rounded-3xl sm:p-5"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-cyan-400">
@@ -140,13 +140,13 @@ export const UCLHeroBranding: React.FC<UCLHeroBrandingProps> = ({
             </span>
             <ArrowRight className="w-5 h-5 text-white/30 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" />
           </div>
-          <p className="mt-1 text-xs text-white/50">Click to view 144 Fixtures</p>
+          <p className="mt-1 hidden text-xs text-white/50 sm:block">Click to view 144 Fixtures</p>
         </div>
 
         {/* 2. 36 Elite Clubs (Clicks to scroll to Standings & Scorers) */}
         <div
           onClick={() => onNavigateSection?.('standings-scorers')}
-          className="group cursor-pointer rounded-3xl border border-white/10 bg-[#060d1a]/70 p-5 shadow-[0_18px_45px_rgba(0,6,20,0.3)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:border-sky-300/35"
+          className="group cursor-pointer rounded-2xl border border-white/10 bg-[#060d1a]/70 p-3 shadow-[0_18px_45px_rgba(0,6,20,0.3)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:border-sky-300/35 sm:rounded-3xl sm:p-5"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-white/70">
@@ -161,13 +161,13 @@ export const UCLHeroBranding: React.FC<UCLHeroBrandingProps> = ({
             <span>Standings</span>
             <ArrowRight className="w-5 h-5 text-white/30 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" />
           </div>
-          <p className="mt-1 text-xs text-white/50">Click to view Table & Top Scorers</p>
+          <p className="mt-1 hidden text-xs text-white/50 sm:block">Click to view Table & Top Scorers</p>
         </div>
 
         {/* 3. Knockout Stage (Clicks to scroll to Knockout Stage) */}
         <div
           onClick={() => onNavigateSection?.('knockout-stage')}
-          className="group cursor-pointer rounded-3xl border border-white/10 bg-[#060d1a]/70 p-5 shadow-[0_18px_45px_rgba(0,6,20,0.3)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:border-sky-300/35"
+          className="group cursor-pointer rounded-2xl border border-white/10 bg-[#060d1a]/70 p-3 shadow-[0_18px_45px_rgba(0,6,20,0.3)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 hover:border-sky-300/35 sm:rounded-3xl sm:p-5"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-sky-300">
@@ -185,13 +185,13 @@ export const UCLHeroBranding: React.FC<UCLHeroBrandingProps> = ({
             </span>
             <ArrowRight className="w-5 h-5 text-white/30 group-hover:text-sky-300 group-hover:translate-x-1 transition-all" />
           </div>
-          <p className="mt-1 text-xs text-white/50">Click to view Play-offs & Bracket</p>
+          <p className="mt-1 hidden text-xs text-white/50 sm:block">Click to view Play-offs & Bracket</p>
         </div>
 
         {/* 4. Inline UCL Recap */}
         <div
           onClick={() => onNavigateSection?.('ucl-recap')}
-          className={`group cursor-pointer rounded-3xl border bg-[#060d1a]/70 p-5 shadow-[0_18px_45px_rgba(0,6,20,0.3)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 ${isRecapUnlocked ? 'border-amber-300/30 hover:border-amber-300/60' : 'border-white/10 hover:border-white/20'}`}
+          className={`group cursor-pointer rounded-2xl border bg-[#060d1a]/70 p-3 shadow-[0_18px_45px_rgba(0,6,20,0.3)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 sm:rounded-3xl sm:p-5 ${isRecapUnlocked ? 'border-amber-300/30 hover:border-amber-300/60' : 'border-white/10 hover:border-white/20'}`}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-amber-400">
@@ -205,7 +205,7 @@ export const UCLHeroBranding: React.FC<UCLHeroBrandingProps> = ({
           <div className="mt-3 flex items-center justify-between gap-3">
             <div>
               <div className="text-xl font-black text-white sm:text-2xl">Season report</div>
-              <p className="mt-1 text-xs text-white/50">Podium · Awards · Best XI · Stats</p>
+              <p className="mt-1 hidden text-xs text-white/50 sm:block">Podium · Awards · Best XI · Stats</p>
             </div>
             {isRecapUnlocked ? <ArrowRight className="h-5 w-5 text-amber-300 transition-transform group-hover:translate-x-1" /> : <Lock className="h-5 w-5 text-white/25" />}
           </div>
