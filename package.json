@@ -13,7 +13,9 @@
   },
   "dependencies": {
     "flag-icons": "^7.5.0",
+    "lucide": "^1.7.0",
     "lucide-react": "^1.7.0",
+    "morphicons": "^1.7.1",
     "react": "^18.2.0",
     "react-confetti": "^6.4.0",
     "react-dom": "^18.2.0",

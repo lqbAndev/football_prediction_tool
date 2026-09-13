@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { LeagueMatch } from '../../types/leagueConfig';
 import type { Team, TimelineEvent } from '../../types/tournament';
 import { getClubTheme } from '../../data/competitions/ucl2627/clubThemes';
-import { ChevronDown, Clock } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { Check, ChevronDown as ChevronDownIcon, ChevronUp as ChevronUpIcon, Play as PlayIcon } from 'lucide';
 import uclBallImg from '../../img/CUP COMPETITION/UCL/ball/ucl_ball_26-27.png';
 import patchUclImg from '../../img/CUP COMPETITION/UCL/patch_ucl.png';
 import badgeUclImg from '../../img/CUP COMPETITION/UCL/badge_ucl.png';
 import uclMvpCupImg from '../../img/CUP COMPETITION/UCL/ucl_mvp_cup.png';
+import { UCLMorphIcon } from './UCLMorphIcon';
 
 interface UCLMatchCardProps {
   match: LeagueMatch;
@@ -52,6 +54,8 @@ export const UCLMatchCard: React.FC<UCLMatchCardProps> = ({
   onSelectTeam,
 }) => {
   const [expanded, setExpanded] = useState(false);
+  const [isPredicting, setIsPredicting] = useState(false);
+  const predictTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isCompleted = match.status === 'completed';
   const homeTheme = getClubTheme(homeTeam.id);
   const timeline = match.timeline || [];
@@ -68,6 +72,16 @@ export const UCLMatchCard: React.FC<UCLMatchCardProps> = ({
 
   const displayedHomeEvents = homeEvents.length > 0 ? homeEvents : fallbackEvents('home');
   const displayedAwayEvents = awayEvents.length > 0 ? awayEvents : fallbackEvents('away');
+
+  useEffect(() => () => {
+    if (predictTimer.current) clearTimeout(predictTimer.current);
+  }, []);
+
+  const handlePredict = () => {
+    if (isPredicting) return;
+    setIsPredicting(true);
+    predictTimer.current = setTimeout(() => onPredict(match.id), 220);
+  };
 
   return (
     <article className="w-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#071329] via-[#050d1d] to-[#020817] shadow-[0_20px_60px_rgba(0,6,20,0.36)] transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-sky-300/30">
@@ -139,7 +153,7 @@ export const UCLMatchCard: React.FC<UCLMatchCardProps> = ({
               <Clock className="h-4 w-4 text-sky-300" />
               Match Timeline
             </span>
-            <ChevronDown className={`h-4 w-4 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${expanded ? 'rotate-180' : ''}`} />
+            <UCLMorphIcon icon={expanded ? ChevronUpIcon : ChevronDownIcon} size={16} strokeWidth={2} />
           </button>
 
           <div
@@ -161,8 +175,9 @@ export const UCLMatchCard: React.FC<UCLMatchCardProps> = ({
 
       {!isCompleted && (
         <div className="border-t border-white/10 bg-black/20 p-4">
-          <button type="button" onClick={() => onPredict(match.id)} className="w-full rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 px-4 py-3 text-xs font-black uppercase tracking-[0.2em] text-white shadow-[0_0_20px_rgba(0,240,255,0.28)] transition hover:brightness-110 active:scale-[0.98]">
-            Predict
+          <button type="button" onClick={handlePredict} disabled={isPredicting} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 px-4 py-3 text-xs font-black uppercase tracking-[0.2em] text-white shadow-[0_0_20px_rgba(0,240,255,0.28)] transition hover:brightness-110 active:scale-[0.98] disabled:cursor-wait">
+            <UCLMorphIcon icon={isPredicting ? Check : PlayIcon} size={17} strokeWidth={2.2} />
+            {isPredicting ? 'Generating score' : 'Predict'}
           </button>
         </div>
       )}

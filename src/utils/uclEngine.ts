@@ -6,6 +6,15 @@ import { calculateUCLMatchMOTM } from './uclMotm';
 export interface SimulateUCLMatchOptions {
   isNeutralVenue?: boolean;
   deferMotm?: boolean;
+  homeXgModifier?: number;
+  awayXgModifier?: number;
+  durationFactor?: number;
+}
+
+export interface UCLExpectedGoals {
+  home: number;
+  away: number;
+  ratingDelta: number;
 }
 
 const clampRating = (rating: number) => Math.max(4, Math.min(10, Number(rating.toFixed(1))));
@@ -73,6 +82,75 @@ const samplePoisson = (lambda: number): number => {
   return k - 1;
 };
 
+const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+
+const RATING_GAP_CURVE = [
+  { gap: 0, stronger: 1.3, weaker: 1.3 },
+  { gap: 3, stronger: 1.45, weaker: 1.17 },
+  { gap: 6, stronger: 1.63, weaker: 1.02 },
+  { gap: 10, stronger: 1.95, weaker: 0.78 },
+  { gap: 15, stronger: 2.25, weaker: 0.62 },
+  { gap: 20, stronger: 2.45, weaker: 0.52 },
+  { gap: 25, stronger: 2.6, weaker: 0.45 },
+] as const;
+
+const interpolateRatingGap = (ratingGap: number) => {
+  const gap = clamp(Math.abs(ratingGap), 0, RATING_GAP_CURVE[RATING_GAP_CURVE.length - 1].gap);
+  const upperIndex = RATING_GAP_CURVE.findIndex((point) => point.gap >= gap);
+  if (upperIndex <= 0) return RATING_GAP_CURVE[0];
+  const lower = RATING_GAP_CURVE[upperIndex - 1];
+  const upper = RATING_GAP_CURVE[upperIndex];
+  const progress = (gap - lower.gap) / (upper.gap - lower.gap);
+  return {
+    gap,
+    stronger: lower.stronger + (upper.stronger - lower.stronger) * progress,
+    weaker: lower.weaker + (upper.weaker - lower.weaker) * progress,
+  };
+};
+
+/**
+ * Converts team strength into symmetric expected goals. Pot is deliberately not
+ * part of this model: it controls the draw, while rating controls performance.
+ */
+export const calculateUCLExpectedGoals = (
+  homeTeam: Team,
+  awayTeam: Team,
+  options: SimulateUCLMatchOptions = {},
+): UCLExpectedGoals => {
+  const ratingDelta = homeTeam.rating - awayTeam.rating;
+  const curve = interpolateRatingGap(ratingDelta);
+  let home = ratingDelta >= 0 ? curve.stronger : curve.weaker;
+  let away = ratingDelta >= 0 ? curve.weaker : curve.stronger;
+
+  if (!options.isNeutralVenue) {
+    home += 0.18;
+    away -= 0.05;
+  }
+
+  const durationFactor = options.durationFactor ?? 1;
+  home = clamp((home + (options.homeXgModifier || 0)) * durationFactor, 0.12, 3.2);
+  away = clamp((away + (options.awayXgModifier || 0)) * durationFactor, 0.12, 3.2);
+
+  return {
+    home: Number(home.toFixed(3)),
+    away: Number(away.toFixed(3)),
+    ratingDelta,
+  };
+};
+
+export const sampleUCLScoreline = (
+  homeTeam: Team,
+  awayTeam: Team,
+  options: SimulateUCLMatchOptions = {},
+) => {
+  const expectedGoals = calculateUCLExpectedGoals(homeTeam, awayTeam, options);
+  return {
+    homeScore: Math.min(8, samplePoisson(expectedGoals.home)),
+    awayScore: Math.min(8, samplePoisson(expectedGoals.away)),
+    expectedGoals,
+  };
+};
+
 export const simulateUCLMatch = (
   homeTeam: Team,
   awayTeam: Team,
@@ -85,85 +163,7 @@ export const simulateUCLMatch = (
   motm: UCLMatchMOTM | null;
   playerRatings: Record<string, number>;
 } => {
-  const isNeutral = options?.isNeutralVenue ?? false;
-
-  // Apply rating delta
-  const ratingDelta = homeTeam.rating - awayTeam.rating;
-
-  // Base Win Probabilities
-  let homeWinProb = isNeutral ? 40 : 45;
-  let drawProb = isNeutral ? 20 : 25;
-  let awayWinProb = isNeutral ? 40 : 30;
-
-  if (isNeutral) {
-    const clampedDelta = Math.max(-15, Math.min(15, ratingDelta));
-    const shift = clampedDelta * 1.5;
-    homeWinProb += shift;
-    awayWinProb -= shift;
-  } else {
-    const shift = ratingDelta * 1.5;
-    homeWinProb += shift;
-    awayWinProb -= shift;
-  }
-
-  homeWinProb = Math.max(10, Math.min(80, homeWinProb));
-  awayWinProb = Math.max(10, Math.min(80, awayWinProb));
-  drawProb = 100 - homeWinProb - awayWinProb;
-
-  if (drawProb < 10) {
-    drawProb = 10;
-    const totalWin = homeWinProb + awayWinProb;
-    if (totalWin > 0) {
-      homeWinProb = (homeWinProb / totalWin) * 90;
-      awayWinProb = (awayWinProb / totalWin) * 90;
-    }
-  }
-
-  // Roll match outcome
-  const roll = Math.random() * 100;
-  let outcome: 'home-win' | 'away-win' | 'draw';
-
-  if (roll < homeWinProb) {
-    outcome = 'home-win';
-  } else if (roll < homeWinProb + drawProb) {
-    outcome = 'draw';
-  } else {
-    outcome = 'away-win';
-  }
-
-  // Calculate Lambdas for Poisson
-  const baseLambdaHome = isNeutral ? 1.2 : 1.4;
-  const baseLambdaAway = isNeutral ? 1.2 : 1.0;
-
-  const lambdaHome = Math.max(0.5, baseLambdaHome + (ratingDelta > 0 ? ratingDelta * 0.02 : 0));
-  const lambdaAway = Math.max(0.5, baseLambdaAway + (ratingDelta < 0 ? Math.abs(ratingDelta) * 0.02 : 0));
-
-  // Generate Scoreline with Resampling
-  let hScore = 0;
-  let aScore = 0;
-  let valid = false;
-
-  for (let attempt = 0; attempt < 10; attempt++) {
-    hScore = samplePoisson(lambdaHome);
-    aScore = samplePoisson(lambdaAway);
-
-    if (outcome === 'home-win' && hScore > aScore) { valid = true; break; }
-    if (outcome === 'away-win' && aScore > hScore) { valid = true; break; }
-    if (outcome === 'draw' && hScore === aScore) { valid = true; break; }
-  }
-
-  // Fallback clamp if 10 resamples failed to match outcome
-  if (!valid) {
-    if (outcome === 'home-win') {
-      if (hScore <= aScore) aScore = Math.max(0, hScore - 1);
-      if (hScore === 0 && aScore === 0) hScore = 1;
-    } else if (outcome === 'away-win') {
-      if (aScore <= hScore) hScore = Math.max(0, aScore - 1);
-      if (aScore === 0 && hScore === 0) aScore = 1;
-    } else {
-      aScore = hScore;
-    }
-  }
+  const { homeScore: hScore, awayScore: aScore } = sampleUCLScoreline(homeTeam, awayTeam, options);
 
   // Build timeline and events
   const { timeline, scorers } = buildRegulationTimeline(

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UCL_TEAMS, UCL_TEAMS_BY_ID } from '../data/competitions/ucl2627';
 import { generatePresetSwissDraw, generateRandomSwissDraw } from '../utils/swissDraw';
@@ -37,19 +37,18 @@ import { UCLRecap } from '../components/ucl/UCLRecap';
 import { UCLPot1DrawTable } from '../components/ucl/UCLPot1DrawTable';
 import { UCLCountrySummaryTable } from '../components/ucl/UCLCountrySummaryTable';
 import { BackToTopButton } from '../components/BackToTopButton';
+import { UCLMorphIcon } from '../components/ucl/UCLMorphIcon';
 
 // Assets & Icons
 import {
-  RefreshCw,
   RotateCcw,
   ArrowLeft,
   Calendar,
   Layers,
   Sparkles,
   AlertTriangle,
-  Play,
-  CheckCircle2,
 } from 'lucide-react';
+import { Check, Play as PlayIcon, RefreshCw as RefreshIcon } from 'lucide';
 import uclBallSideImg from '../img/CUP COMPETITION/UCL/ball/ucl_ball_26-27_side.png';
 import uclBallSide2Img from '../img/CUP COMPETITION/UCL/ball/ucl_ball_26-27_side_2.png';
 import uclCupImg from '../img/CUP COMPETITION/UCL/ucl_cup.png';
@@ -203,6 +202,18 @@ export const UCLApp: React.FC = () => {
   const [isChampionModalOpen, setIsChampionModalOpen] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [drawError, setDrawError] = useState<string | null>(null);
+  const [drawFeedback, setDrawFeedback] = useState<'real' | 'random' | null>(null);
+  const drawFeedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showDrawFeedback = (type: 'real' | 'random') => {
+    if (drawFeedbackTimer.current) clearTimeout(drawFeedbackTimer.current);
+    setDrawFeedback(type);
+    drawFeedbackTimer.current = setTimeout(() => setDrawFeedback(null), 1400);
+  };
+
+  useEffect(() => () => {
+    if (drawFeedbackTimer.current) clearTimeout(drawFeedbackTimer.current);
+  }, []);
 
   // Save state to localStorage whenever simulation progresses
   useEffect(() => {
@@ -352,6 +363,7 @@ export const UCLApp: React.FC = () => {
     setLeagueMatches(fixtures);
     setDrawError(null);
     resetKnockout();
+    showDrawFeedback('real');
   };
 
   const handleRandomDraw = () => {
@@ -360,6 +372,7 @@ export const UCLApp: React.FC = () => {
       setLeagueMatches(fixtures);
       setDrawError(null);
       resetKnockout();
+      showDrawFeedback('random');
     } catch (error) {
       console.error('Random Swiss Draw failed validation', error);
       setDrawError('Unable to create a valid UEFA draw. Your current fixtures were kept unchanged.');
@@ -791,15 +804,15 @@ export const UCLApp: React.FC = () => {
                 onClick={handleRealDraw}
                 className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-amber-500/20 border border-amber-400/50 hover:bg-amber-500/30 text-amber-300 font-bold text-xs uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(245,158,11,0.25)]"
               >
-                <img src={uclCupImg} alt="" className="h-5 w-5 object-contain" />
-                <span>Real Draw</span>
+                <UCLMorphIcon icon={drawFeedback === 'real' ? Check : PlayIcon} size={18} strokeWidth={2.2} />
+                <span>{drawFeedback === 'real' ? 'Draw Applied' : 'Real Draw'}</span>
               </button>
               <button
                 onClick={handleRandomDraw}
                 className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-white/5 border border-white/15 hover:border-cyan-400/40 text-white/80 hover:text-white font-bold text-xs uppercase tracking-wider transition-all"
               >
-                <RefreshCw className="w-4 h-4 text-cyan-400" />
-                <span>Random Swiss Draw</span>
+                <UCLMorphIcon icon={drawFeedback === 'random' ? Check : RefreshIcon} size={17} strokeWidth={2.2} className="text-cyan-400" />
+                <span>{drawFeedback === 'random' ? 'Valid Draw Ready' : 'Random Swiss Draw'}</span>
               </button>
             </div>
           </div>
@@ -834,21 +847,15 @@ export const UCLApp: React.FC = () => {
 
             {/* Simulate Matchday button placed cleanly here as requested! */}
             <div className="shrink-0 w-full sm:w-auto">
-              {currentMatchdayDone ? (
-                <div className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 font-bold text-xs uppercase tracking-widest">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Matchday {currentMatchday} Completed</span>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => handleSimulateMatchday(currentMatchday)}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(0,240,255,0.4)] active:scale-95 transition-all"
-                >
-                  <Play className="w-4 h-4 fill-white" />
-                  <span>Simulate Matchday {currentMatchday}</span>
-                </button>
-              )}
+              <button
+                type="button"
+                disabled={currentMatchdayDone}
+                onClick={() => handleSimulateMatchday(currentMatchday)}
+                className={`flex w-full items-center justify-center gap-2 rounded-2xl border px-6 py-3 text-xs font-black uppercase tracking-widest transition-all sm:w-auto ${currentMatchdayDone ? 'cursor-default border-emerald-500/40 bg-emerald-500/15 text-emerald-300' : 'border-transparent bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-[0_0_20px_rgba(0,240,255,0.4)] hover:from-cyan-400 hover:to-blue-500 active:scale-95'}`}
+              >
+                <UCLMorphIcon icon={currentMatchdayDone ? Check : PlayIcon} size={17} strokeWidth={2.2} />
+                <span>{currentMatchdayDone ? `Matchday ${currentMatchday} Completed` : `Simulate Matchday ${currentMatchday}`}</span>
+              </button>
             </div>
           </div>
 

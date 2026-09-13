@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { ChevronDown, ChevronRight, Lock, MapPin, Sparkles } from 'lucide-react';
+import { ChevronRight, Lock, MapPin, Sparkles } from 'lucide-react';
+import { ChevronDown as ChevronDownIcon, ChevronUp as ChevronUpIcon } from 'lucide';
 import type { TwoLegMatch } from '../../types/uclConfig';
 import type { Team } from '../../types/tournament';
 import { getClubTheme } from '../../data/competitions/ucl2627/clubThemes';
@@ -7,6 +8,7 @@ import { UCLPenaltyModal } from './UCLPenaltyModal';
 import uclCupImg from '../../img/CUP COMPETITION/UCL/ucl_cup.png';
 import patchUclImg from '../../img/CUP COMPETITION/UCL/patch_ucl.png';
 import uclMvpCupImg from '../../img/CUP COMPETITION/UCL/ucl_mvp_cup.png';
+import { UCLMorphIcon } from './UCLMorphIcon';
 
 interface UCLKnockoutBracketProps {
   playoffs: TwoLegMatch[];
@@ -107,8 +109,19 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
       >
         <img src={team.logo} alt={`${team.name} crest`} className="h-8 w-8 object-contain" />
         <span className={`truncate text-base font-bold ${isWinner ? 'text-sky-200' : 'text-white'}`}>{team.name}</span>
-        <span className={`font-mono text-xl font-black ${isWinner ? 'text-sky-300' : 'text-white/75'}`}>
-          {aggregateScore ?? '–'}
+        <span className="flex items-baseline gap-1.5 font-mono tabular-nums">
+          {tie.leg2.penalties && (
+            <span className={`text-sm font-black ${(
+              side === 'home'
+                ? tie.leg2.penalties.homeScore > tie.leg2.penalties.awayScore
+                : tie.leg2.penalties.awayScore > tie.leg2.penalties.homeScore
+            ) ? 'text-rose-200' : 'text-white/40'}`}>
+              ({side === 'home' ? tie.leg2.penalties.homeScore : tie.leg2.penalties.awayScore})
+            </span>
+          )}
+          <span className={`text-xl font-black ${isWinner ? 'text-sky-300' : 'text-white/75'}`}>
+            {aggregateScore ?? '–'}
+          </span>
         </span>
       </button>
     );
@@ -236,10 +249,7 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
       return (
         <button
           type="button"
-          onClick={() => {
-            setSelectedPenaltyTieId(tie.id);
-            onResolvePenalties(roundKey, tie.id);
-          }}
+          onClick={() => onResolvePenalties(roundKey, tie.id)}
           className={`${baseClass} border border-[#FF005A]/50 bg-[#FF005A]/20 text-pink-200 hover:bg-[#FF005A]/30`}
         >
           Resolve Penalties
@@ -308,7 +318,7 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
               className="flex w-full items-center justify-between rounded-xl border border-white/20 bg-white/[0.055] px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.16em] text-white/75 transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-sky-300/40 hover:bg-white/[0.08] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
             >
               Match Details
-              <ChevronDown className={`h-4 w-4 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${expandedTies[tie.id] ? 'rotate-180' : ''}`} />
+              <UCLMorphIcon icon={expandedTies[tie.id] ? ChevronUpIcon : ChevronDownIcon} size={16} strokeWidth={2} />
             </button>
             <div
               id={`ucl-tie-details-${tie.id}`}

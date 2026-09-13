@@ -1,5 +1,6 @@
 import React from 'react';
-import { Sparkles, Layers, Calendar, ShieldCheck, ArrowRight, Lock } from 'lucide-react';
+import { Sparkles, Layers, Calendar, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Lock as LockIcon, Trophy } from 'lucide';
 import uclCupImg from '../../img/CUP COMPETITION/UCL/ucl_cup.png';
 import uclBallImg from '../../img/CUP COMPETITION/UCL/ball/ucl_ball_26-27.png';
 import uclBallSide1Img from '../../img/CUP COMPETITION/UCL/ball/ucl_ball_26-27_side.png';
@@ -7,6 +8,7 @@ import uclBallSide2Img from '../../img/CUP COMPETITION/UCL/ball/ucl_ball_26-27_s
 import patchUclImg from '../../img/CUP COMPETITION/UCL/patch_ucl.png';
 import uclLogoImg from '../../img/CUP COMPETITION/UCL/tournaments_uefa-champions-league_128x128.football-logos.cc.png';
 import badgeUclImg from '../../img/CUP COMPETITION/UCL/badge_ucl.png';
+import { UCLMorphIcon } from './UCLMorphIcon';
 
 interface UCLHeroBrandingProps {
   completedLeagueMatches: number;
@@ -207,7 +209,7 @@ export const UCLHeroBranding: React.FC<UCLHeroBrandingProps> = ({
               <div className="text-xl font-black text-white sm:text-2xl">Season report</div>
               <p className="mt-1 hidden text-xs text-white/50 sm:block">Podium · Awards · Best XI · Stats</p>
             </div>
-            {isRecapUnlocked ? <ArrowRight className="h-5 w-5 text-amber-300 transition-transform group-hover:translate-x-1" /> : <Lock className="h-5 w-5 text-white/25" />}
+            <UCLMorphIcon icon={isRecapUnlocked ? Trophy : LockIcon} size={20} strokeWidth={2} className={isRecapUnlocked ? 'text-amber-300' : 'text-white/25'} />
           </div>
         </div>
       </div>

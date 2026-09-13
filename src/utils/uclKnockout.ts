@@ -1,6 +1,6 @@
 import type { Team } from '../types/tournament';
 import type { TwoLegMatch, UCLPenaltyShootout, UCLPenaltyKick, TieStatus } from '../types/uclConfig';
-import { simulateUCLMatch } from './uclEngine';
+import { sampleUCLScoreline, simulateUCLMatch } from './uclEngine';
 import { calculateUCLMatchMOTM } from './uclMotm';
 import { buildKnockoutTimeline } from './random';
 
@@ -11,27 +11,22 @@ export const FINAL_VENUE = 'Estadio Metropolitano, Madrid';
  *  HELPER: EXTRA TIME GENERATOR (From WC26 random.ts)
  * ═══════════════════════════════════════════════════════════════
  */
-const sampleExtraTimeBaseGoals = () => {
-  const r = Math.random() * 100;
-  if (r < 66) return 0;
-  if (r < 93) return 1;
-  return 2;
-};
-
 const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
 
-const applyExtraTimeBias = (goals: number, ratingDifference: number) => {
-  let adjusted = goals;
-  const magnitude = Math.abs(ratingDifference);
-  if (ratingDifference >= 10 && Math.random() < Math.min(0.32, magnitude / 52)) adjusted += 1;
-  if (ratingDifference <= -10 && adjusted > 0 && Math.random() < Math.min(0.28, magnitude / 58)) adjusted -= 1;
-  return clamp(adjusted, 0, 2);
+const generateExtraTimeScoreline = (homeTeam: Team, awayTeam: Team, isNeutralVenue: boolean) => {
+  const score = sampleUCLScoreline(homeTeam, awayTeam, {
+    isNeutralVenue,
+    durationFactor: 0.29,
+  });
+  return { homeGoals: Math.min(3, score.homeScore), awayGoals: Math.min(3, score.awayScore) };
 };
 
-const generateExtraTimeScoreline = (homeTeam: Team, awayTeam: Team) => ({
-  homeGoals: applyExtraTimeBias(sampleExtraTimeBaseGoals(), homeTeam.rating - awayTeam.rating),
-  awayGoals: applyExtraTimeBias(sampleExtraTimeBaseGoals(), awayTeam.rating - homeTeam.rating),
-});
+const getPenaltyConversionRate = (team: Team, opponent: Team, position?: Team['players'][number]['position']) => {
+  const teamQuality = clamp((team.rating - 82) * 0.0012, -0.015, 0.015);
+  const opponentGoalkeeping = clamp((82 - opponent.rating) * 0.0008, -0.01, 0.01);
+  const positionAdjustment = position === 'FW' ? 0.012 : position === 'MF' ? 0.004 : position === 'GK' ? -0.035 : -0.012;
+  return clamp(0.72 + teamQuality + opponentGoalkeeping + positionAdjustment, 0.68, 0.77);
+};
 
 /**
  * ═══════════════════════════════════════════════════════════════
@@ -45,8 +40,6 @@ export const simulatePenaltyShootout = (homeTeam: Team, awayTeam: Team): UCLPena
   const awayPool = awayTeam.players.filter(p => p.position === 'FW' || p.position === 'MF').length >= 3
     ? awayTeam.players.filter(p => p.position === 'FW' || p.position === 'MF')
     : awayTeam.players;
-
-  const CONVERSION_RATE = 0.72; // Flat 72%
 
   const hasDecisiveLead = (home: number, away: number, homeKicks: number, awayKicks: number) => {
     const remainingHome = Math.max(0, 5 - homeKicks);
@@ -64,7 +57,8 @@ export const simulatePenaltyShootout = (homeTeam: Team, awayTeam: Team): UCLPena
       const pool = side === 'home' ? homePool : awayPool;
       const kickIndex = side === 'home' ? homeKicks : awayKicks;
       const player = pool[kickIndex % pool.length];
-      const scored = Math.random() < CONVERSION_RATE;
+      const opponent = side === 'home' ? awayTeam : homeTeam;
+      const scored = Math.random() < getPenaltyConversionRate(team, opponent, player.position);
       const outcome: UCLPenaltyKick['outcome'] = scored
         ? 'goal'
         : Math.random() < 0.7
@@ -104,7 +98,12 @@ export const simulatePenaltyShootout = (homeTeam: Team, awayTeam: Team): UCLPena
     if (result && result.homeScore !== result.awayScore) return result;
   }
 
-  return { homeScore: 5, awayScore: 4, kicks: [] }; // Fallback
+  const homeWins = Math.random() < 0.5;
+  return {
+    homeScore: homeWins ? 5 : 4,
+    awayScore: homeWins ? 4 : 5,
+    kicks: [],
+  };
 };
 
 /**
@@ -133,7 +132,16 @@ export const simulateKnockoutLeg1 = (match: TwoLegMatch, homeTeam: Team, awayTea
 export const simulateKnockoutLeg2 = (match: TwoLegMatch, homeTeam: Team, awayTeam: Team): TwoLegMatch => {
   // If final, just simulate the 90 min. If tied, go to ET.
   const isFinal = match.round === 'final';
-  const sim = simulateUCLMatch(homeTeam, awayTeam, { isNeutralVenue: isFinal, deferMotm: true });
+  const aggregateDelta = (match.aggregate.homeScore || 0) - (match.aggregate.awayScore || 0);
+  const deficit = Math.abs(aggregateDelta);
+  const trailingAttackBoost = Math.min(0.45, deficit * 0.16);
+  const counterAttackBoost = Math.min(0.24, deficit * 0.08);
+  const sim = simulateUCLMatch(homeTeam, awayTeam, {
+    isNeutralVenue: isFinal,
+    deferMotm: true,
+    homeXgModifier: isFinal || aggregateDelta === 0 ? 0 : aggregateDelta < 0 ? trailingAttackBoost : counterAttackBoost,
+    awayXgModifier: isFinal || aggregateDelta === 0 ? 0 : aggregateDelta > 0 ? trailingAttackBoost : counterAttackBoost,
+  });
 
   let aggHome = isFinal ? sim.homeScore : (match.leg1.awayScore || 0) + sim.homeScore;
   let aggAway = isFinal ? sim.awayScore : (match.leg1.homeScore || 0) + sim.awayScore;
@@ -174,7 +182,7 @@ export const simulateKnockoutLeg2 = (match: TwoLegMatch, homeTeam: Team, awayTea
 
 export const simulateExtraTime = (match: TwoLegMatch, homeTeam: Team, awayTeam: Team): TwoLegMatch => {
   const isFinal = match.round === 'final';
-  const et = generateExtraTimeScoreline(homeTeam, awayTeam);
+  const et = generateExtraTimeScoreline(homeTeam, awayTeam, isFinal);
   const { timeline: etTimeline, scorers: etScorers } = buildKnockoutTimeline(
     homeTeam,
     awayTeam,
