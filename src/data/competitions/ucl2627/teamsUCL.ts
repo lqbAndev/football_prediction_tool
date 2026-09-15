@@ -114,8 +114,8 @@ export const UCL_TEAMS: Team[] = [
     stadium: 'Parc des Princes, Paris',
     logo: psgLogo,
     players: [
-      { id: 'psg-gk1', name: "Lucas Chevalier", position: 'GK' },
-      { id: 'psg-gk2', name: "Matvey Safonov", position: 'GK' },
+      { id: 'psg-gk1', name: "Matvey Safonov", position: 'GK' },
+      { id: 'psg-gk2', name: "Lucas Chevalier", position: 'GK' },
       { id: 'psg-df1', name: "Achraf Hakimi", position: 'DF' },
       { id: 'psg-df2', name: "Marquinhos", position: 'DF' },
       { id: 'psg-df3', name: "Illia Zabarnyi", position: 'DF' },
@@ -160,10 +160,10 @@ export const UCL_TEAMS: Team[] = [
       { id: 'mci-mf4', name: "Matheus Nunes", position: 'MF' },
       { id: 'mci-mf5', name: "Phil Foden", position: 'MF' },
       { id: 'mci-mf6', name: "Nico O'Reilly", position: 'MF' },
+      { id: 'mci-mf7', name: "Enzo fernández", position: 'MF' }
       { id: 'mci-fw1', name: "Erling Haaland", position: 'FW' },
       { id: 'mci-fw2', name: "Jérémy Doku", position: 'FW' },
       { id: 'mci-fw3', name: "Antoine Semenyo", position: 'FW' },
-      { id: 'mci-fw4', name: "Jeremy Monga", position: 'FW' }
     ]
   },
   {
@@ -257,7 +257,7 @@ export const UCL_TEAMS: Team[] = [
       { id: 'ars-mf5', name: "Bruno Guimarães", position: 'MF' },
       { id: 'ars-mf6', name: "Declan Rice", position: 'MF' },
       { id: 'ars-fw1', name: "Bukayo Saka", position: 'FW' },
-      { id: 'ars-fw2', name: "Gabriel Martinelli", position: 'FW' },
+      { id: 'ars-fw2', name: "Noni Madueke", position: 'FW' },
       { id: 'ars-fw3', name: "Viktor Gyökeres", position: 'FW' },
       { id: 'ars-fw4', name: "Christos Tzolis", position: 'FW' }
     ]
@@ -303,7 +303,7 @@ export const UCL_TEAMS: Team[] = [
     tier: 'A',
     pot: 1,
     manager: 'Diego Simeone',
-    stadium: 'Riyadh Air Metropolitano, Madrid',
+    stadium: 'Estadio Metropolitano, Madrid',
     logo: atleticoLogo,
     players: [
       { id: 'atm-gk1', name: "Juan Musso", position: 'GK' },
