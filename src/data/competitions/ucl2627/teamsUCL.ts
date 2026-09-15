@@ -160,7 +160,7 @@ export const UCL_TEAMS: Team[] = [
       { id: 'mci-mf4', name: "Matheus Nunes", position: 'MF' },
       { id: 'mci-mf5', name: "Phil Foden", position: 'MF' },
       { id: 'mci-mf6', name: "Nico O'Reilly", position: 'MF' },
-      { id: 'mci-mf7', name: "Enzo fernández", position: 'MF' }
+      { id: 'mci-mf7', name: "Enzo fernández", position: 'MF' },
       { id: 'mci-fw1', name: "Erling Haaland", position: 'FW' },
       { id: 'mci-fw2', name: "Jérémy Doku", position: 'FW' },
       { id: 'mci-fw3', name: "Antoine Semenyo", position: 'FW' },
