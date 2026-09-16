@@ -84,6 +84,11 @@ export const calculateUCLMatchMOTM = ({
   finalizedAt,
   penalties,
 }: CalculateUCLMOTMInput): UCLMatchMOTM | null => {
+  // MOTM evaluates this match, even when the aggregate winner lost this leg.
+  const matchWinnerId = homeScore === awayScore
+    ? winnerTeamId
+    : homeScore > awayScore ? homeTeam.id : awayTeam.id;
+  const winningMargin = Math.abs(homeScore - awayScore);
   const teams = [homeTeam, awayTeam];
   const teamById = new Map(teams.map((team) => [team.id, team]));
   const eligibleByTeam = new Map(teams.map((team) => [team.id, getLikelyParticipants(team)]));
@@ -142,11 +147,11 @@ export const calculateUCLMatchMOTM = ({
     candidate.breakdown.goalPoints += 6 + positionBonus + penaltyAdjustment + extraTimeBonus;
   });
 
-  if (winnerTeamId && homeScore !== awayScore) {
+  if (matchWinnerId && homeScore !== awayScore) {
     const losingScore = Math.min(homeScore, awayScore);
     let winnerGoalCount = 0;
     const decisiveGoal = validGoals.find((event) => {
-      if (event.teamId !== winnerTeamId) return false;
+      if (event.teamId !== matchWinnerId) return false;
       winnerGoalCount += 1;
       return winnerGoalCount === losingScore + 1;
     });
@@ -173,9 +178,11 @@ export const calculateUCLMatchMOTM = ({
   if (awayScore === 0) awardCleanSheet(homeTeam);
   if (homeScore === 0) awardCleanSheet(awayTeam);
 
-  if (winnerTeamId) {
+  if (matchWinnerId) {
     candidates.forEach((candidate) => {
-      if (candidate.teamId === winnerTeamId) candidate.breakdown.winnerPoints += 1;
+      if (candidate.teamId === matchWinnerId) {
+        candidate.breakdown.winnerPoints += 3 + Math.min(winningMargin, 3);
+      }
     });
   }
 
@@ -215,7 +222,11 @@ export const calculateUCLMatchMOTM = ({
     }
   }
 
-  const ranked = [...candidates.values()].sort((left, right) =>
+  // A brace in a heavy defeat must not outweigh the winning side's dominance.
+  // Close matches still allow an outstanding player from the losing side.
+  const ranked = [...candidates.values()]
+    .filter((candidate) => winningMargin < 3 || candidate.teamId === matchWinnerId)
+    .sort((left, right) =>
     totalScore(right) - totalScore(left) ||
     right.rating - left.rating ||
     right.breakdown.decisivePoints - left.breakdown.decisivePoints ||

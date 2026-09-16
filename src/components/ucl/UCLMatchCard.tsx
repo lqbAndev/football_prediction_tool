@@ -1,14 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import type { LeagueMatch } from '../../types/leagueConfig';
-import type { Team, TimelineEvent } from '../../types/tournament';
+import type { Team } from '../../types/tournament';
 import { getClubTheme } from '../../data/competitions/ucl2627/clubThemes';
-import { Clock } from 'lucide-react';
-import { Check, ChevronDown as ChevronDownIcon, ChevronUp as ChevronUpIcon, Play as PlayIcon } from 'lucide';
-import uclBallImg from '../../img/CUP COMPETITION/UCL/ball/ucl_ball_26-27.png';
+import { Check, Play as PlayIcon } from 'lucide';
 import patchUclImg from '../../img/CUP COMPETITION/UCL/patch_ucl.png';
 import badgeUclImg from '../../img/CUP COMPETITION/UCL/badge_ucl.png';
-import uclMvpCupImg from '../../img/CUP COMPETITION/UCL/ucl_mvp_cup.png';
 import { UCLMorphIcon } from './UCLMorphIcon';
+import { UCLMatchTimeline } from './UCLMatchTimeline';
 
 interface UCLMatchCardProps {
   match: LeagueMatch;
@@ -27,24 +25,6 @@ const StadiumIcon = () => (
   </svg>
 );
 
-interface GoalLineProps {
-  event: Pick<TimelineEvent, 'displayMinute' | 'playerName'> &
-    Partial<Pick<TimelineEvent, 'isPenalty' | 'isOwnGoal'>>;
-  side: 'home' | 'away';
-}
-
-const GoalLine: React.FC<GoalLineProps> = ({ event, side }) => (
-  <div className={`flex min-w-0 items-center gap-1.5 text-xs ${side === 'away' ? 'flex-row-reverse text-right' : ''}`}>
-    <img src={uclBallImg} alt="Goal" className="h-5 w-5 shrink-0 object-contain" />
-    <span className={`shrink-0 font-mono font-black ${side === 'home' ? 'text-sky-300' : 'text-blue-300'}`}>
-      {event.displayMinute}
-    </span>
-    <span className="truncate font-semibold text-white/90">{event.playerName}</span>
-    {event.isPenalty && <span className="shrink-0 rounded bg-amber-400/15 px-1 py-0.5 text-[8px] font-black text-amber-300">PEN</span>}
-    {event.isOwnGoal && <span className="shrink-0 rounded bg-rose-400/15 px-1 py-0.5 text-[8px] font-black text-rose-300">OG</span>}
-  </div>
-);
-
 export const UCLMatchCard: React.FC<UCLMatchCardProps> = ({
   match,
   matchday,
@@ -53,25 +33,10 @@ export const UCLMatchCard: React.FC<UCLMatchCardProps> = ({
   onPredict,
   onSelectTeam,
 }) => {
-  const [expanded, setExpanded] = useState(false);
   const [isPredicting, setIsPredicting] = useState(false);
   const predictTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isCompleted = match.status === 'completed';
   const homeTheme = getClubTheme(homeTeam.id);
-  const timeline = match.timeline || [];
-  const homeEvents = timeline.filter((event) => event.side === 'home');
-  const awayEvents = timeline.filter((event) => event.side === 'away');
-
-  const fallbackEvents = (side: 'home' | 'away'): GoalLineProps['event'][] =>
-    (match.scorers?.[side] || []).map((scorer) => ({
-      displayMinute: `${scorer.minute}'`,
-      playerName: scorer.playerName,
-      isPenalty: false,
-      isOwnGoal: false,
-    }));
-
-  const displayedHomeEvents = homeEvents.length > 0 ? homeEvents : fallbackEvents('home');
-  const displayedAwayEvents = awayEvents.length > 0 ? awayEvents : fallbackEvents('away');
 
   useEffect(() => () => {
     if (predictTimer.current) clearTimeout(predictTimer.current);
@@ -131,45 +96,10 @@ export const UCLMatchCard: React.FC<UCLMatchCardProps> = ({
 
       {isCompleted && (
         <div className="border-t border-white/10 px-4 py-4 sm:px-6">
-          {match.motm && (
-            <div className="mb-3 flex items-center gap-3 rounded-2xl border border-amber-300/25 bg-amber-300/[0.08] px-3 py-2.5">
-              <img src={uclMvpCupImg} alt="MVP trophy" className="h-9 w-9 shrink-0 object-contain drop-shadow-[0_0_10px_rgba(251,191,36,0.35)] sm:h-10 sm:w-10" />
-              <div className="min-w-0">
-                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-300">Man of the Match</p>
-                <p className="truncate text-sm font-black text-white">{match.motm.playerName}</p>
-              </div>
-              <span className="ml-auto hidden truncate text-[10px] font-semibold text-white/45 sm:block">{match.motm.teamName}</span>
-            </div>
-          )}
-
-          <button
-            type="button"
-            aria-expanded={expanded}
-            aria-controls={`ucl-timeline-${match.id}`}
-            onClick={() => setExpanded((current) => !current)}
-            className="flex w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3 text-left text-sm font-bold text-white/70 transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-sky-300/25 hover:bg-white/[0.06] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
-          >
-            <span className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-sky-300" />
-              Match Timeline
-            </span>
-            <UCLMorphIcon icon={expanded ? ChevronUpIcon : ChevronDownIcon} size={16} strokeWidth={2} />
-          </button>
-
-          <div
-            id={`ucl-timeline-${match.id}`}
-            className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${expanded ? 'mt-3 max-h-[600px] opacity-100' : 'max-h-0 opacity-0'}`}
-          >
-            <div className="grid gap-3 rounded-2xl bg-black/15 p-3 sm:grid-cols-2 sm:gap-4">
-              <div className="min-w-0 space-y-2 border-b border-white/10 pb-3 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-2">
-                {displayedHomeEvents.length > 0 ? displayedHomeEvents.map((event, index) => <GoalLine key={index} event={event} side="home" />) : <span className="text-xs italic text-white/25">No goals</span>}
-              </div>
-              <div className="min-w-0 space-y-2 sm:pl-2">
-                {displayedAwayEvents.length > 0 ? displayedAwayEvents.map((event, index) => <GoalLine key={index} event={event} side="away" />) : <span className="block text-right text-xs italic text-white/25">No goals</span>}
-              </div>
-            </div>
-
-          </div>
+          <UCLMatchTimeline
+            matchId={match.id} homeTeam={homeTeam} awayTeam={awayTeam}
+            timeline={match.timeline} scorers={match.scorers} motm={match.motm}
+          />
         </div>
       )}
 

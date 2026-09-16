@@ -7,8 +7,10 @@ import { getClubTheme } from '../../data/competitions/ucl2627/clubThemes';
 import { UCLPenaltyModal } from './UCLPenaltyModal';
 import uclCupImg from '../../img/CUP COMPETITION/UCL/ucl_cup.png';
 import patchUclImg from '../../img/CUP COMPETITION/UCL/patch_ucl.png';
+import badgeUclImg from '../../img/CUP COMPETITION/UCL/badge_ucl.png';
 import uclMvpCupImg from '../../img/CUP COMPETITION/UCL/ucl_mvp_cup.png';
 import { UCLMorphIcon } from './UCLMorphIcon';
+import { UCLMatchTimeline } from './UCLMatchTimeline';
 
 interface UCLKnockoutBracketProps {
   playoffs: TwoLegMatch[];
@@ -267,6 +269,11 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
     const awayTeam = teamsById[tie.awayTeamId];
     if (!homeTeam || !awayTeam) return null;
     const isFinal = roundKey === 'final';
+    const roundMatches = { playoffs, roundOf16, quarterfinals, semifinals }[roundKey as PathwayRound] || [];
+    const matchNumber = roundMatches.findIndex((match) => match.id === tie.id) + 1;
+    const hasMatchDetails = isFinal
+      ? tie.leg2.status === 'completed'
+      : tie.leg1.status === 'completed' || tie.leg2.status === 'completed';
     const venueTeam = tie.leg1.status === 'pending' ? awayTeam : homeTeam;
     const venueTheme = getClubTheme(venueTeam.id);
     const venueName = isFinal ? 'Estadio Metropolitano, Madrid' : venueTeam.stadium || 'Home Arena';
@@ -277,13 +284,28 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
     return (
       <article
         key={tie.id}
-        className={`relative min-w-0 overflow-hidden rounded-2xl border bg-[#060d1a] p-4 shadow-[0_14px_40px_rgba(0,6,20,0.34)] ${
-          tie.isCompleted ? 'border-sky-300/30' : 'border-white/10'
+        className={`relative min-w-0 overflow-hidden border p-4 shadow-[0_14px_40px_rgba(0,6,20,0.34)] ${isFinal
+          ? 'rounded-3xl border-amber-300/35 bg-gradient-to-b from-[#101b34] to-[#040b1b] sm:p-6'
+          : `rounded-2xl bg-[#060d1a] ${tie.isCompleted ? 'border-sky-300/30' : 'border-white/10'}`
         }`}
       >
-        <img src={patchUclImg} alt="" className="absolute right-2 top-2 h-5 w-5 object-contain opacity-30" />
+        {!isFinal && <img src={patchUclImg} alt="" className="absolute right-2 top-2 h-5 w-5 object-contain opacity-30" />}
+        {isFinal && (
+          <div className="mb-4 flex items-center justify-between gap-3 border-b border-amber-200/10 pb-3">
+            <div className="flex items-center gap-2">
+              <img src={patchUclImg} alt="UEFA Champions League" className="h-7 w-7 object-contain" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-200">Madrid 27 · Final</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`rounded-full border px-2 py-1 text-[9px] font-black uppercase ${tie.isCompleted ? 'border-emerald-300/25 bg-emerald-300/10 text-emerald-200' : 'border-white/15 text-white/55'}`}>
+                {tie.isCompleted ? 'FT' : tie.leg2.status === 'completed' ? 'In progress' : 'Pending'}
+              </span>
+              <img src={badgeUclImg} alt="UCL badge" className="h-7 w-7 object-contain" />
+            </div>
+          </div>
+        )}
         <div className="mb-2 flex items-center gap-2 pr-6">
-          <span className="truncate text-[9px] font-black uppercase tracking-[0.2em] text-white/40">{ROUND_LABELS[roundKey]}</span>
+          <span className="truncate text-[9px] font-black uppercase tracking-[0.2em] text-white/40">{isFinal ? 'The European showpiece' : `${ROUND_LABELS[roundKey]} - M${matchNumber}`}</span>
           {tie.leg2.extraTime && <span className="rounded bg-amber-400/15 px-1.5 py-0.5 text-[8px] font-black text-amber-300">AET</span>}
           {tie.leg2.penalties && <span className="rounded bg-rose-400/15 px-1.5 py-0.5 text-[8px] font-black text-rose-200">PEN</span>}
         </div>
@@ -292,10 +314,44 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
           <span className="truncate">{venueName}</span>
         </div>
 
+        {isFinal ? (
+          <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 py-6 sm:gap-6 sm:py-10">
+            <button type="button" onClick={() => onSelectTeam?.(homeTeam.id)} className="group min-w-0 rounded-xl text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300">
+              <img src={homeTeam.logo} alt={homeTeam.name} className="mx-auto h-14 w-14 object-contain transition group-hover:scale-105 sm:h-24 sm:w-24" />
+              <span className={`mt-3 hidden break-words font-black leading-tight sm:block sm:text-xl ${tie.winnerId === homeTeam.id ? 'text-amber-200' : 'text-white'}`}>{homeTeam.name}</span>
+              <span className="mt-2 hidden text-[8px] font-bold uppercase tracking-widest text-white/35 sm:block">Finalist · Pathway 1</span>
+            </button>
+            <div className="text-center">
+              <p className="mb-2 text-[8px] font-black uppercase tracking-[0.2em] text-amber-200/65">{tie.leg2.penalties ? 'PEN' : tie.leg2.extraTime ? 'AET' : 'Score'}</p>
+              <div className="flex items-baseline justify-center gap-1 rounded-2xl border border-amber-200/20 bg-black/30 px-2 py-3 font-mono font-black tabular-nums sm:gap-2 sm:px-5 sm:py-4">
+                {tie.leg2.penalties && <span className="text-xs text-amber-200 sm:text-base">({tie.leg2.penalties.homeScore})</span>}
+                <span className="text-3xl text-white sm:text-5xl">{tie.aggregate.homeScore ?? '–'}</span>
+                <span className="px-0.5 text-xl text-white/25 sm:text-3xl">–</span>
+                <span className="text-3xl text-white sm:text-5xl">{tie.aggregate.awayScore ?? '–'}</span>
+                {tie.leg2.penalties && <span className="text-xs text-amber-200 sm:text-base">({tie.leg2.penalties.awayScore})</span>}
+              </div>
+              <p className="mt-2 text-[8px] text-white/35">Single match · Neutral venue</p>
+            </div>
+            <button type="button" onClick={() => onSelectTeam?.(awayTeam.id)} className="group min-w-0 rounded-xl text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300">
+              <img src={awayTeam.logo} alt={awayTeam.name} className="mx-auto h-14 w-14 object-contain transition group-hover:scale-105 sm:h-24 sm:w-24" />
+              <span className={`mt-3 hidden break-words font-black leading-tight sm:block sm:text-xl ${tie.winnerId === awayTeam.id ? 'text-amber-200' : 'text-white'}`}>{awayTeam.name}</span>
+              <span className="mt-2 hidden text-[8px] font-bold uppercase tracking-widest text-white/35 sm:block">Finalist · Pathway 2</span>
+            </button>
+            <div className="col-span-3 mt-2 grid grid-cols-2 gap-4 text-center sm:hidden">
+              {[homeTeam, awayTeam].map((team, index) => (
+                <button key={team.id} type="button" onClick={() => onSelectTeam?.(team.id)} className="min-w-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300">
+                  <span className={`block text-sm font-black leading-tight ${tie.winnerId === team.id ? 'text-amber-200' : 'text-white'}`}>{team.name}</span>
+                  <span className="mt-2 block text-[8px] font-bold uppercase tracking-widest text-white/35">Finalist · Pathway {index + 1}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
         <div className="space-y-0.5">
           {renderTeamRow(homeTeam, tie, 'home')}
           {renderTeamRow(awayTeam, tie, 'away')}
         </div>
+        )}
 
         {roundKey !== 'final' && (
           <div className="mt-2 grid grid-cols-2 gap-1 text-center font-mono text-[9px] text-white/45">
@@ -308,7 +364,19 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
           </div>
         )}
 
-        {(tie.leg1.status === 'completed' || tie.leg2.status === 'completed') && (
+        {hasMatchDetails && isFinal && (
+          <div className="mt-3 border-t border-white/10 pt-4">
+            <UCLMatchTimeline
+              matchId={tie.id} homeTeam={homeTeam} awayTeam={awayTeam}
+              timeline={tie.leg2.timeline} scorers={tie.leg2.scorers}
+              extraTimeTimeline={tie.leg2.etTimeline} extraTimeScorers={tie.leg2.etScorers}
+              motm={tie.leg2.motm} motmPending={!tie.leg2.motm && !tie.isCompleted}
+              pendingPhase={tie.tieStatus === 'aet' ? 'Awaiting penalties' : 'Awaiting extra time'}
+              showFinalizedAt
+            />
+          </div>
+        )}
+        {hasMatchDetails && !isFinal && (
           <div className="mt-3">
             <button
               type="button"
@@ -322,7 +390,8 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
             </button>
             <div
               id={`ucl-tie-details-${tie.id}`}
-              className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${expandedTies[tie.id] ? 'mt-3 max-h-[900px] opacity-100' : 'max-h-0 opacity-0'}`}
+              hidden={!expandedTies[tie.id]}
+              className="mt-3"
             >
               <div className="grid gap-2">
                 {roundKey !== 'final' && renderLegDetails(tie, 'leg1', awayTeam, homeTeam, 'Leg 1')}
@@ -450,10 +519,10 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
           </button>
         </div>
       ) : (
-        <section className="mx-auto max-w-3xl rounded-[32px] border border-amber-400/30 bg-gradient-to-b from-amber-400/10 via-[#000B29] to-[#00081E] p-5 text-center shadow-[0_0_60px_rgba(245,158,11,0.12)] sm:p-8">
-          <img src={uclCupImg} alt="UEFA Champions League trophy" className="mx-auto h-24 w-24 object-contain" />
-          <p className="mt-3 text-[10px] font-black uppercase tracking-[0.32em] text-amber-300">Estadio Metropolitano</p>
-          <h3 className="mt-1 text-3xl font-black text-white">Madrid 27 Final</h3>
+        <section className="relative mx-auto max-w-4xl overflow-hidden rounded-[32px] border border-amber-400/30 bg-[radial-gradient(ellipse_at_50%_0%,rgba(245,158,11,0.18),transparent_65%),linear-gradient(to_bottom,#071329,#00081E)] p-3 text-center shadow-[0_0_60px_rgba(245,158,11,0.12)] sm:p-8">
+          <img src={uclCupImg} alt="UEFA Champions League trophy" className="mx-auto h-28 w-28 object-contain drop-shadow-[0_0_28px_rgba(245,158,11,0.25)] sm:h-40 sm:w-40" />
+          <p className="mt-3 text-[9px] font-black uppercase tracking-[0.3em] text-amber-300 sm:text-[10px]">Estadio Metropolitano · Madrid</p>
+          <h3 className="mt-2 text-4xl font-black tracking-tight text-white sm:text-6xl">The Final <span className="text-amber-200">2027</span></h3>
           <p className="mt-2 text-sm text-white/45">One match. Two finalists. One champion of Europe.</p>
           <div className="mt-7 text-left">
             {finalMatch ? renderTieCard(finalMatch, 'final') : (

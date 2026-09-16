@@ -3,6 +3,16 @@ import type { LeagueMatch } from '../types/leagueConfig';
 import type { TwoLegMatch } from '../types/uclConfig';
 import type { BestXIPlayer, BestXIResult } from './bestXI';
 
+export const UCL_PLAYER_SCORING = {
+  goals: { FW: 3, MF: 3.5, DF: 4, GK: 4 },
+  cleanSheets: { GK: 2, DF: 1 },
+  motm: 5,
+  stageWeights: { playoffs: 1.1, roundOf16: 1.2, quarterfinals: 1.35, semifinals: 1.5, final: 1.75 },
+  progression: { playoffs: 1, roundOf16: 2, quarterfinals: 4, semifinals: 6, final: 9, champion: 12 },
+} as const;
+
+const roundPoints = (points: number) => Number(points.toFixed(2));
+
 interface PlayerTournamentStats {
   playerId: string;
   name: string;
@@ -40,6 +50,7 @@ interface MatchSnapshot {
   scorers?: LeagueMatch['scorers'];
   motm?: LeagueMatch['motm'];
   playerRatings?: Record<string, number>;
+  stageWeight?: number;
 }
 
 export interface UCLRecapStats {
@@ -229,6 +240,7 @@ export const computeUclRecapStats = (
     const homeTeam = teamMap.get(match.homeTeamId);
     const awayTeam = teamMap.get(match.awayTeamId);
     if (!homeTeam || !awayTeam) return;
+    const stageWeight = match.stageWeight ?? 1;
 
     totalMatches += 1;
     const matchGoals = match.homeScore + match.awayScore;
@@ -260,14 +272,14 @@ export const computeUclRecapStats = (
         const goalkeeperStats = resolvePlayer(team.id, primaryGoalkeeper.id);
         if (goalkeeperStats) {
           goalkeeperStats.cleanSheets += 1;
-          goalkeeperStats.cleanSheetPoints += 2;
+          goalkeeperStats.cleanSheetPoints += UCL_PLAYER_SCORING.cleanSheets.GK;
         }
       }
       team.players.filter((player) => player.position === 'DF').forEach((player) => {
         const defenderStats = resolvePlayer(team.id, player.id);
         if (defenderStats) {
           defenderStats.cleanSheets += 1;
-          defenderStats.cleanSheetPoints += 2;
+          defenderStats.cleanSheetPoints += UCL_PLAYER_SCORING.cleanSheets.DF;
         }
       });
     };
@@ -285,7 +297,7 @@ export const computeUclRecapStats = (
       const player = resolvePlayer(event.teamId, event.playerId, event.playerName);
       if (!player) return;
       player.goals += 1;
-      player.goalPoints += player.position === 'FW' ? 2 : player.position === 'MF' ? 3 : 5;
+      player.goalPoints += UCL_PLAYER_SCORING.goals[player.position] * stageWeight;
       if (event.isPenalty) {
         player.penalties += 1;
         totalPenalties += 1;
@@ -296,7 +308,7 @@ export const computeUclRecapStats = (
       const motmPlayer = resolvePlayer(match.motm.teamId, match.motm.playerId, match.motm.playerName);
       if (motmPlayer) {
         motmPlayer.motmAwards += 1;
-        motmPlayer.motmPoints += 5;
+        motmPlayer.motmPoints += UCL_PLAYER_SCORING.motm * stageWeight;
       }
     }
 
@@ -339,10 +351,12 @@ export const computeUclRecapStats = (
   });
 
   knockoutMatches.forEach((tie) => {
+    const stageWeight = UCL_PLAYER_SCORING.stageWeights[tie.round as keyof typeof UCL_PLAYER_SCORING.stageWeights] ?? 1;
     if (tie.round !== 'final' && tie.leg1.status === 'completed' && tie.leg1.homeScore !== null && tie.leg1.awayScore !== null) {
       processMatch({
         id: `${tie.id}-leg1`,
         stage: `${tie.round} · Leg 1`,
+        stageWeight,
         homeTeamId: tie.awayTeamId,
         awayTeamId: tie.homeTeamId,
         homeScore: tie.leg1.homeScore,
@@ -360,6 +374,7 @@ export const computeUclRecapStats = (
       processMatch({
         id: tie.round === 'final' ? tie.id : `${tie.id}-leg2`,
         stage: tie.round === 'final' ? 'Final · Madrid 27' : `${tie.round} · Leg 2`,
+        stageWeight,
         homeTeamId: tie.homeTeamId,
         awayTeamId: tie.awayTeamId,
         homeScore: tie.leg2.homeScore + extraHome,
@@ -372,35 +387,43 @@ export const computeUclRecapStats = (
     }
   });
 
+  // Highest reached stage is awarded once, rather than stacking team bonuses.
+  const teamProgress = new Map<string, number>();
+  knockoutMatches.forEach((tie) => {
+    const points = UCL_PLAYER_SCORING.progression[tie.round as keyof typeof UCL_PLAYER_SCORING.progression] ?? 0;
+    [tie.homeTeamId, tie.awayTeamId].forEach((teamId) => {
+      teamProgress.set(teamId, Math.max(teamProgress.get(teamId) || 0, points));
+    });
+  });
   const completedFinal = knockoutMatches.find((tie) => tie.round === 'final' && tie.isCompleted && tie.winnerId);
   if (completedFinal?.winnerId) {
     const runnerUpId = completedFinal.winnerId === completedFinal.homeTeamId
       ? completedFinal.awayTeamId
       : completedFinal.homeTeamId;
-    teamMap.get(completedFinal.winnerId)?.players.forEach((player) => {
-      const stats = resolvePlayer(completedFinal.winnerId!, player.id);
-      if (stats) stats.achievementPoints += 3;
-    });
-    teamMap.get(runnerUpId)?.players.forEach((player) => {
-      const stats = resolvePlayer(runnerUpId, player.id);
-      if (stats) stats.achievementPoints += 2;
-    });
+    teamProgress.set(completedFinal.winnerId, UCL_PLAYER_SCORING.progression.champion);
+    teamProgress.set(runnerUpId, UCL_PLAYER_SCORING.progression.final);
   }
+  playerStats.forEach((player) => {
+    player.achievementPoints = teamProgress.get(player.teamId) || 0;
+    player.goalPoints = roundPoints(player.goalPoints);
+    player.motmPoints = roundPoints(player.motmPoints);
+  });
 
   const averageRating = (player: PlayerTournamentStats) =>
     player.ratingAppearances > 0 ? player.ratingTotal / player.ratingAppearances : 0;
-  const performanceScore = (player: PlayerTournamentStats) =>
+  const performanceScore = (player: PlayerTournamentStats) => roundPoints(
     player.goalPoints +
     player.cleanSheetPoints +
     player.motmPoints +
     player.teamWinPoints +
-    player.achievementPoints;
+    player.achievementPoints);
   const rankedPlayers = [...playerStats.values()]
     .filter((player) => player.ratingAppearances > 0)
     .sort((left, right) =>
       performanceScore(right) - performanceScore(left) ||
-      averageRating(right) - averageRating(left) ||
+      (teamProgress.get(right.teamId) || 0) - (teamProgress.get(left.teamId) || 0) ||
       right.motmAwards - left.motmAwards ||
+      averageRating(right) - averageRating(left) ||
       right.goals - left.goals ||
       left.name.localeCompare(right.name),
     );
@@ -457,7 +480,10 @@ export const computeUclRecapStats = (
     conceded: teamGoalsConceded.get(defensiveTeam.id) || 0,
   } : null;
 
-  const potsPlayer = rankedPlayers[0];
+  // At the end of the tournament, POTS must have made a deep knockout run.
+  const potsPlayer = completedFinal
+    ? rankedPlayers.find((player) => (teamProgress.get(player.teamId) || 0) >= UCL_PLAYER_SCORING.progression.quarterfinals)
+    : rankedPlayers[0];
   const playerOfTheSeason = potsPlayer ? {
     playerId: potsPlayer.playerId,
     playerName: potsPlayer.name,
@@ -494,11 +520,11 @@ export const computeUclRecapStats = (
     },
     knockoutImpact: 0,
     semiFinalImpact: 0,
-    progressScore: 0,
+    progressScore: teamProgress.get(player.teamId) || 0,
   });
   const bestXI = selectConstrainedBestXI(rankedPlayers.map(toBestXIPlayer), {
-    goldenGlovePlayerId: bestXIConstraints.goldenGlovePlayerId || goldenGlove?.playerId,
-    goldenBootPlayerId: bestXIConstraints.goldenBootPlayerId || topScorers[0]?.playerId,
+    goldenGlovePlayerId: bestXIConstraints.goldenGlovePlayerId,
+    goldenBootPlayerId: bestXIConstraints.goldenBootPlayerId,
     potsPlayerId: bestXIConstraints.potsPlayerId || playerOfTheSeason?.playerId,
   });
 

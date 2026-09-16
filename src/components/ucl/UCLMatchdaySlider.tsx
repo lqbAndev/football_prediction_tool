@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import type { LeagueMatch } from '../../types/leagueConfig';
 import { ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
 
@@ -16,11 +16,32 @@ export const UCLMatchdaySlider: React.FC<UCLMatchdaySliderProps> = ({
   onSelectMatchday,
 }) => {
   const matchdays = Array.from({ length: totalMatchdays }, (_, i) => i + 1);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const list = listRef.current;
+    const selected = list?.querySelector<HTMLElement>(`[data-matchday="${currentMatchday}"]`);
+    if (!list || !selected) return;
+    const centerSelected = (behavior: ScrollBehavior) => {
+      const listBounds = list.getBoundingClientRect();
+      const selectedBounds = selected.getBoundingClientRect();
+      list.scrollTo({
+        left: list.scrollLeft + selectedBounds.left - listBounds.left - (listBounds.width - selectedBounds.width) / 2,
+        behavior,
+      });
+    };
+    centerSelected(window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
+    const observer = new ResizeObserver(() => centerSelected('auto'));
+    observer.observe(list);
+    return () => observer.disconnect();
+  }, [currentMatchday]);
 
   return (
     <div className="w-full rounded-3xl border border-white/10 bg-[#060d1a]/70 p-3 shadow-[0_18px_48px_rgba(0,6,20,0.3)] sm:p-6">
-      <div className="flex max-w-full items-center gap-2 overflow-x-auto overflow-y-visible px-1 py-2 scrollbar-none sm:gap-3 sm:px-3 sm:py-4">
+      <nav aria-label="UCL matchdays" className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 sm:gap-3">
         <button
+          type="button"
+          aria-label="Previous matchday"
           onClick={() => onSelectMatchday(Math.max(1, currentMatchday - 1))}
           disabled={currentMatchday === 1}
           className="my-2 shrink-0 rounded-xl border border-white/10 bg-white/5 p-2.5 text-white/70 transition-all hover:bg-white/10 hover:text-white disabled:pointer-events-none disabled:opacity-30 sm:rounded-2xl sm:p-3.5"
@@ -30,7 +51,7 @@ export const UCLMatchdaySlider: React.FC<UCLMatchdaySliderProps> = ({
         </button>
 
         {/* Full Matchday Buttons with High Sizing and Clear Status */}
-        <div className="flex items-center gap-3 flex-1">
+        <div ref={listRef} className="flex min-w-0 items-center gap-3 overflow-x-auto overscroll-x-contain px-2 py-3 scrollbar-none">
           {matchdays.map((md) => {
             const mdMatches = fixtures.filter((m) => m.matchweek === md);
             const mdDone = mdMatches.filter((m) => m.status === 'completed').length;
@@ -40,6 +61,9 @@ export const UCLMatchdaySlider: React.FC<UCLMatchdaySliderProps> = ({
             return (
               <button
                 key={md}
+                type="button"
+                data-matchday={md}
+                aria-current={isSelected ? 'page' : undefined}
                 onClick={() => onSelectMatchday(md)}
                 className={`my-2 flex min-w-[104px] flex-1 shrink-0 flex-col items-center justify-center rounded-xl border px-3 py-2.5 transition-all sm:min-w-[145px] sm:rounded-2xl sm:px-7 sm:py-4 ${
                   isSelected
@@ -67,6 +91,8 @@ export const UCLMatchdaySlider: React.FC<UCLMatchdaySliderProps> = ({
         </div>
 
         <button
+          type="button"
+          aria-label="Next matchday"
           onClick={() => onSelectMatchday(Math.min(totalMatchdays, currentMatchday + 1))}
           disabled={currentMatchday === totalMatchdays}
           className="my-2 shrink-0 rounded-xl border border-white/10 bg-white/5 p-2.5 text-white/70 transition-all hover:bg-white/10 hover:text-white disabled:pointer-events-none disabled:opacity-30 sm:rounded-2xl sm:p-3.5"
@@ -74,7 +100,7 @@ export const UCLMatchdaySlider: React.FC<UCLMatchdaySliderProps> = ({
         >
           <ChevronRight className="w-5 h-5" />
         </button>
-      </div>
+      </nav>
     </div>
   );
 };

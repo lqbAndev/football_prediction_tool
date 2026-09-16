@@ -220,7 +220,7 @@ export const UCLRecap: React.FC<UCLRecapProps> = ({ stats, champion, runnerUp, k
             </div>
           </div>
           <p className="-mt-3 mb-5 text-[10px] leading-5 text-white/40">
-            Performance points: goal FW +2 · MF +3 · DF/GK +5 · clean sheet +2 · MOTM +5 · League win +0.5 · knockout win +1 · champion +3 / runner-up +2. Tap a player for the full calculation.
+            Goals: FW +3 · MF +3.5 · DF/GK +4. Clean sheets: GK +2 · DF +1. MOTM +5. Goals and MOTM are weighted ×1.1 in play-offs through ×1.75 in the final. Progression: champion +12 · runner-up +9 · semi-final +6 · quarter-final +4 · R16 +2 · play-offs +1 (highest stage only). POTS candidates must have reached the quarter-finals. Tap a player for the full calculation.
           </p>
 
           {bestXI && bestXiView === 'pitch' ? (
@@ -301,11 +301,11 @@ export const UCLRecap: React.FC<UCLRecapProps> = ({ stats, champion, runnerUp, k
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/45">Score breakdown</p>
                 <div className="mt-2 space-y-2">
                   {[
-                    { label: `Goals · ${selectedPlayer.goals} × ${selectedPlayer.naturalPosition === 'ATT' ? 2 : selectedPlayer.naturalPosition === 'MID' ? 3 : 5}`, value: selectedPlayer.scoreBreakdown?.goalPoints || 0 },
-                    { label: `Clean sheets · ${selectedPlayer.cleanSheets} × 2`, value: selectedPlayer.scoreBreakdown?.cleanSheetPoints || 0 },
-                    { label: `MOTM · ${selectedPlayer.motmCount} × 5`, value: selectedPlayer.scoreBreakdown?.motmPoints || 0 },
+                    { label: `Goals · ${selectedPlayer.goals} × ${selectedPlayer.naturalPosition === 'ATT' ? 3 : selectedPlayer.naturalPosition === 'MID' ? 3.5 : 4} × stage weight`, value: selectedPlayer.scoreBreakdown?.goalPoints || 0 },
+                    { label: `Clean sheets · ${selectedPlayer.cleanSheets} × ${selectedPlayer.naturalPosition === 'GK' ? 2 : 1}`, value: selectedPlayer.scoreBreakdown?.cleanSheetPoints || 0 },
+                    { label: `MOTM · ${selectedPlayer.motmCount} × 5 × stage weight`, value: selectedPlayer.scoreBreakdown?.motmPoints || 0 },
                     { label: 'Team wins · League +0.5 / Knockout +1', value: selectedPlayer.scoreBreakdown?.teamWinPoints || 0 },
-                    { label: 'Final standing · Champion +3 / Runner-up +2', value: selectedPlayer.scoreBreakdown?.achievementPoints || 0 },
+                    { label: 'Progression · Highest stage reached', value: selectedPlayer.scoreBreakdown?.achievementPoints || 0 },
                   ].map((item) => (
                     <div key={item.label} className="flex items-center justify-between gap-3 rounded-xl bg-white/[0.035] px-3 py-2 text-xs">
                       <span className="text-white/60">{item.label}</span>
