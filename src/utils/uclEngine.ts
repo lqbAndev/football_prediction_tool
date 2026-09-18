@@ -2,6 +2,7 @@ import type { Team, MatchScorers, TimelineEvent } from '../types/tournament';
 import type { UCLMatchMOTM } from '../types/uclConfig';
 import { buildRegulationTimeline } from './random';
 import { calculateUCLMatchMOTM } from './uclMotm';
+import { attributeUCLGoals } from './uclGoalEvents';
 
 export interface SimulateUCLMatchOptions {
   isNeutralVenue?: boolean;
@@ -19,26 +20,46 @@ export interface UCLExpectedGoals {
 
 const clampRating = (rating: number) => Math.max(4, Math.min(10, Number(rating.toFixed(1))));
 
-const buildPlayerRatings = (
+export const buildUCLPlayerRatings = (
   homeTeam: Team,
   awayTeam: Team,
   homeScore: number,
   awayScore: number,
   timeline: TimelineEvent[],
+  previous?: { playerRatings?: Record<string, number>; homeScore: number; awayScore: number; timeline?: TimelineEvent[] },
 ) => {
   const ratings: Record<string, number> = {};
   const winningTeamId = homeScore === awayScore ? null : homeScore > awayScore ? homeTeam.id : awayTeam.id;
+  const previousWinnerId = !previous || previous.homeScore === previous.awayScore
+    ? null : previous.homeScore > previous.awayScore ? homeTeam.id : awayTeam.id;
+  const resultBoostFor = (winnerId: string | null, teamId: string) => winnerId === null ? 0.1 : winnerId === teamId ? 0.35 : -0.15;
 
   [homeTeam, awayTeam].forEach((team) => {
-    const resultBoost = winningTeamId === null ? 0.1 : winningTeamId === team.id ? 0.35 : -0.15;
+    const resultBoost = resultBoostFor(winningTeamId, team.id);
     team.players.forEach((player) => {
-      ratings[player.id] = 5.9 + resultBoost + Math.random() * 0.7;
+      const previousBoost = resultBoostFor(previousWinnerId, team.id);
+      const previouslyKeptCleanSheet = previous && (team.id === homeTeam.id ? previous.awayScore : previous.homeScore) === 0;
+      const previousCleanSheetBonus = previouslyKeptCleanSheet
+        ? player.position === 'GK' && player.id === team.players.find(candidate => candidate.position === 'GK')?.id
+          ? 0.8 : player.position === 'DF' ? 0.35 : 0
+        : 0;
+      ratings[player.id] = previous
+        ? (previous.playerRatings?.[player.id] ?? 6.2 + previousBoost + previousCleanSheetBonus) + resultBoost - previousBoost
+        : 5.9 + resultBoost + Math.random() * 0.7;
     });
   });
 
+  const assistCounts = new Map<string, number>();
+  previous?.timeline?.forEach(event => {
+    if (!event.isOwnGoal && !event.isPenalty && event.assistPlayerId && event.assistPlayerId !== event.playerId) {
+      assistCounts.set(event.assistPlayerId, (assistCounts.get(event.assistPlayerId) || 0) + 1);
+    }
+  });
   timeline.forEach((event) => {
     const team = event.teamId === homeTeam.id ? homeTeam : awayTeam;
-    const player = team.players.find((candidate) => candidate.id === event.playerId);
+    const player = event.isOwnGoal
+      ? [homeTeam, awayTeam].flatMap(candidate => candidate.players).find(candidate => candidate.id === event.playerId)
+      : team.players.find((candidate) => candidate.id === event.playerId);
     if (!player) return;
     if (event.isOwnGoal) {
       ratings[player.id] -= 0.8;
@@ -46,15 +67,25 @@ const buildPlayerRatings = (
     }
     const goalBoost = player.position === 'FW' ? 0.85 : player.position === 'MF' ? 1 : 1.2;
     ratings[player.id] += goalBoost - (event.isPenalty ? 0.15 : 0);
+    const assist = !event.isPenalty && event.assistPlayerId !== event.playerId
+      ? team.players.find(candidate => candidate.id === event.assistPlayerId) : undefined;
+    if (assist) {
+      const count = assistCounts.get(assist.id) || 0;
+      if (count < 2) ratings[assist.id] += 0.35;
+      assistCounts.set(assist.id, count + 1);
+    }
   });
 
-  const awardCleanSheet = (team: Team) => {
+  const awardCleanSheet = (team: Team, multiplier = 1) => {
     const primaryGoalkeeper = team.players.find((player) => player.position === 'GK');
-    if (primaryGoalkeeper) ratings[primaryGoalkeeper.id] += 0.8;
+    if (primaryGoalkeeper) ratings[primaryGoalkeeper.id] += 0.8 * multiplier;
     team.players.filter((player) => player.position === 'DF').forEach((player) => {
-      ratings[player.id] += 0.35;
+      ratings[player.id] += 0.35 * multiplier;
     });
   };
+  // Extend the 90-minute ratings without rerolling or retaining a lost clean sheet.
+  if (previous?.awayScore === 0) awardCleanSheet(homeTeam, -1);
+  if (previous?.homeScore === 0) awardCleanSheet(awayTeam, -1);
   if (awayScore === 0) awardCleanSheet(homeTeam);
   if (homeScore === 0) awardCleanSheet(awayTeam);
 
@@ -166,14 +197,15 @@ export const simulateUCLMatch = (
   const { homeScore: hScore, awayScore: aScore } = sampleUCLScoreline(homeTeam, awayTeam, options);
 
   // Build timeline and events
-  const { timeline, scorers } = buildRegulationTimeline(
+  const generated = buildRegulationTimeline(
     homeTeam,
     awayTeam,
     hScore,
     aScore
   );
+  const { timeline, scorers } = attributeUCLGoals(generated.timeline, homeTeam, awayTeam);
 
-  const playerRatings = buildPlayerRatings(homeTeam, awayTeam, hScore, aScore, timeline);
+  const playerRatings = buildUCLPlayerRatings(homeTeam, awayTeam, hScore, aScore, timeline);
   const winnerTeamId = hScore === aScore ? null : hScore > aScore ? homeTeam.id : awayTeam.id;
   const motm = options?.deferMotm
     ? null

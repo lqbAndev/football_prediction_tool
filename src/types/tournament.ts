@@ -42,6 +42,8 @@ export interface GoalEvent {
   teamId: string;
   isOwnGoal?: boolean;
   isPenalty?: boolean;
+  assistPlayerId?: string;
+  assistPlayerName?: string;
 }
 
 export interface MatchScorers {
@@ -55,7 +57,7 @@ export interface TimelineEvent {
   sortMinute: number;
   /** Display string such as "23'", "45+2'", "90+1'" */
   displayMinute: string;
-  /** Player who scored */
+  /** Scorer, or the opposing player responsible for an own goal. */
   playerName: string;
   playerId: string;
   /** Team that scored */
@@ -66,6 +68,8 @@ export interface TimelineEvent {
   isPenalty: boolean;
   /** Whether this is an own goal */
   isOwnGoal?: boolean;
+  assistPlayerId?: string;
+  assistPlayerName?: string;
   /** Phase: 'regulation' | 'extra-time' */
   phase: 'regulation' | 'extra-time';
 }

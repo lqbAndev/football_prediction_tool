@@ -8,6 +8,7 @@ import uclBallImg from '../../img/CUP COMPETITION/UCL/ball/ucl_ball_26-27.png';
 import uclCupImg from '../../img/CUP COMPETITION/UCL/ucl_cup.png';
 import badgeUclImg from '../../img/CUP COMPETITION/UCL/badge_ucl.png';
 import uclMvpCupImg from '../../img/CUP COMPETITION/UCL/ucl_mvp_cup.png';
+import patchUclImg from '../../img/CUP COMPETITION/UCL/patch_ucl.png';
 
 interface UCLRecapProps {
   stats: UCLRecapStats;
@@ -71,6 +72,7 @@ export const UCLRecap: React.FC<UCLRecapProps> = ({ stats, champion, runnerUp, k
   if (!champion) return null;
 
   const goldenBoot = stats.topScorers[0] || null;
+  const topCreator = stats.topAssists[0] || null;
   const bestXI = stats.bestXI;
   const lineupPlayers = bestXI ? [
     { label: 'Goalkeeper', players: [bestXI.goalkeeper] },
@@ -167,7 +169,7 @@ export const UCLRecap: React.FC<UCLRecapProps> = ({ stats, champion, runnerUp, k
             <Award className="h-7 w-7 text-amber-300" />
           </div>
 
-          <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 md:grid md:grid-cols-3 md:overflow-visible">
+          <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 md:grid md:grid-cols-2 md:overflow-visible xl:grid-cols-4">
             <div className="w-[88%] shrink-0 snap-start rounded-[30px] border border-cyan-400/20 bg-white/[0.035] p-1.5 md:w-auto">
               <div className="h-full rounded-[24px] bg-gradient-to-br from-cyan-400/12 to-[#000B29] p-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
                 <div className="flex items-center justify-between text-cyan-300"><img src={uclMvpCupImg} alt="Player of the Season trophy" className="h-12 w-12 object-contain drop-shadow-[0_0_12px_rgba(34,211,238,0.35)]" /><span className="text-[9px] font-black uppercase tracking-[0.22em]">POTS</span></div>
@@ -188,6 +190,18 @@ export const UCLRecap: React.FC<UCLRecapProps> = ({ stats, champion, runnerUp, k
                 <div className="mt-5 flex items-end justify-between border-t border-white/10 pt-4">
                   <span className="text-[10px] uppercase tracking-wider text-white/40">League + knockout</span>
                   <span className="font-mono text-2xl font-black text-amber-300">{goldenBoot?.goals ?? '—'} G</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="w-[88%] shrink-0 snap-start rounded-[30px] border border-sky-300/20 bg-white/[0.035] p-1.5 md:w-auto" aria-label="Top Creator award">
+              <div className="h-full rounded-[24px] bg-gradient-to-br from-sky-300/10 to-[#000B29] p-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
+                <div className="flex items-center justify-between text-sky-300"><img src={patchUclImg} alt="UEFA Champions League patch" className="h-9 w-9 object-contain" /><span className="text-[9px] font-black uppercase tracking-[0.22em]">Top Creator</span></div>
+                <h3 className="mt-7 break-words text-xl font-black">{topCreator?.playerName || '—'}</h3>
+                <p className="mt-1 text-xs text-white/45">{topCreator?.teamName || 'No assists recorded'}</p>
+                <div className="mt-5 flex items-end justify-between border-t border-white/10 pt-4">
+                  <button type="button" onClick={() => document.getElementById('ucl-top-assists')?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })} className="rounded text-[10px] uppercase tracking-wider text-sky-200/70 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">View ranking</button>
+                  <span className="font-mono text-2xl font-black text-sky-300">{topCreator?.assists ?? '—'} A</span>
                 </div>
               </div>
             </div>
@@ -264,7 +278,7 @@ export const UCLRecap: React.FC<UCLRecapProps> = ({ stats, champion, runnerUp, k
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-3xl border border-cyan-400/15 bg-white/[0.035] p-5"><Target className="h-5 w-5 text-cyan-300" /><p className="mt-5 text-[10px] uppercase tracking-wider text-white/40">Most goals scored</p><h3 className="mt-1 text-lg font-black">{stats.bestAttackingTeam?.teamName || '—'}</h3><p className="mt-3 font-mono text-2xl font-black text-cyan-300">{stats.bestAttackingTeam?.goals ?? '—'}</p></div>
-            <div className="rounded-3xl border border-emerald-400/15 bg-white/[0.035] p-5"><Shield className="h-5 w-5 text-emerald-300" /><p className="mt-5 text-[10px] uppercase tracking-wider text-white/40">Fewest conceded</p><h3 className="mt-1 text-lg font-black">{stats.bestDefensiveTeam?.teamName || '—'}</h3><p className="mt-3 font-mono text-2xl font-black text-emerald-300">{stats.bestDefensiveTeam?.conceded ?? '—'}</p></div>
+            <div className="rounded-3xl border border-emerald-400/15 bg-white/[0.035] p-5"><Shield className="h-5 w-5 text-emerald-300" /><p className="mt-5 text-[10px] uppercase tracking-wider text-white/40">Best defence · QF or beyond</p><h3 className="mt-1 text-lg font-black">{stats.bestDefensiveTeam?.teamName || '—'}</h3><p className="mt-3 font-mono text-2xl font-black text-emerald-300">{stats.bestDefensiveTeam?.average ?? '—'} <span className="text-xs font-semibold text-white/45">conceded / match</span></p><p className="mt-1 text-xs text-white/45">{stats.bestDefensiveTeam ? `${stats.bestDefensiveTeam.conceded} conceded in ${stats.bestDefensiveTeam.matchesPlayed} matches` : '—'}</p></div>
             <div className="rounded-3xl border border-[#FF005A]/20 bg-white/[0.035] p-5"><Flame className="h-5 w-5 text-pink-300" /><p className="mt-5 text-[10px] uppercase tracking-wider text-white/40">Highest-scoring match</p><h3 className="mt-1 truncate text-sm font-black">{stats.highestScoringMatch ? `${stats.highestScoringMatch.homeTeamName} — ${stats.highestScoringMatch.awayTeamName}` : '—'}</h3><p className="mt-3 font-mono text-2xl font-black text-pink-300">{stats.highestScoringMatch ? `${stats.highestScoringMatch.homeScore}–${stats.highestScoringMatch.awayScore}` : '—'}</p></div>
             <div className="rounded-3xl border border-amber-400/15 bg-white/[0.035] p-5"><Activity className="h-5 w-5 text-amber-300" /><p className="mt-5 text-[10px] uppercase tracking-wider text-white/40">Goals per match</p><h3 className="mt-1 text-lg font-black">{stats.tournamentGoalAnalysis.totalMatches} matches</h3><p className="mt-3 font-mono text-2xl font-black text-amber-300">{stats.tournamentGoalAnalysis.averagePerMatch}</p></div>
           </div>
@@ -302,6 +316,7 @@ export const UCLRecap: React.FC<UCLRecapProps> = ({ stats, champion, runnerUp, k
                 <div className="mt-2 space-y-2">
                   {[
                     { label: `Goals · ${selectedPlayer.goals} × ${selectedPlayer.naturalPosition === 'ATT' ? 3 : selectedPlayer.naturalPosition === 'MID' ? 3.5 : 4} × stage weight`, value: selectedPlayer.scoreBreakdown?.goalPoints || 0 },
+                    { label: `Assists · ${selectedPlayer.assists || 0} × 1.25 × stage weight`, value: selectedPlayer.scoreBreakdown?.assistPoints || 0 },
                     { label: `Clean sheets · ${selectedPlayer.cleanSheets} × ${selectedPlayer.naturalPosition === 'GK' ? 2 : 1}`, value: selectedPlayer.scoreBreakdown?.cleanSheetPoints || 0 },
                     { label: `MOTM · ${selectedPlayer.motmCount} × 5 × stage weight`, value: selectedPlayer.scoreBreakdown?.motmPoints || 0 },
                     { label: 'Team wins · League +0.5 / Knockout +1', value: selectedPlayer.scoreBreakdown?.teamWinPoints || 0 },

@@ -21,6 +21,7 @@ export type UCLMOTMFinalizedAt = '90' | '120' | 'penalties';
 export interface UCLMOTMScoreBreakdown {
   ratingPoints: number;
   goalPoints: number;
+  assistPoints?: number;
   decisivePoints: number;
   cleanSheetPoints: number;
   winnerPoints: number;
@@ -95,6 +96,8 @@ export interface TwoLegMatch {
     etAwayGoals?: number;
     etScorers?: MatchScorers;
     etTimeline?: TimelineEvent[];
+    /** Prevent replaying ET rating adjustments when restoring a saved tournament. */
+    ratingsIncludeExtraTime?: boolean;
     penalties?: UCLPenaltyShootout; // Full per-kick penalty details
     scorers?: MatchScorers;
     timeline?: TimelineEvent[];

@@ -2,14 +2,16 @@ import React, { useEffect, useMemo } from 'react';
 import { Star, X } from 'lucide-react';
 import type { LeagueMatch } from '../../types/leagueConfig';
 import type { TwoLegMatch } from '../../types/uclConfig';
-import type { Team } from '../../types/tournament';
+import type { GoalEvent, Team } from '../../types/tournament';
 import uclBallImg from '../../img/CUP COMPETITION/UCL/ball/ucl_ball_26-27.png';
+import patchUclImg from '../../img/CUP COMPETITION/UCL/patch_ucl.png';
 
 interface UCLPlayerGoalModalProps {
   isOpen: boolean;
   onClose: () => void;
   playerId: string;
   playerName: string;
+  stat?: 'goals' | 'assists';
   teamId: string;
   teamName: string;
   leagueMatches: LeagueMatch[];
@@ -27,6 +29,7 @@ interface MatchGoalEntry {
     sortMinute: number;
     isPenalty: boolean;
     isExtraTime?: boolean;
+    scorerName?: string;
   }>;
   isMotm: boolean;
 }
@@ -41,11 +44,15 @@ export const UCLPlayerGoalModal: React.FC<UCLPlayerGoalModalProps> = ({
   leagueMatches,
   knockoutMatches,
   teamsById,
+  stat = 'goals',
 }) => {
   const { goalEntries, totalGoals, totalMotm } = useMemo(() => {
     const entries: MatchGoalEntry[] = [];
     let goals = 0;
     let motmCount = 0;
+    const contributes = (event: Pick<GoalEvent, 'playerId' | 'isOwnGoal' | 'isPenalty' | 'assistPlayerId'>) => !event.isOwnGoal && (stat === 'assists'
+      ? !event.isPenalty && event.assistPlayerId === playerId && event.assistPlayerId !== event.playerId
+      : event.playerId === playerId);
 
     // 1. Scan League Phase Matches
     for (const match of leagueMatches) {
@@ -66,22 +73,24 @@ export const UCLPlayerGoalModal: React.FC<UCLPlayerGoalModalProps> = ({
 
       if (match.timeline && match.timeline.length > 0) {
         for (const evt of match.timeline) {
-          if (evt.playerId === playerId && evt.teamId === teamId) {
+          if (contributes(evt) && evt.teamId === teamId) {
             minutes.push({
               displayMinute: evt.displayMinute,
               sortMinute: evt.sortMinute,
               isPenalty: Boolean(evt.isPenalty),
+              scorerName: stat === 'assists' ? evt.playerName : undefined,
             });
           }
         }
       } else if (match.scorers) {
         const side = isHome ? match.scorers.home : match.scorers.away;
         for (const s of side) {
-          if (s.playerId === playerId) {
+          if (contributes(s)) {
             minutes.push({
               displayMinute: `${s.minute}'`,
               sortMinute: s.minute,
               isPenalty: false,
+              scorerName: stat === 'assists' ? s.playerName : undefined,
             });
           }
         }
@@ -126,22 +135,24 @@ export const UCLPlayerGoalModal: React.FC<UCLPlayerGoalModalProps> = ({
         const leg1Mins: MatchGoalEntry['minutes'] = [];
         if (tie.leg1.timeline) {
           for (const evt of tie.leg1.timeline) {
-            if (evt.playerId === playerId && evt.teamId === teamId) {
+            if (contributes(evt) && evt.teamId === teamId) {
               leg1Mins.push({
                 displayMinute: evt.displayMinute,
                 sortMinute: evt.sortMinute,
                 isPenalty: Boolean(evt.isPenalty),
+                scorerName: stat === 'assists' ? evt.playerName : undefined,
               });
             }
           }
         } else if (tie.leg1.scorers) {
           const side = isAwayTie ? tie.leg1.scorers.home : tie.leg1.scorers.away;
           for (const s of side) {
-            if (s.playerId === playerId) {
+            if (contributes(s)) {
               leg1Mins.push({
                 displayMinute: `${s.minute}'`,
                 sortMinute: s.minute,
                 isPenalty: false,
+                scorerName: stat === 'assists' ? s.playerName : undefined,
               });
             }
           }
@@ -170,11 +181,12 @@ export const UCLPlayerGoalModal: React.FC<UCLPlayerGoalModalProps> = ({
         const leg2Timeline = [...(tie.leg2.timeline || []), ...(tie.leg2.etTimeline || [])];
         if (leg2Timeline.length > 0) {
           for (const evt of leg2Timeline) {
-            if (evt.playerId === playerId && evt.teamId === teamId) {
+            if (contributes(evt) && evt.teamId === teamId) {
               leg2Mins.push({
                 displayMinute: evt.displayMinute,
                 sortMinute: evt.sortMinute,
                 isPenalty: Boolean(evt.isPenalty),
+                scorerName: stat === 'assists' ? evt.playerName : undefined,
                 isExtraTime: evt.phase === 'extra-time',
               });
             }
@@ -182,22 +194,24 @@ export const UCLPlayerGoalModal: React.FC<UCLPlayerGoalModalProps> = ({
         } else if (tie.leg2.scorers) {
           const side = isHomeTie ? tie.leg2.scorers.home : tie.leg2.scorers.away;
           for (const s of side) {
-            if (s.playerId === playerId) {
+            if (contributes(s)) {
               leg2Mins.push({
                 displayMinute: `${s.minute}'`,
                 sortMinute: s.minute,
                 isPenalty: false,
+                scorerName: stat === 'assists' ? s.playerName : undefined,
               });
             }
           }
           const extraSide = isHomeTie ? tie.leg2.etScorers?.home : tie.leg2.etScorers?.away;
           for (const s of extraSide || []) {
-            if (s.playerId === playerId) {
+            if (contributes(s)) {
               leg2Mins.push({
                 displayMinute: `${s.minute}'`,
                 sortMinute: s.minute,
                 isPenalty: Boolean(s.isPenalty),
                 isExtraTime: true,
+                scorerName: stat === 'assists' ? s.playerName : undefined,
               });
             }
           }
@@ -211,7 +225,7 @@ export const UCLPlayerGoalModal: React.FC<UCLPlayerGoalModalProps> = ({
           goals += leg2Mins.length;
           entries.push({
             matchId: `${tie.id}-leg2`,
-            stageName: `${roundLabel} · Leg 2`,
+            stageName: tie.round === 'final' ? roundLabel : `${roundLabel} · Leg 2`,
             opponentId,
             opponentName: oppTeam?.name || opponentId,
             minutes: leg2Mins,
@@ -222,7 +236,7 @@ export const UCLPlayerGoalModal: React.FC<UCLPlayerGoalModalProps> = ({
     }
 
     return { goalEntries: entries, totalGoals: goals, totalMotm: motmCount };
-  }, [playerId, teamId, leagueMatches, knockoutMatches, teamsById]);
+  }, [playerId, teamId, leagueMatches, knockoutMatches, teamsById, stat]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -278,7 +292,7 @@ export const UCLPlayerGoalModal: React.FC<UCLPlayerGoalModalProps> = ({
             type="button"
             onClick={onClose}
             className="shrink-0 rounded-full bg-white/10 p-2 text-white/70 transition-colors hover:bg-white/20 hover:text-white sm:p-2.5"
-            aria-label="Close player goal details"
+            aria-label={stat === 'assists' ? 'Close player assist details' : 'Close player goal details'}
           >
             <X className="w-5 h-5" />
           </button>
@@ -287,8 +301,8 @@ export const UCLPlayerGoalModal: React.FC<UCLPlayerGoalModalProps> = ({
         {/* Stats Summary Bar */}
         <div className="grid grid-cols-2 gap-2 border-b border-white/10 bg-black/30 px-4 py-2.5 sm:gap-3 sm:px-6 sm:py-3.5">
           <div className="flex items-center gap-2">
-            <img src={uclBallImg} alt="Goals" className="w-5 h-5 object-contain animate-ball-float" />
-            <span className="text-[10px] font-bold uppercase text-white/60 sm:text-xs">Goals:</span>
+            <img src={stat === 'assists' ? patchUclImg : uclBallImg} alt={stat === 'assists' ? 'UEFA Champions League patch' : 'Goals'} className={`w-5 h-5 object-contain ${stat === 'goals' ? 'animate-ball-float' : ''}`} />
+            <span className="text-[10px] font-bold uppercase text-white/60 sm:text-xs">{stat === 'assists' ? 'Assists:' : 'Goals:'}</span>
             <span className="text-lg font-mono font-black text-cyan-300">{totalGoals}</span>
           </div>
 
@@ -303,7 +317,7 @@ export const UCLPlayerGoalModal: React.FC<UCLPlayerGoalModalProps> = ({
         <div className="flex-1 space-y-2.5 overflow-y-auto overscroll-contain p-4 sm:space-y-3 sm:p-6">
           {goalEntries.length === 0 ? (
             <div className="text-center py-10 text-white/40 text-sm italic">
-              No registered goals for this player yet.
+              {stat === 'assists' ? 'No registered assists for this player yet.' : 'No registered goals for this player yet.'}
             </div>
           ) : (
             goalEntries.map((entry) => {
@@ -336,10 +350,11 @@ export const UCLPlayerGoalModal: React.FC<UCLPlayerGoalModalProps> = ({
                       {entry.minutes.map((m, idx) => (
                         <span
                           key={idx}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-cyan-500/20 text-cyan-200 border border-cyan-400/30 text-xs font-mono font-bold"
+                          className="inline-flex max-w-full flex-wrap items-center gap-1 px-2.5 py-1 rounded-xl bg-cyan-500/20 text-cyan-200 border border-cyan-400/30 text-xs font-mono font-bold"
                         >
                           <img src={uclBallImg} alt="" className="w-3.5 h-3.5 object-contain" />
                           <span>{m.displayMinute}</span>
+                          {m.scorerName && <span className="break-words font-sans text-[10px] font-semibold text-white/80">→ {m.scorerName}</span>}
                           {m.isPenalty && (
                             <span className="text-[9px] px-1 rounded bg-amber-500/40 text-amber-300 font-bold">
                               PEN

@@ -11,6 +11,7 @@ type BestXILineupPosition = 'GK' | 'DEF' | 'MID' | 'ATT';
 
 export interface PlayerScoreBreakdown {
   goalPoints: number;
+  assistPoints?: number;
   cleanSheetPoints: number;
   motmPoints: number;
   teamWinPoints: number;
@@ -26,6 +27,7 @@ export interface BestXIPlayer {
   naturalPosition: BestXILineupPosition;
   lineupPosition: BestXILineupPosition;
   goals: number;
+  assists?: number;
   cleanSheets: number;
   motmCount: number;
   totalScore: number;

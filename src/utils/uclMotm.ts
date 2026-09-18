@@ -26,6 +26,8 @@ interface UCLMOTMTimelineEvent {
   side: 'home' | 'away';
   isPenalty?: boolean;
   isOwnGoal?: boolean;
+  assistPlayerId?: string;
+  assistPlayerName?: string;
   phase?: 'regulation' | 'extra-time';
 }
 
@@ -93,7 +95,14 @@ export const calculateUCLMatchMOTM = ({
   const teamById = new Map(teams.map((team) => [team.id, team]));
   const eligibleByTeam = new Map(teams.map((team) => [team.id, getLikelyParticipants(team)]));
 
-  timeline.forEach((event) => eligibleByTeam.get(event.teamId)?.add(event.playerId));
+  const ownGoalPlayers = new Set(timeline.filter(event => event.isOwnGoal).map(event => event.playerId));
+  timeline.forEach((event) => {
+    if (event.isOwnGoal) return;
+    eligibleByTeam.get(event.teamId)?.add(event.playerId);
+    if (!event.isPenalty && event.assistPlayerId && event.assistPlayerId !== event.playerId) {
+      eligibleByTeam.get(event.teamId)?.add(event.assistPlayerId);
+    }
+  });
   penalties?.kicks.forEach((kick) => {
     const team = kick.team === 'home' ? homeTeam : awayTeam;
     const player = kick.playerId
@@ -118,6 +127,7 @@ export const calculateUCLMatchMOTM = ({
         breakdown: {
           ratingPoints: roundScore(rating * 10),
           goalPoints: 0,
+          assistPoints: 0,
           decisivePoints: 0,
           cleanSheetPoints: 0,
           winnerPoints: 0,
@@ -145,17 +155,21 @@ export const calculateUCLMatchMOTM = ({
     const penaltyAdjustment = event.isPenalty ? -0.75 : 0;
     const extraTimeBonus = event.phase === 'extra-time' ? 2 : 0;
     candidate.breakdown.goalPoints += 6 + positionBonus + penaltyAdjustment + extraTimeBonus;
+    if (!event.isPenalty && event.assistPlayerId && event.assistPlayerId !== event.playerId) {
+      const assist = getCandidate(event.teamId, event.assistPlayerId);
+      if (assist) assist.breakdown.assistPoints = (assist.breakdown.assistPoints || 0) + 2.5;
+    }
   });
 
   if (matchWinnerId && homeScore !== awayScore) {
     const losingScore = Math.min(homeScore, awayScore);
     let winnerGoalCount = 0;
-    const decisiveGoal = validGoals.find((event) => {
+    const decisiveGoal = [...timeline].sort((left, right) => left.sortMinute - right.sortMinute).find((event) => {
       if (event.teamId !== matchWinnerId) return false;
       winnerGoalCount += 1;
       return winnerGoalCount === losingScore + 1;
     });
-    if (decisiveGoal) {
+    if (decisiveGoal && !decisiveGoal.isOwnGoal) {
       const candidate = getCandidate(decisiveGoal.teamId, decisiveGoal.playerId);
       if (candidate) candidate.breakdown.decisivePoints += 2;
     }
@@ -226,6 +240,7 @@ export const calculateUCLMatchMOTM = ({
   // Close matches still allow an outstanding player from the losing side.
   const ranked = [...candidates.values()]
     .filter((candidate) => winningMargin < 3 || candidate.teamId === matchWinnerId)
+    .filter((candidate) => !ownGoalPlayers.has(candidate.playerId))
     .sort((left, right) =>
     totalScore(right) - totalScore(left) ||
     right.rating - left.rating ||
@@ -239,6 +254,7 @@ export const calculateUCLMatchMOTM = ({
   const breakdown: UCLMOTMScoreBreakdown = {
     ratingPoints: roundScore(winner.breakdown.ratingPoints),
     goalPoints: roundScore(winner.breakdown.goalPoints),
+    assistPoints: roundScore(winner.breakdown.assistPoints || 0),
     decisivePoints: roundScore(winner.breakdown.decisivePoints),
     cleanSheetPoints: roundScore(winner.breakdown.cleanSheetPoints),
     winnerPoints: roundScore(winner.breakdown.winnerPoints),

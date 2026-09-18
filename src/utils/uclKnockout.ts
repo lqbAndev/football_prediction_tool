@@ -1,8 +1,9 @@
 import type { Team } from '../types/tournament';
 import type { TwoLegMatch, UCLPenaltyShootout, UCLPenaltyKick, TieStatus } from '../types/uclConfig';
-import { sampleUCLScoreline, simulateUCLMatch } from './uclEngine';
+import { buildUCLPlayerRatings, sampleUCLScoreline, simulateUCLMatch } from './uclEngine';
 import { calculateUCLMatchMOTM } from './uclMotm';
 import { buildKnockoutTimeline } from './random';
+import { attributeUCLGoals } from './uclGoalEvents';
 
 export const FINAL_VENUE = 'Estadio Metropolitano, Madrid';
 
@@ -183,7 +184,7 @@ export const simulateKnockoutLeg2 = (match: TwoLegMatch, homeTeam: Team, awayTea
 export const simulateExtraTime = (match: TwoLegMatch, homeTeam: Team, awayTeam: Team): TwoLegMatch => {
   const isFinal = match.round === 'final';
   const et = generateExtraTimeScoreline(homeTeam, awayTeam, isFinal);
-  const { timeline: etTimeline, scorers: etScorers } = buildKnockoutTimeline(
+  const generated = buildKnockoutTimeline(
     homeTeam,
     awayTeam,
     0,
@@ -191,6 +192,8 @@ export const simulateExtraTime = (match: TwoLegMatch, homeTeam: Team, awayTeam: 
     et.homeGoals,
     et.awayGoals,
   );
+  const previousEvents = match.leg2.timeline || [...(match.leg2.scorers?.home || []), ...(match.leg2.scorers?.away || [])];
+  const { timeline: etTimeline, scorers: etScorers } = attributeUCLGoals(generated.timeline, homeTeam, awayTeam, previousEvents);
 
   const newAggHome = (match.aggregate.homeScore || 0) + et.homeGoals;
   const newAggAway = (match.aggregate.awayScore || 0) + et.awayGoals;
@@ -201,6 +204,12 @@ export const simulateExtraTime = (match: TwoLegMatch, homeTeam: Team, awayTeam: 
     .sort((left, right) => left.sortMinute - right.sortMinute);
   const fullHomeScore = (match.leg2.homeScore || 0) + et.homeGoals;
   const fullAwayScore = (match.leg2.awayScore || 0) + et.awayGoals;
+  const playerRatings = buildUCLPlayerRatings(homeTeam, awayTeam, fullHomeScore, fullAwayScore, etTimeline, {
+    playerRatings: match.leg2.playerRatings,
+    homeScore: match.leg2.homeScore || 0,
+    awayScore: match.leg2.awayScore || 0,
+    timeline: match.leg2.timeline,
+  });
   const motm = tieStatus === 'completed'
     ? calculateUCLMatchMOTM({
         homeTeam,
@@ -208,7 +217,7 @@ export const simulateExtraTime = (match: TwoLegMatch, homeTeam: Team, awayTeam: 
         homeScore: fullHomeScore,
         awayScore: fullAwayScore,
         timeline: fullTimeline,
-        playerRatings: match.leg2.playerRatings,
+        playerRatings,
         winnerTeamId: winnerId,
         finalizedAt: '120',
       })
@@ -224,6 +233,8 @@ export const simulateExtraTime = (match: TwoLegMatch, homeTeam: Team, awayTeam: 
       etAwayGoals: et.awayGoals,
       etScorers,
       etTimeline,
+      playerRatings,
+      ratingsIncludeExtraTime: true,
       motm,
     },
     aggregate: { homeScore: newAggHome, awayScore: newAggAway },
@@ -236,6 +247,7 @@ export const simulateExtraTime = (match: TwoLegMatch, homeTeam: Team, awayTeam: 
  * Backfills scorer events for tournaments saved before extra-time timelines were
  * persisted. Keeping this deterministic per loaded state is not required: the
  * generated details are immediately stored by UCLApp and remain stable afterwards.
+ * Legacy ET ratings are upgraded once; the persisted marker prevents double boosts.
  */
 export const ensureExtraTimeDetails = (
   match: TwoLegMatch,
@@ -246,17 +258,23 @@ export const ensureExtraTimeDetails = (
   const awayGoals = match.leg2.etAwayGoals || 0;
   const hasRecordedEvents = Boolean(match.leg2.etTimeline?.length);
 
-  if (!match.leg2.extraTime || homeGoals + awayGoals === 0 || hasRecordedEvents) {
-    return match;
-  }
+  if (!match.leg2.extraTime) return match;
+  if (match.leg2.ratingsIncludeExtraTime && (hasRecordedEvents || homeGoals + awayGoals === 0)) return match;
 
-  const { timeline, scorers } = buildKnockoutTimeline(
+  const { timeline, scorers } = homeGoals + awayGoals > 0 && !hasRecordedEvents ? buildKnockoutTimeline(
     homeTeam,
     awayTeam,
     0,
     0,
     homeGoals,
     awayGoals,
+  ) : { timeline: match.leg2.etTimeline, scorers: match.leg2.etScorers };
+  const playerRatings = match.leg2.ratingsIncludeExtraTime ? match.leg2.playerRatings : buildUCLPlayerRatings(
+    homeTeam, awayTeam,
+    (match.leg2.homeScore || 0) + homeGoals,
+    (match.leg2.awayScore || 0) + awayGoals,
+    timeline || [],
+    { playerRatings: match.leg2.playerRatings, homeScore: match.leg2.homeScore || 0, awayScore: match.leg2.awayScore || 0, timeline: match.leg2.timeline },
   );
 
   return {
@@ -265,11 +283,14 @@ export const ensureExtraTimeDetails = (
       ...match.leg2,
       etTimeline: timeline,
       etScorers: scorers,
+      playerRatings,
+      ratingsIncludeExtraTime: true,
     },
   };
 };
 
 export const simulatePenalties = (match: TwoLegMatch, homeTeam: Team, awayTeam: Team): TwoLegMatch => {
+  match = ensureExtraTimeDetails(match, homeTeam, awayTeam);
   const pens = simulatePenaltyShootout(homeTeam, awayTeam);
   const winnerId = pens.homeScore > pens.awayScore ? homeTeam.id : awayTeam.id;
   const fullTimeline = [...(match.leg2.timeline || []), ...(match.leg2.etTimeline || [])]

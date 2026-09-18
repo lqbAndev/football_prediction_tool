@@ -5,7 +5,7 @@
  * home/away fixtures, qualification zones, and optional home advantage.
  */
 
-import type { Team } from './tournament';
+import type { MatchScorers, Team } from './tournament';
 
 export interface QualificationZone {
   /** Zone identifier (e.g., 'champions-league', 'europa-league', 'relegation') */
@@ -55,20 +55,7 @@ export interface LeagueMatch {
   awayScore: number | null;
   status: 'pending' | 'completed';
   predictedAt: string | null;
-  scorers?: {
-    home: Array<{
-      minute: number;
-      playerId: string;
-      playerName: string;
-      teamId: string;
-    }>;
-    away: Array<{
-      minute: number;
-      playerId: string;
-      playerName: string;
-      teamId: string;
-    }>;
-  };
+  scorers?: MatchScorers;
   timeline?: Array<{
     sortMinute: number;
     displayMinute: string;
@@ -78,6 +65,8 @@ export interface LeagueMatch {
     side: 'home' | 'away';
     isPenalty?: boolean;
     isOwnGoal?: boolean;
+    assistPlayerId?: string;
+    assistPlayerName?: string;
   }>;
   motm?: {
     playerId: string;

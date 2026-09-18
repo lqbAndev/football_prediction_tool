@@ -28,6 +28,7 @@ import { UCLHeroBranding } from '../components/ucl/UCLHeroBranding';
 import { UCLMatchCard } from '../components/ucl/UCLMatchCard';
 import { UCLStandingsTable } from '../components/ucl/UCLStandingsTable';
 import { UCLTopScorersTable } from '../components/ucl/UCLTopScorersTable';
+import { UCLTopAssistsTable } from '../components/ucl/UCLTopAssistsTable';
 import { UCLMatchdaySlider } from '../components/ucl/UCLMatchdaySlider';
 import { UCLKnockoutBracket } from '../components/ucl/UCLKnockoutBracket';
 import { UCLChampionModal } from '../components/ucl/UCLChampionModal';
@@ -197,6 +198,7 @@ export const UCLApp: React.FC = () => {
     playerName: string;
     teamId: string;
     teamName: string;
+    stat?: 'goals' | 'assists';
   } | null>(null);
 
   const [isChampionModalOpen, setIsChampionModalOpen] = useState(false);
@@ -823,6 +825,8 @@ export const UCLApp: React.FC = () => {
             </div>
           )}
 
+          <UCLPot1DrawTable leagueMatches={leagueMatches} teams={UCL_TEAMS} />
+
           {/* Roomy Matchday Slider */}
           <UCLMatchdaySlider
             currentMatchday={currentMatchday}
@@ -830,8 +834,6 @@ export const UCLApp: React.FC = () => {
             fixtures={leagueMatches}
             onSelectMatchday={setCurrentMatchday}
           />
-
-          <UCLPot1DrawTable leagueMatches={leagueMatches} teams={UCL_TEAMS} />
 
           {/* Matchday Fixtures Header with Simulate Matchday Button */}
           <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-white/10 bg-[#060d1a]/70 p-4 sm:flex-row sm:p-5">
@@ -901,6 +903,7 @@ export const UCLApp: React.FC = () => {
               setSelectedPlayerGoal({ playerId, playerName, teamId, teamName })
             }
           />
+          <UCLTopAssistsTable topAssists={recapStats.topAssists} onSelectTeam={setSelectedTeamId} onSelectPlayer={(playerId, playerName, teamId, teamName) => setSelectedPlayerGoal({ playerId, playerName, teamId, teamName, stat: 'assists' })} />
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════
@@ -1000,6 +1003,7 @@ export const UCLApp: React.FC = () => {
           onClose={() => setSelectedPlayerGoal(null)}
           playerId={selectedPlayerGoal.playerId}
           playerName={selectedPlayerGoal.playerName}
+          stat={selectedPlayerGoal.stat}
           teamId={selectedPlayerGoal.teamId}
           teamName={selectedPlayerGoal.teamName}
           leagueMatches={leagueMatches}

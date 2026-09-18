@@ -11,6 +11,7 @@ import badgeUclImg from '../../img/CUP COMPETITION/UCL/badge_ucl.png';
 import uclMvpCupImg from '../../img/CUP COMPETITION/UCL/ucl_mvp_cup.png';
 import { UCLMorphIcon } from './UCLMorphIcon';
 import { UCLMatchTimeline } from './UCLMatchTimeline';
+import { UCLGoalLine } from './UCLGoalLine';
 
 interface UCLKnockoutBracketProps {
   playoffs: TwoLegMatch[];
@@ -139,11 +140,8 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
 
     if (timeline.length > 0) {
       return timeline.map((event, index) => (
-        <li key={`${event.playerId}-${event.displayMinute}-${index}`} className="flex items-center gap-2 text-xs text-white/85">
-          <span className="font-mono font-black text-sky-300">{event.displayMinute}</span>
-          <span>{event.playerName}</span>
-          {event.isPenalty && <span className="text-[9px] font-black text-amber-300">PEN</span>}
-          {event.isOwnGoal && <span className="text-[9px] font-black text-rose-300">OG</span>}
+        <li key={`${event.playerId}-${event.displayMinute}-${index}`}>
+          <UCLGoalLine event={event} />
         </li>
       ));
     }
@@ -151,9 +149,8 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
     const scorers = leg.scorers?.[side] || [];
     if (scorers.length > 0) {
       return scorers.map((scorer, index) => (
-        <li key={`${scorer.playerId}-${scorer.minute}-${index}`} className="flex items-center gap-2 text-xs text-white/85">
-          <span className="font-mono font-black text-sky-300">{scorer.minute}'</span>
-          <span>{scorer.playerName}</span>
+        <li key={`${scorer.playerId}-${scorer.minute}-${index}`}>
+          <UCLGoalLine event={{ ...scorer, displayMinute: `${scorer.minute}'` }} />
         </li>
       ));
     }
@@ -162,14 +159,14 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
   };
 
   const renderExtraTimeScorers = (tie: TwoLegMatch, side: 'home' | 'away') => {
-    const timeline = (tie.leg2.etTimeline || []).filter((event) => event.side === side);
+    const timeline = tie.leg2.etTimeline?.length
+      ? tie.leg2.etTimeline.filter(event => event.side === side)
+      : (tie.leg2.etScorers?.[side] || []).map(event => ({ ...event, displayMinute: `${event.minute}'`, phase: 'extra-time' as const }));
     if (timeline.length === 0) return <li className="text-xs italic text-white/50">No goals</li>;
 
     return timeline.map((event, index) => (
-      <li key={`et-${event.playerId}-${event.displayMinute}-${index}`} className="flex items-center gap-2 text-xs text-white/90">
-        <span className="font-mono font-black text-amber-300">{event.displayMinute}</span>
-        <span>{event.playerName}</span>
-        {event.isPenalty && <span className="text-[9px] font-black text-amber-200">PEN</span>}
+      <li key={`et-${event.playerId}-${event.displayMinute}-${index}`}>
+        <UCLGoalLine event={{ ...event, phase: 'extra-time' }} />
       </li>
     ));
   };

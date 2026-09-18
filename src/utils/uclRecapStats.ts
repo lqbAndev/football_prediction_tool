@@ -5,6 +5,7 @@ import type { BestXIPlayer, BestXIResult } from './bestXI';
 
 export const UCL_PLAYER_SCORING = {
   goals: { FW: 3, MF: 3.5, DF: 4, GK: 4 },
+  assist: 1.25,
   cleanSheets: { GK: 2, DF: 1 },
   motm: 5,
   stageWeights: { playoffs: 1.1, roundOf16: 1.2, quarterfinals: 1.35, semifinals: 1.5, final: 1.75 },
@@ -19,12 +20,14 @@ interface PlayerTournamentStats {
   teamId: string;
   position: Team['players'][number]['position'];
   goals: number;
+  assists: number;
   penalties: number;
   motmAwards: number;
   cleanSheets: number;
   ratingTotal: number;
   ratingAppearances: number;
   goalPoints: number;
+  assistPoints: number;
   cleanSheetPoints: number;
   motmPoints: number;
   teamWinPoints: number;
@@ -37,6 +40,8 @@ interface GoalEvent {
   teamId: string;
   isPenalty?: boolean;
   isOwnGoal?: boolean;
+  assistPlayerId?: string;
+  assistPlayerName?: string;
 }
 
 interface MatchSnapshot {
@@ -53,6 +58,16 @@ interface MatchSnapshot {
   stageWeight?: number;
 }
 
+export interface UCLTopAssistEntry {
+  playerId: string;
+  playerName: string;
+  teamId: string;
+  teamName: string;
+  teamLogo?: string;
+  assists: number;
+  goals: number;
+}
+
 export interface UCLRecapStats {
   playerOfTheSeason: {
     playerId: string;
@@ -63,13 +78,15 @@ export interface UCLRecapStats {
     rating: number;
     points: number;
     goals: number;
+    assists: number;
     motmAwards: number;
   } | null;
   topScorers: TopScorerEntry[];
+  topAssists: UCLTopAssistEntry[];
   mostMotmAwards: { playerName: string; teamName: string; teamLogo?: string; awards: number }[];
   goldenGlove: { playerId: string; playerName: string; teamName: string; teamLogo?: string; cleanSheets: number } | null;
   bestAttackingTeam: { teamName: string; teamLogo?: string; goals: number; average: string } | null;
-  bestDefensiveTeam: { teamName: string; teamLogo?: string; conceded: number } | null;
+  bestDefensiveTeam: { teamName: string; teamLogo?: string; conceded: number; matchesPlayed: number; average: string } | null;
   highestScoringMatch: {
     matchId: string;
     stage: string;
@@ -123,7 +140,8 @@ const selectConstrainedBestXI = (
   };
 
   lockPlayer(constraints.goldenGlovePlayerId, 'GK');
-  lockPlayer(constraints.goldenBootPlayerId, 'ATT');
+  const goldenBootPlayer = constraints.goldenBootPlayerId ? byId.get(constraints.goldenBootPlayerId) : undefined;
+  if (goldenBootPlayer) lockPlayer(goldenBootPlayer.playerId, goldenBootPlayer.naturalPosition);
 
   const potsPlayer = constraints.potsPlayerId ? byId.get(constraints.potsPlayerId) : undefined;
   if (potsPlayer && !selectedIds.has(potsPlayer.playerId)) {
@@ -169,12 +187,14 @@ export const computeUclRecapStats = (
         teamId: team.id,
         position: player.position,
         goals: 0,
+        assists: 0,
         penalties: 0,
         motmAwards: 0,
         cleanSheets: 0,
         ratingTotal: 0,
         ratingAppearances: 0,
         goalPoints: 0,
+        assistPoints: 0,
         cleanSheetPoints: 0,
         motmPoints: 0,
         teamWinPoints: 0,
@@ -215,11 +235,22 @@ export const computeUclRecapStats = (
       });
     });
 
+    const assistCounts = new Map<string, number>();
     goalEvents.forEach((event) => {
-      const player = resolvePlayer(event.teamId, event.playerId, event.playerName);
+      const player = event.isOwnGoal
+        ? resolvePlayer(match.homeTeamId, event.playerId, event.playerName) || resolvePlayer(match.awayTeamId, event.playerId, event.playerName)
+        : resolvePlayer(event.teamId, event.playerId, event.playerName);
       if (!player) return;
       if (event.isOwnGoal) ratings[player.playerId] -= 0.8;
       else ratings[player.playerId] += player.position === 'FW' ? 0.85 : player.position === 'MF' ? 1 : 1.2;
+      if (!event.isOwnGoal && !event.isPenalty && event.assistPlayerId !== event.playerId) {
+        const assist = resolvePlayer(event.teamId, event.assistPlayerId, event.assistPlayerName);
+        if (assist) {
+          const count = assistCounts.get(assist.playerId) || 0;
+          if (count < 2) ratings[assist.playerId] += 0.35;
+          assistCounts.set(assist.playerId, count + 1);
+        }
+      }
     });
 
     if (match.awayScore === 0) {
@@ -301,6 +332,13 @@ export const computeUclRecapStats = (
       if (event.isPenalty) {
         player.penalties += 1;
         totalPenalties += 1;
+      }
+      if (!event.isPenalty && event.assistPlayerId !== event.playerId) {
+        const assist = resolvePlayer(event.teamId, event.assistPlayerId, event.assistPlayerName);
+        if (assist && assist.playerId !== player.playerId) {
+          assist.assists += 1;
+          assist.assistPoints += UCL_PLAYER_SCORING.assist * stageWeight;
+        }
       }
     });
 
@@ -406,6 +444,7 @@ export const computeUclRecapStats = (
   playerStats.forEach((player) => {
     player.achievementPoints = teamProgress.get(player.teamId) || 0;
     player.goalPoints = roundPoints(player.goalPoints);
+    player.assistPoints = roundPoints(player.assistPoints);
     player.motmPoints = roundPoints(player.motmPoints);
   });
 
@@ -413,6 +452,7 @@ export const computeUclRecapStats = (
     player.ratingAppearances > 0 ? player.ratingTotal / player.ratingAppearances : 0;
   const performanceScore = (player: PlayerTournamentStats) => roundPoints(
     player.goalPoints +
+    player.assistPoints +
     player.cleanSheetPoints +
     player.motmPoints +
     player.teamWinPoints +
@@ -436,6 +476,19 @@ export const computeUclRecapStats = (
       playerName: player.name,
       teamId: player.teamId,
       teamName: teamMap.get(player.teamId)?.name || player.teamId,
+      goals: player.goals,
+    }));
+
+  const topAssists: UCLTopAssistEntry[] = [...playerStats.values()]
+    .filter(player => player.assists > 0)
+    .sort((left, right) => right.assists - left.assists || right.goals - left.goals || left.name.localeCompare(right.name) || left.playerId.localeCompare(right.playerId))
+    .map(player => ({
+      playerId: player.playerId,
+      playerName: player.name,
+      teamId: player.teamId,
+      teamName: teamMap.get(player.teamId)?.name || player.teamId,
+      teamLogo: teamMap.get(player.teamId)?.logo,
+      assists: player.assists,
       goals: player.goals,
     }));
 
@@ -471,18 +524,27 @@ export const computeUclRecapStats = (
     average: ((teamGoalsScored.get(attackingTeam.id) || 0) / (teamMatchesPlayed.get(attackingTeam.id) || 1)).toFixed(2),
   } : null;
 
+  const concededPerMatch = (team: Team) => (teamGoalsConceded.get(team.id) || 0) / (teamMatchesPlayed.get(team.id) || 1);
   const defensiveTeam = [...teams]
-    .filter((team) => (teamMatchesPlayed.get(team.id) || 0) > 0)
-    .sort((left, right) => (teamGoalsConceded.get(left.id) || 0) - (teamGoalsConceded.get(right.id) || 0))[0];
+    .filter((team) => (teamMatchesPlayed.get(team.id) || 0) > 0 && (
+      !completedFinal || (teamProgress.get(team.id) || 0) >= UCL_PLAYER_SCORING.progression.quarterfinals
+    ))
+    .sort((left, right) =>
+      concededPerMatch(left) - concededPerMatch(right) ||
+      (teamMatchesPlayed.get(right.id) || 0) - (teamMatchesPlayed.get(left.id) || 0) ||
+      left.name.localeCompare(right.name),
+    )[0];
   const bestDefensiveTeam = defensiveTeam ? {
     teamName: defensiveTeam.name,
     teamLogo: defensiveTeam.logo,
     conceded: teamGoalsConceded.get(defensiveTeam.id) || 0,
+    matchesPlayed: teamMatchesPlayed.get(defensiveTeam.id) || 0,
+    average: concededPerMatch(defensiveTeam).toFixed(2),
   } : null;
 
   // At the end of the tournament, POTS must have made a deep knockout run.
   const potsPlayer = completedFinal
-    ? rankedPlayers.find((player) => (teamProgress.get(player.teamId) || 0) >= UCL_PLAYER_SCORING.progression.quarterfinals)
+    ? rankedPlayers.find((player) => (teamProgress.get(player.teamId) || 0) >= UCL_PLAYER_SCORING.progression.quarterfinals) || rankedPlayers[0]
     : rankedPlayers[0];
   const playerOfTheSeason = potsPlayer ? {
     playerId: potsPlayer.playerId,
@@ -493,6 +555,7 @@ export const computeUclRecapStats = (
     rating: Number(averageRating(potsPlayer).toFixed(2)),
     points: performanceScore(potsPlayer),
     goals: potsPlayer.goals,
+    assists: potsPlayer.assists,
     motmAwards: potsPlayer.motmAwards,
   } : null;
 
@@ -507,12 +570,14 @@ export const computeUclRecapStats = (
     naturalPosition: mapLineupPosition(player.position),
     lineupPosition: mapLineupPosition(player.position),
     goals: player.goals,
+    assists: player.assists,
     cleanSheets: player.cleanSheets,
     motmCount: player.motmAwards,
     totalScore: performanceScore(player),
     averageRating: Number(averageRating(player).toFixed(2)),
     scoreBreakdown: {
       goalPoints: player.goalPoints,
+      assistPoints: player.assistPoints,
       cleanSheetPoints: player.cleanSheetPoints,
       motmPoints: player.motmPoints,
       teamWinPoints: player.teamWinPoints,
@@ -534,6 +599,7 @@ export const computeUclRecapStats = (
   return {
     playerOfTheSeason,
     topScorers,
+    topAssists,
     mostMotmAwards: motmLeaders,
     goldenGlove,
     bestAttackingTeam,

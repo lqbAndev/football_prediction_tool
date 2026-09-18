@@ -3,9 +3,9 @@ import { Clock } from 'lucide-react';
 import { ChevronDown as ChevronDownIcon, ChevronUp as ChevronUpIcon } from 'lucide';
 import type { MatchScorers, Team, TimelineEvent } from '../../types/tournament';
 import type { UCLMatchMOTM } from '../../types/uclConfig';
-import uclBallImg from '../../img/CUP COMPETITION/UCL/ball/ucl_ball_26-27.png';
 import uclMvpCupImg from '../../img/CUP COMPETITION/UCL/ucl_mvp_cup.png';
 import { UCLMorphIcon } from './UCLMorphIcon';
+import { UCLGoalLine, type UCLGoalLineEvent } from './UCLGoalLine';
 
 interface UCLMatchTimelineProps {
   matchId: string;
@@ -21,9 +21,9 @@ interface UCLMatchTimelineProps {
   showFinalizedAt?: boolean;
 }
 
-type GoalLineEvent = Pick<TimelineEvent, 'displayMinute' | 'playerName' | 'isPenalty' | 'isOwnGoal' | 'phase'>;
+type GoalLineEvent = UCLGoalLineEvent;
 type TimelineGoal = Pick<TimelineEvent, 'sortMinute' | 'displayMinute' | 'playerName' | 'side'> &
-  Partial<Pick<TimelineEvent, 'isPenalty' | 'isOwnGoal' | 'phase'>>;
+  Partial<Pick<TimelineEvent, 'isPenalty' | 'isOwnGoal' | 'phase' | 'assistPlayerName'>>;
 
 export const UCLMatchTimeline: React.FC<UCLMatchTimelineProps> = ({
   matchId, homeTeam, awayTeam, timeline = [], scorers,
@@ -39,6 +39,7 @@ export const UCLMatchTimeline: React.FC<UCLMatchTimelineProps> = ({
     return goals.length > 0 ? goals.map(goal => ({ ...goal, isPenalty: goal.isPenalty ?? false, phase: goal.phase ?? phase })) : (fallback?.[side] || []).map(goal => ({
       displayMinute: `${goal.minute}'`, playerName: goal.playerName,
       isPenalty: goal.isPenalty ?? false, isOwnGoal: goal.isOwnGoal, phase,
+      assistPlayerName: goal.assistPlayerName,
     }));
   };
 
@@ -78,14 +79,7 @@ export const UCLMatchTimeline: React.FC<UCLMatchTimelineProps> = ({
             return (
               <section key={side} aria-label={`${team.name} goals`} className={`min-w-0 space-y-2 ${side === 'home' ? 'border-b border-white/10 pb-3 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-2' : 'text-right sm:pl-2'}`}>
                 {goals.length > 0 ? goals.map((event, index) => (
-                  <div key={index} className={`flex min-w-0 items-center gap-1.5 text-xs ${side === 'away' ? 'flex-row-reverse' : ''}`}>
-                    <img src={uclBallImg} alt="Goal" className="h-5 w-5 shrink-0 object-contain" />
-                    <span className={`shrink-0 font-mono font-black ${event.phase === 'extra-time' ? 'text-amber-300' : side === 'home' ? 'text-sky-300' : 'text-blue-300'}`}>{event.displayMinute}</span>
-                    <span className="min-w-0 break-words font-semibold text-white/90">{event.playerName}</span>
-                    {event.phase === 'extra-time' && <span className="shrink-0 rounded bg-amber-400/15 px-1 py-0.5 text-[8px] font-black text-amber-300">ET</span>}
-                    {event.isPenalty && <span className="shrink-0 rounded bg-amber-400/15 px-1 py-0.5 text-[8px] font-black text-amber-300">PEN</span>}
-                    {event.isOwnGoal && <span className="shrink-0 rounded bg-rose-400/15 px-1 py-0.5 text-[8px] font-black text-rose-300">OG</span>}
-                  </div>
+                  <UCLGoalLine key={index} event={event} alignRight={side === 'away'} />
                 )) : <span className="text-xs italic text-white/25">No goals</span>}
               </section>
             );
