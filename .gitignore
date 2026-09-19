@@ -5,10 +5,13 @@ node_modules/
 dist/
 dist-ssr/
 
-# Local env files
-.env
-.env.local
-.env.*.local
+# Local env files — Vite exposes VITE_* values to the browser, so only
+# non-sensitive placeholders belong in the repository.
+.env*
+!.env.example
+
+# Local agent toolkits (large, may contain fixture/example credentials)
+.agents/
 
 # Editor & OS
 .DS_Store

@@ -6,3 +6,15 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# These response headers apply when the project is deployed on Netlify.
+# GitHub Pages controls its own response headers; index.html carries the
+# compatible CSP/referrer baseline for that deployment.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; frame-src 'none'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self'; media-src 'self'; worker-src 'self' blob:"
+    Permissions-Policy = "camera=(), geolocation=(), microphone=()"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
