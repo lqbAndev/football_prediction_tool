@@ -84,8 +84,10 @@ const simulateEPLMatch = (match: LeagueMatch, homeTeam: Team, awayTeam: Team): L
 
   // 2. Tier advantage: lower tier number is stronger (Tier 1 > Tier 2 > Tier 3 > Tier 4).
   // A stronger side receives up to a 25% win-probability boost across the tier gap.
-  const tierHome = EPL_TIER_MAP[homeTeam.id] ?? 0;
-  const tierAway = EPL_TIER_MAP[awayTeam.id] ?? 0;
+  // Unknown clubs fall back to Tier C so a missing mapping can never grant an
+  // accidental strength advantage over configured Premier League clubs.
+  const tierHome = EPL_TIER_MAP[homeTeam.id] ?? 4;
+  const tierAway = EPL_TIER_MAP[awayTeam.id] ?? 4;
   const tierGap = tierAway - tierHome;
   if (tierGap > 0) {
     const boost = Math.min(0.25, tierGap * 0.125);

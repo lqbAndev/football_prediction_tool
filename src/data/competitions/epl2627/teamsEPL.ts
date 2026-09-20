@@ -67,13 +67,14 @@ export const EPL_TEAMS: Team[] = [
       { id: 'mci-df4', name: 'Rico Lewis', position: 'DF' },
       { id: 'mci-df5', name: 'Rayan Ait-Nouri', position: 'DF' },
       { id: 'mci-mf1', name: 'Phil Foden', position: 'MF' },
-      { id: 'mci-mf2', name: 'Enzo Fernandez', position: 'MF' },
+      { id: 'mci-mf2', name: 'Mateo Kovacic', position: 'MF' },
       { id: 'mci-mf3', name: 'Matheus Nunes', position: 'MF' },
-      { id: 'mci-mf4', name: 'Claudio Echeverri', position: 'MF' },
+      { id: 'mci-mf4', name: 'Enzo Fernandez', position: 'MF' },
       { id: 'mci-mf5', name: 'Rayan Cherki', position: 'MF' },
       { id: 'mci-mf6', name: 'Jack Grealish', position: 'MF' },
       { id: 'mci-mf7', name: 'Nico O\'Reilly', position: 'MF' },
       { id: 'mci-mf8', name: 'Antoine Semenyo', position: 'MF' },
+      { id: 'mci-mf9', name: 'Elliot Anderson', position: 'MF' },
       { id: 'mci-fw1', name: 'Erling Haaland', position: 'FW' },
       { id: 'mci-fw2', name: 'Jeremy Doku', position: 'FW' },
       { id: 'mci-fw3', name: 'Ryan McAidoo', position: 'FW' }
@@ -124,7 +125,7 @@ export const EPL_TEAMS: Team[] = [
       { id: 'avl-df5', name: 'Ian Maatsen', position: 'DF' },
       { id: 'avl-df6', name: 'Matteo Ruggeri', position: 'DF' },
       { id: 'avl-mf1', name: 'John McGinn', position: 'MF' },
-      { id: 'avl-mf2', name: 'Boubacar Kamara', position: 'MF' },
+      { id: 'avl-mf2', name: 'Leon Goretzka', position: 'MF' },
       { id: 'avl-mf3', name: 'Amadou Onana', position: 'MF' },
       { id: 'avl-mf4', name: 'Ross Barkley', position: 'MF' },
       { id: 'avl-mf5', name: 'Emiliano Buendia', position: 'MF' },
@@ -279,7 +280,7 @@ export const EPL_TEAMS: Team[] = [
       { id: 'che-df4', name: 'Reece James', position: 'DF' },
       { id: 'che-df5', name: 'Malo Gusto', position: 'DF' },
       { id: 'che-df6', name: 'Tosin Adarabioyo', position: 'DF' },
-      { id: 'che-mf1', name: 'Reggie Walsh', position: 'MF' },
+      { id: 'che-mf1', name: 'Lamine Camara', position: 'MF' },
       { id: 'che-mf2', name: 'Cole Palmer', position: 'MF' },
       { id: 'che-mf3', name: 'Moises Caicedo', position: 'MF' },
       { id: 'che-mf4', name: 'Romeo Lavia', position: 'MF' },
@@ -595,25 +596,35 @@ export const EPL_LOGO_MAP: Record<string, string> = {
   'tottenham': tottenhamLogo,
 };
 
+// Tier map based on the 25/26 final standings.
+// Lower number = stronger team, matching the probability model and roster UI
+// in EPLApp.tsx (S=1, A=2, B=3, C=4).
 export const EPL_TIER_MAP: Record<string, number> = {
-  'arsenal': 1,
-  'man-city': 1,
-  'man-utd': 1,
-  'liverpool': 1,
-  'chelsea': 1,
-  'aston-villa': 2,
-  'bournemouth': 3,
-  'brentford': 3,
-  'brighton': 2,
-  'coventry': 4,
-  'crystal-palace': 3,
-  'everton': 3,
-  'fulham': 3,
-  'hull-city': 4,
-  'ipswich': 4,
-  'leeds': 4,
-  'newcastle': 2,
-  'nottingham': 4,
-  'sunderland': 3,
-  'tottenham': 2,
+  // Tier S (1) — Top 5 mùa 25/26
+  'arsenal': 1,       // #1, 85pts — Champions
+  'man-city': 1,      // #2, 78pts
+  'man-utd': 1,       // #3, 71pts
+  'aston-villa': 1,   // #4, 65pts
+  'liverpool': 1,     // #5, 60pts
+
+  // Tier A (2) — #6-10
+  'bournemouth': 2,   // #6, 57pts
+  'sunderland': 2,    // #7, 54pts
+  'brighton': 2,      // #8, 53pts
+  'brentford': 2,     // #9, 53pts
+  'chelsea': 2,       // #10, 52pts
+
+  // Tier B (3) — #11-17
+  'fulham': 3,        // #11, 52pts
+  'newcastle': 3,     // #12, 49pts
+  'everton': 3,       // #13, 49pts
+  'leeds': 3,         // #14, 47pts
+  'crystal-palace': 3, // #15, 45pts
+  'nottingham': 3,    // #16, 44pts
+  'tottenham': 3,     // #17, 41pts
+
+  // Tier C (4) — Promoted
+  'coventry': 4,      // Promoted from Championship
+  'hull-city': 4,     // Promoted from Championship
+  'ipswich': 4,       // Promoted from Championship
 };
