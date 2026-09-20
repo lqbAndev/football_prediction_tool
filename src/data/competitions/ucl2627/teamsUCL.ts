@@ -511,7 +511,7 @@ export const UCL_TEAMS: Team[] = [
       { id: 'mun-mf3', name: "Kobbie Mainoo", position: 'MF' },
       { id: 'mun-mf4', name: "Manuel Ugarte", position: 'MF' },
       { id: 'mun-mf5', name: "Mason Mount", position: 'MF' },
-      { id: 'mun-mf6', name: "Casemiro", position: 'MF' },
+      { id: 'mun-mf6', name: "Carlos Baleba", position: 'MF' },
       { id: 'mun-fw1', name: "Bryan Mbeumo", position: 'FW' },
       { id: 'mun-fw2', name: "Matheus Cunha", position: 'FW' },
       { id: 'mun-fw3', name: "Benjamin Šeško", position: 'FW' },

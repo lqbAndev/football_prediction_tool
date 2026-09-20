@@ -15,11 +15,12 @@ import {
   generateSemiFinals,
   generateFinal,
 } from '../utils/uclKnockout';
-import { calculateLeagueTable } from '../utils/leagueEngine';
+import { calculateUCLStandings, explainUCLRank } from '../utils/uclStandings';
 import { computeUclRecapStats } from '../utils/uclRecapStats';
 import { calculateUCLMatchMOTM } from '../utils/uclMotm';
 import { loadUCLState, saveUCLState, clearUCLState } from '../utils/uclStorage';
 import type { LeagueMatch, LeagueStanding } from '../types/leagueConfig';
+import type { UCLLeagueStanding } from '../utils/uclStandings';
 import type { TwoLegMatch } from '../types/uclConfig';
 import type { Team } from '../types/tournament';
 
@@ -39,6 +40,10 @@ import { UCLPot1DrawTable } from '../components/ucl/UCLPot1DrawTable';
 import { UCLCountrySummaryTable } from '../components/ucl/UCLCountrySummaryTable';
 import { BackToTopButton } from '../components/BackToTopButton';
 import { UCLMorphIcon } from '../components/ucl/UCLMorphIcon';
+import { UCLWhyRankModal } from '../components/ucl/UCLWhyRankModal';
+import { UCLMatchdayRecap } from '../components/ucl/UCLMatchdayRecap';
+import { UCLPathToMadrid } from '../components/ucl/UCLPathToMadrid';
+import { UCLFinalMatchdayLive } from '../components/ucl/UCLFinalMatchdayLive';
 
 // Assets & Icons
 import {
@@ -48,6 +53,7 @@ import {
   Layers,
   Sparkles,
   AlertTriangle,
+  Lock,
 } from 'lucide-react';
 import { Check, Play as PlayIcon, RefreshCw as RefreshIcon } from 'lucide';
 import uclBallSideImg from '../img/CUP COMPETITION/UCL/ball/ucl_ball_26-27_side.png';
@@ -98,6 +104,25 @@ const restoreLeagueMatchMOTM = (matches: LeagueMatch[]): LeagueMatch[] =>
       }),
     };
   });
+
+const simulateLeagueFixture = (match: LeagueMatch): LeagueMatch => {
+  if (match.status === 'completed') return match;
+  const homeTeam = UCL_TEAMS_BY_ID[match.homeTeamId];
+  const awayTeam = UCL_TEAMS_BY_ID[match.awayTeamId];
+  if (!homeTeam || !awayTeam) return match;
+  const sim = simulateUCLMatch(homeTeam, awayTeam);
+  return {
+    ...match,
+    homeScore: sim.homeScore,
+    awayScore: sim.awayScore,
+    status: 'completed',
+    predictedAt: new Date().toISOString(),
+    scorers: sim.scorers,
+    timeline: sim.timeline,
+    motm: sim.motm,
+    playerRatings: sim.playerRatings,
+  };
+};
 
 const restoreKnockoutMOTM = (matches: TwoLegMatch[]): TwoLegMatch[] =>
   matches.map((match) => {
@@ -193,6 +218,7 @@ export const UCLApp: React.FC = () => {
 
   // Modals & Selected Entities
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+  const [rankExplanationTeamId, setRankExplanationTeamId] = useState<string | null>(null);
   const [selectedPlayerGoal, setSelectedPlayerGoal] = useState<{
     playerId: string;
     playerName: string;
@@ -205,6 +231,11 @@ export const UCLApp: React.FC = () => {
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [drawError, setDrawError] = useState<string | null>(null);
   const [drawFeedback, setDrawFeedback] = useState<'real' | 'random' | null>(null);
+  const [finalMatchdayLive, setFinalMatchdayLive] = useState<{
+    finalMatches: LeagueMatch[];
+    minute: number;
+    paused: boolean;
+  } | null>(null);
   const drawFeedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showDrawFeedback = (type: 'real' | 'random') => {
@@ -263,27 +294,33 @@ export const UCLApp: React.FC = () => {
   }, [isResetModalOpen]);
 
   // ── Computed League Standings ──
-  const rawStandings = useMemo(
-    () => calculateLeagueTable(leagueMatches, UCL_TEAMS),
-    [leagueMatches]
+  const visibleLeagueMatches = useMemo(() => {
+    if (!finalMatchdayLive) return leagueMatches;
+    const liveById = new Map(finalMatchdayLive.finalMatches.map((match) => [match.id, match]));
+    return leagueMatches.map((match) => {
+      const final = liveById.get(match.id);
+      if (!final) return match;
+      const timeline = (final.timeline ?? []).filter((event) => event.sortMinute <= finalMatchdayLive.minute);
+      return {
+        ...final,
+        homeScore: timeline.filter((event) => event.side === 'home').length,
+        awayScore: timeline.filter((event) => event.side === 'away').length,
+        timeline,
+        scorers: undefined,
+        motm: null,
+      };
+    });
+  }, [finalMatchdayLive, leagueMatches]);
+
+  const standings: UCLLeagueStanding[] = useMemo(
+    () => calculateUCLStandings(visibleLeagueMatches, UCL_TEAMS, Boolean(finalMatchdayLive)),
+    [finalMatchdayLive, visibleLeagueMatches],
   );
 
-  const standings: LeagueStanding[] = useMemo(() => {
-    return rawStandings.map((s, idx) => ({
-      position: idx + 1,
-      teamId: s.teamId,
-      teamName: s.teamName,
-      played: s.played,
-      wins: s.wins,
-      draws: s.draws,
-      losses: s.losses,
-      goalsFor: s.goalsFor,
-      goalsAgainst: s.goalsAgainst,
-      goalDifference: s.goalDifference,
-      points: s.points,
-      form: s.form,
-    }));
-  }, [rawStandings]);
+  const rankExplanation = useMemo(
+    () => rankExplanationTeamId ? explainUCLRank(rankExplanationTeamId, standings) : null,
+    [rankExplanationTeamId, standings],
+  );
 
   // All completed knockout matches for statistics
   const allKnockoutMatches = useMemo(() => {
@@ -333,6 +370,7 @@ export const UCLApp: React.FC = () => {
 
   const isKnockoutUnlocked = isLeaguePhaseComplete || playoffs.length > 0;
   const isTournamentComplete = Boolean(champion);
+  const isDrawLocked = Boolean(finalMatchdayLive) || (completedLeagueMatches > 0 && !isTournamentComplete);
 
   const eliminatedTeamIds = useMemo(() => {
     const eliminated = new Set<string>();
@@ -361,18 +399,24 @@ export const UCLApp: React.FC = () => {
 
   // ── Handlers for Draws & Resets ──
   const handleRealDraw = () => {
+    if (isDrawLocked) return;
     const fixtures = generatePresetSwissDraw(UCL_TEAMS);
     setLeagueMatches(fixtures);
+    setCurrentMatchday(1);
     setDrawError(null);
+    setFinalMatchdayLive(null);
     resetKnockout();
     showDrawFeedback('real');
   };
 
   const handleRandomDraw = () => {
+    if (isDrawLocked) return;
     try {
       const fixtures = generateRandomSwissDraw(UCL_TEAMS);
       setLeagueMatches(fixtures);
+      setCurrentMatchday(1);
       setDrawError(null);
+      setFinalMatchdayLive(null);
       resetKnockout();
       showDrawFeedback('random');
     } catch (error) {
@@ -399,6 +443,29 @@ export const UCLApp: React.FC = () => {
     setIsResetModalOpen(false);
   };
 
+  const finishFinalMatchdayLive = () => {
+    if (!finalMatchdayLive) return;
+    const byId = new Map(finalMatchdayLive.finalMatches.map((match) => [match.id, match]));
+    const updated = leagueMatches.map((match) => byId.get(match.id) ?? match);
+    setLeagueMatches(updated);
+    setFinalMatchdayLive(null);
+    if (updated.length === 144 && updated.every((match) => match.status === 'completed') && playoffs.length === 0) {
+      triggerKnockoutDraw(calculateUCLStandings(updated, UCL_TEAMS));
+    }
+  };
+
+  useEffect(() => {
+    if (!finalMatchdayLive || finalMatchdayLive.paused) return;
+    if (finalMatchdayLive.minute >= 95) {
+      finishFinalMatchdayLive();
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setFinalMatchdayLive((live) => live ? { ...live, minute: Math.min(95, live.minute + 5) } : null);
+    }, 900);
+    return () => window.clearTimeout(timer);
+  }, [finalMatchdayLive]);
+
   // ── Match Simulation Handlers ──
   const simulateSingleLeagueMatch = (matchId: string) => {
     setLeagueMatches((prev) => {
@@ -424,22 +491,7 @@ export const UCLApp: React.FC = () => {
 
       const allDone = updated.length === 144 && updated.every((m) => m.status === 'completed');
       if (allDone && playoffs.length === 0) {
-        const freshTable = calculateLeagueTable(updated, UCL_TEAMS);
-        const freshRows: LeagueStanding[] = freshTable.map((s, idx) => ({
-          position: idx + 1,
-          teamId: s.teamId,
-          teamName: s.teamName,
-          played: s.played,
-          wins: s.wins,
-          draws: s.draws,
-          losses: s.losses,
-          goalsFor: s.goalsFor,
-          goalsAgainst: s.goalsAgainst,
-          goalDifference: s.goalDifference,
-          points: s.points,
-          form: s.form,
-        }));
-        triggerKnockoutDraw(freshRows);
+        triggerKnockoutDraw(calculateUCLStandings(updated, UCL_TEAMS));
       }
 
       return updated;
@@ -447,6 +499,18 @@ export const UCLApp: React.FC = () => {
   };
 
   const handleSimulateMatchday = (matchday: number) => {
+    const canRunLiveFinale = matchday === 8 && leagueMatches
+      .filter((match) => match.matchweek < 8)
+      .every((match) => match.status === 'completed');
+    if (canRunLiveFinale) {
+      const finalMatches = leagueMatches
+        .filter((match) => match.matchweek === 8)
+        .map(simulateLeagueFixture);
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      setCurrentMatchday(8);
+      setFinalMatchdayLive({ finalMatches, minute: 0, paused: prefersReducedMotion });
+      return;
+    }
     setLeagueMatches((prev) => {
       const updated = prev.map((m) => {
         if (m.matchweek !== matchday || m.status === 'completed') return m;
@@ -470,22 +534,7 @@ export const UCLApp: React.FC = () => {
 
       const allDone = updated.length === 144 && updated.every((m) => m.status === 'completed');
       if (allDone && playoffs.length === 0) {
-        const freshTable = calculateLeagueTable(updated, UCL_TEAMS);
-        const freshRows: LeagueStanding[] = freshTable.map((s, idx) => ({
-          position: idx + 1,
-          teamId: s.teamId,
-          teamName: s.teamName,
-          played: s.played,
-          wins: s.wins,
-          draws: s.draws,
-          losses: s.losses,
-          goalsFor: s.goalsFor,
-          goalsAgainst: s.goalsAgainst,
-          goalDifference: s.goalDifference,
-          points: s.points,
-          form: s.form,
-        }));
-        triggerKnockoutDraw(freshRows);
+        triggerKnockoutDraw(calculateUCLStandings(updated, UCL_TEAMS));
       }
 
       return updated;
@@ -688,12 +737,13 @@ export const UCLApp: React.FC = () => {
 
   // Current Matchday fixtures
   const currentMatchdayFixtures = useMemo(() => {
-    return leagueMatches.filter((m) => m.matchweek === currentMatchday);
-  }, [leagueMatches, currentMatchday]);
+    return visibleLeagueMatches.filter((m) => m.matchweek === currentMatchday);
+  }, [visibleLeagueMatches, currentMatchday]);
 
   const currentMatchdayDone =
     currentMatchdayFixtures.length > 0 &&
-    currentMatchdayFixtures.every((m) => m.status === 'completed');
+    !finalMatchdayLive && currentMatchdayFixtures.every((m) => m.status === 'completed');
+  const canReplayFinalMatchday = currentMatchday === 8 && currentMatchdayDone && isLeaguePhaseComplete;
 
   const currentSelectedTeam = useMemo(() => {
     return selectedTeamId ? UCL_TEAMS_BY_ID[selectedTeamId] || null : null;
@@ -735,7 +785,7 @@ export const UCLApp: React.FC = () => {
             className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white/80 hover:text-white text-xs font-bold tracking-wider uppercase transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Hub</span>
+            <span className="hidden min-[390px]:inline">Back to Hub</span><span className="min-[390px]:hidden">Hub</span>
           </button>
 
           {/* Reset Simulation Button */}
@@ -745,7 +795,7 @@ export const UCLApp: React.FC = () => {
             title="Reset simulation"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>Reset Simulation</span>
+            <span className="hidden min-[390px]:inline">Reset Simulation</span><span className="min-[390px]:hidden">Reset</span>
           </button>
         </div>
       </nav>
@@ -804,17 +854,21 @@ export const UCLApp: React.FC = () => {
             <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:gap-3">
               <button
                 onClick={handleRealDraw}
-                className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-amber-500/20 border border-amber-400/50 hover:bg-amber-500/30 text-amber-300 font-bold text-xs uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(245,158,11,0.25)]"
+                disabled={isDrawLocked}
+                title={isDrawLocked ? 'Draw is locked while the tournament is in progress' : 'Apply the official league phase draw'}
+                className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl border border-amber-400/50 bg-amber-500/20 px-6 py-3 text-xs font-bold uppercase tracking-wider text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.25)] transition-all hover:bg-amber-500/30 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-white/30 disabled:shadow-none sm:flex-initial"
               >
-                <UCLMorphIcon icon={drawFeedback === 'real' ? Check : PlayIcon} size={18} strokeWidth={2.2} />
-                <span>{drawFeedback === 'real' ? 'Draw Applied' : 'Real Draw'}</span>
+                {isDrawLocked ? <Lock className="h-[18px] w-[18px]" /> : <UCLMorphIcon icon={drawFeedback === 'real' ? Check : PlayIcon} size={18} strokeWidth={2.2} />}
+                <span>{isDrawLocked ? 'Draw Locked' : drawFeedback === 'real' ? 'Draw Applied' : 'Real Draw'}</span>
               </button>
               <button
                 onClick={handleRandomDraw}
-                className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-white/5 border border-white/15 hover:border-cyan-400/40 text-white/80 hover:text-white font-bold text-xs uppercase tracking-wider transition-all"
+                disabled={isDrawLocked}
+                title={isDrawLocked ? 'Draw is locked while the tournament is in progress' : 'Generate a valid random UEFA draw'}
+                className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-6 py-3 text-xs font-bold uppercase tracking-wider text-white/80 transition-all hover:border-cyan-400/40 hover:text-white disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.035] disabled:text-white/30 sm:flex-initial"
               >
-                <UCLMorphIcon icon={drawFeedback === 'random' ? Check : RefreshIcon} size={17} strokeWidth={2.2} className="text-cyan-400" />
-                <span>{drawFeedback === 'random' ? 'Valid Draw Ready' : 'Random Swiss Draw'}</span>
+                {isDrawLocked ? <Lock className="h-[17px] w-[17px]" /> : <UCLMorphIcon icon={drawFeedback === 'random' ? Check : RefreshIcon} size={17} strokeWidth={2.2} className="text-cyan-400" />}
+                <span>{isDrawLocked ? 'Random Locked' : drawFeedback === 'random' ? 'Valid Draw Ready' : 'Random Swiss Draw'}</span>
               </button>
             </div>
           </div>
@@ -851,15 +905,27 @@ export const UCLApp: React.FC = () => {
             <div className="shrink-0 w-full sm:w-auto">
               <button
                 type="button"
-                disabled={currentMatchdayDone}
+                disabled={(currentMatchdayDone && !canReplayFinalMatchday) || Boolean(finalMatchdayLive)}
                 onClick={() => handleSimulateMatchday(currentMatchday)}
-                className={`flex w-full items-center justify-center gap-2 rounded-2xl border px-6 py-3 text-xs font-black uppercase tracking-widest transition-all sm:w-auto ${currentMatchdayDone ? 'cursor-default border-emerald-500/40 bg-emerald-500/15 text-emerald-300' : 'border-transparent bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-[0_0_20px_rgba(0,240,255,0.4)] hover:from-cyan-400 hover:to-blue-500 active:scale-95'}`}
+                className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border px-6 py-3 text-xs font-black uppercase tracking-widest transition-all sm:w-auto ${currentMatchdayDone && !canReplayFinalMatchday ? 'cursor-default border-emerald-500/40 bg-emerald-500/15 text-emerald-300' : finalMatchdayLive ? 'cursor-wait border-rose-300/25 bg-rose-300/10 text-rose-200' : 'border-transparent bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-[0_0_20px_rgba(0,240,255,0.4)] hover:from-cyan-400 hover:to-blue-500 active:scale-95'}`}
               >
-                <UCLMorphIcon icon={currentMatchdayDone ? Check : PlayIcon} size={17} strokeWidth={2.2} />
-                <span>{currentMatchdayDone ? `Matchday ${currentMatchday} Completed` : `Simulate Matchday ${currentMatchday}`}</span>
+                <UCLMorphIcon icon={canReplayFinalMatchday ? RefreshIcon : currentMatchdayDone ? Check : PlayIcon} size={17} strokeWidth={2.2} />
+                <span>{finalMatchdayLive ? `Matchday 8 Live · ${finalMatchdayLive.minute >= 90 ? '90+' : finalMatchdayLive.minute}'` : canReplayFinalMatchday ? 'Replay Final Matchday Live' : currentMatchdayDone ? `Matchday ${currentMatchday} Completed` : currentMatchday === 8 && leagueMatches.filter((match) => match.matchweek < 8).every((match) => match.status === 'completed') ? 'Launch Final Matchday Live' : `Simulate Matchday ${currentMatchday}`}</span>
               </button>
             </div>
           </div>
+
+          {finalMatchdayLive && (
+            <UCLFinalMatchdayLive
+              minute={finalMatchdayLive.minute}
+              paused={finalMatchdayLive.paused}
+              standings={standings}
+              matches={visibleLeagueMatches.filter((match) => match.matchweek === 8)}
+              teamsById={UCL_TEAMS_BY_ID}
+              onTogglePause={() => setFinalMatchdayLive((live) => live ? { ...live, paused: !live.paused } : null)}
+              onFinish={finishFinalMatchdayLive}
+            />
+          )}
 
           {/* ── 18 MATCH CARDS GRID (MAX 2 CARDS PER ROW, items-start to prevent vertical stretching) ── */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
@@ -877,10 +943,13 @@ export const UCLApp: React.FC = () => {
                   awayTeam={awayTeam}
                   onPredict={simulateSingleLeagueMatch}
                   onSelectTeam={setSelectedTeamId}
+                  liveMinute={finalMatchdayLive && match.matchweek === 8 ? finalMatchdayLive.minute : undefined}
                 />
               );
             })}
           </div>
+
+          {!finalMatchdayLive && <UCLMatchdayRecap matchday={currentMatchday} matches={leagueMatches} teams={UCL_TEAMS} teamsById={UCL_TEAMS_BY_ID} />}
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════
@@ -891,6 +960,7 @@ export const UCLApp: React.FC = () => {
             standings={standings}
             teamsById={UCL_TEAMS_BY_ID}
             onSelectTeam={setSelectedTeamId}
+            onExplainRank={setRankExplanationTeamId}
           />
 
           <UCLCountrySummaryTable teams={UCL_TEAMS} eliminatedTeamIds={eliminatedTeamIds} />
@@ -922,6 +992,8 @@ export const UCLApp: React.FC = () => {
               Two-leg aggregate ties from Play-offs through Semi-Finals · Single Final at Estadio Metropolitano
             </p>
           </div>
+
+          {(isKnockoutUnlocked || Boolean(finalMatchdayLive)) && <UCLPathToMadrid standings={standings} teamsById={UCL_TEAMS_BY_ID} playoffs={playoffs} roundOf16={roundOf16} quarterfinals={quarterfinals} semifinals={semifinals} finalMatch={finalMatch} />}
 
           {!isKnockoutUnlocked ? (
             <div className="py-24 text-center rounded-3xl border-2 border-dashed border-white/15 bg-[#000E2F]/40 p-8">
@@ -996,6 +1068,8 @@ export const UCLApp: React.FC = () => {
         onClose={() => setSelectedTeamId(null)}
       />
 
+      <UCLWhyRankModal explanation={rankExplanation} teamsById={UCL_TEAMS_BY_ID} onClose={() => setRankExplanationTeamId(null)} />
+
       {/* 3. Player Goal Details Modal (EPL Style) */}
       {selectedPlayerGoal && (
         <UCLPlayerGoalModal
@@ -1014,9 +1088,8 @@ export const UCLApp: React.FC = () => {
 
       {/* 4. Reset Confirmation Modal */}
       {isResetModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 backdrop-blur-md sm:items-center sm:p-4" onClick={() => setIsResetModalOpen(false)}>
-          <div role="dialog" aria-modal="true" aria-labelledby="ucl-reset-title" className="relative max-h-[82dvh] w-full max-w-md overflow-y-auto rounded-t-[28px] border-t border-rose-500/30 bg-[#000E2F] p-4 text-center shadow-2xl sm:rounded-3xl sm:border sm:p-6" onClick={(event) => event.stopPropagation()}>
-            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-white/20 sm:hidden" />
+        <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/80 p-4 backdrop-blur-md [padding-bottom:max(1rem,env(safe-area-inset-bottom))] [padding-top:max(1rem,env(safe-area-inset-top))]" onClick={() => setIsResetModalOpen(false)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="ucl-reset-title" className="relative max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-[28px] border border-rose-500/30 bg-[#000E2F] p-4 text-center shadow-2xl sm:rounded-3xl sm:p-6" onClick={(event) => event.stopPropagation()}>
             <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-rose-500/30 bg-rose-500/15 sm:mb-4 sm:h-12 sm:w-12 sm:rounded-2xl">
               <AlertTriangle className="w-6 h-6 text-rose-400" />
             </div>

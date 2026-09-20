@@ -111,7 +111,7 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
         }`}
       >
         <img src={team.logo} alt={`${team.name} crest`} className="h-8 w-8 object-contain" />
-        <span className={`truncate text-base font-bold ${isWinner ? 'text-sky-200' : 'text-white'}`}>{team.name}</span>
+        <span className={`min-w-0 whitespace-normal text-sm font-bold leading-5 [overflow-wrap:anywhere] sm:text-base ${isWinner ? 'text-sky-200' : 'text-white'}`}>{team.name}</span>
         <span className="flex items-baseline gap-1.5 font-mono tabular-nums">
           {tie.leg2.penalties && (
             <span className={`text-sm font-black ${(

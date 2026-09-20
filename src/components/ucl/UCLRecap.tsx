@@ -95,7 +95,7 @@ export const UCLRecap: React.FC<UCLRecapProps> = ({ stats, champion, runnerUp, k
             <img src={badgeUclImg} alt="UEFA Champions League" className="h-11 w-11 shrink-0 object-contain drop-shadow-[0_0_18px_rgba(0,240,255,0.35)]" />
             <div className="min-w-0">
               <p className="text-[9px] font-black uppercase tracking-[0.3em] text-cyan-300">UEFA technical report</p>
-              <h1 id="ucl-recap-title" className="truncate text-xl font-black tracking-wide sm:text-3xl">Season Recap 2026/27</h1>
+              <h1 id="ucl-recap-title" className="whitespace-normal text-xl font-black leading-tight tracking-wide sm:text-3xl">Season Recap 2026/27</h1>
             </div>
           </div>
           <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.22em] text-amber-200">Unlocked</span>
@@ -259,7 +259,7 @@ export const UCLRecap: React.FC<UCLRecapProps> = ({ stats, champion, runnerUp, k
                   <div className="space-y-2">
                     {line.players.map((player) => <button key={player.playerId} type="button" onClick={() => setSelectedPlayer(player)} className="flex min-h-14 w-full items-center gap-3 rounded-2xl border border-white/[0.08] bg-black/20 px-3 text-left transition hover:border-cyan-300/35 active:scale-[0.99]">
                       {player.teamLogo ? <img src={player.teamLogo} alt="" className="h-9 w-9 shrink-0 object-contain" /> : <span className="h-9 w-9 rounded-full bg-white/10" />}
-                      <span className="min-w-0 flex-1"><span className="block truncate text-sm font-black text-white">{player.playerName}</span><span className="block truncate text-[10px] text-white/45">{player.teamName} · {player.naturalPosition}</span></span>
+                      <span className="min-w-0 flex-1"><span className="block whitespace-normal text-sm font-black leading-5 text-white [overflow-wrap:anywhere]">{player.playerName}</span><span className="block whitespace-normal text-[10px] leading-4 text-white/45 [overflow-wrap:anywhere]">{player.teamName} · {player.naturalPosition}</span></span>
                       <span className="font-mono text-lg font-black text-cyan-300">{player.totalScore}</span>
                     </button>)}
                   </div>
@@ -279,7 +279,7 @@ export const UCLRecap: React.FC<UCLRecapProps> = ({ stats, champion, runnerUp, k
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-3xl border border-cyan-400/15 bg-white/[0.035] p-5"><Target className="h-5 w-5 text-cyan-300" /><p className="mt-5 text-[10px] uppercase tracking-wider text-white/40">Most goals scored</p><h3 className="mt-1 text-lg font-black">{stats.bestAttackingTeam?.teamName || '—'}</h3><p className="mt-3 font-mono text-2xl font-black text-cyan-300">{stats.bestAttackingTeam?.goals ?? '—'}</p></div>
             <div className="rounded-3xl border border-emerald-400/15 bg-white/[0.035] p-5"><Shield className="h-5 w-5 text-emerald-300" /><p className="mt-5 text-[10px] uppercase tracking-wider text-white/40">Best defence · QF or beyond</p><h3 className="mt-1 text-lg font-black">{stats.bestDefensiveTeam?.teamName || '—'}</h3><p className="mt-3 font-mono text-2xl font-black text-emerald-300">{stats.bestDefensiveTeam?.average ?? '—'} <span className="text-xs font-semibold text-white/45">conceded / match</span></p><p className="mt-1 text-xs text-white/45">{stats.bestDefensiveTeam ? `${stats.bestDefensiveTeam.conceded} conceded in ${stats.bestDefensiveTeam.matchesPlayed} matches` : '—'}</p></div>
-            <div className="rounded-3xl border border-[#FF005A]/20 bg-white/[0.035] p-5"><Flame className="h-5 w-5 text-pink-300" /><p className="mt-5 text-[10px] uppercase tracking-wider text-white/40">Highest-scoring match</p><h3 className="mt-1 truncate text-sm font-black">{stats.highestScoringMatch ? `${stats.highestScoringMatch.homeTeamName} — ${stats.highestScoringMatch.awayTeamName}` : '—'}</h3><p className="mt-3 font-mono text-2xl font-black text-pink-300">{stats.highestScoringMatch ? `${stats.highestScoringMatch.homeScore}–${stats.highestScoringMatch.awayScore}` : '—'}</p></div>
+            <div className="rounded-3xl border border-[#FF005A]/20 bg-white/[0.035] p-5"><Flame className="h-5 w-5 text-pink-300" /><p className="mt-5 text-[10px] uppercase tracking-wider text-white/40">Highest-scoring match</p><h3 className="mt-1 whitespace-normal text-sm font-black leading-5 [overflow-wrap:anywhere]">{stats.highestScoringMatch ? `${stats.highestScoringMatch.homeTeamName} — ${stats.highestScoringMatch.awayTeamName}` : '—'}</h3><p className="mt-3 font-mono text-2xl font-black text-pink-300">{stats.highestScoringMatch ? `${stats.highestScoringMatch.homeScore}–${stats.highestScoringMatch.awayScore}` : '—'}</p></div>
             <div className="rounded-3xl border border-amber-400/15 bg-white/[0.035] p-5"><Activity className="h-5 w-5 text-amber-300" /><p className="mt-5 text-[10px] uppercase tracking-wider text-white/40">Goals per match</p><h3 className="mt-1 text-lg font-black">{stats.tournamentGoalAnalysis.totalMatches} matches</h3><p className="mt-3 font-mono text-2xl font-black text-amber-300">{stats.tournamentGoalAnalysis.averagePerMatch}</p></div>
           </div>
           {stats.mostMotmAwards.length > 0 && (
@@ -296,10 +296,9 @@ export const UCLRecap: React.FC<UCLRecapProps> = ({ stats, champion, runnerUp, k
     </article>
 
       {selectedPlayer && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 sm:items-center sm:p-4" onClick={() => setSelectedPlayer(null)}>
-          <div role="dialog" aria-modal="true" aria-labelledby="ucl-score-title" className="flex max-h-[82dvh] w-full max-w-md flex-col overflow-hidden rounded-t-[28px] border-t border-cyan-400/25 bg-[#000B29] p-1.5 sm:rounded-[30px] sm:border" onClick={(event) => event.stopPropagation()}>
-            <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-white/20 sm:hidden" />
-            <div className="overflow-y-auto rounded-t-[22px] bg-[#00081E] p-4 text-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] sm:rounded-[24px] sm:p-6">
+        <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/75 p-4 [padding-bottom:max(1rem,env(safe-area-inset-bottom))] [padding-top:max(1rem,env(safe-area-inset-top))]" onClick={() => setSelectedPlayer(null)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="ucl-score-title" className="flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-cyan-400/25 bg-[#000B29] p-1.5 sm:rounded-[30px]" onClick={(event) => event.stopPropagation()}>
+            <div className="overflow-y-auto rounded-[22px] bg-[#00081E] p-4 text-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] sm:rounded-[24px] sm:p-6">
               <button type="button" onClick={() => setSelectedPlayer(null)} aria-label="Close player details" className="ml-auto block rounded-full p-2 text-white/45 hover:bg-white/5 hover:text-white"><X className="h-4 w-4" /></button>
               {selectedPlayer.teamLogo && <img src={selectedPlayer.teamLogo} alt={`${selectedPlayer.teamName} crest`} className="mx-auto h-12 w-12 object-contain sm:h-16 sm:w-16" />}
               <h3 id="ucl-score-title" className="mt-2 text-lg font-black sm:text-xl">{selectedPlayer.playerName}</h3>

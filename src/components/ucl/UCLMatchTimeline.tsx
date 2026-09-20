@@ -50,10 +50,10 @@ export const UCLMatchTimeline: React.FC<UCLMatchTimelineProps> = ({
           <img src={uclMvpCupImg} alt="MVP trophy" className="h-9 w-9 shrink-0 object-contain drop-shadow-[0_0_10px_rgba(251,191,36,0.35)] sm:h-10 sm:w-10" />
           <div className="min-w-0">
             <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-300">Man of the Match</p>
-            <p className="truncate text-sm font-black text-white">{motm.playerName}</p>
+            <p className="whitespace-normal text-sm font-black leading-5 text-white [overflow-wrap:anywhere]">{motm.playerName}</p>
           </div>
           <div className="ml-auto hidden min-w-0 text-right sm:block">
-            <p className="truncate text-[10px] font-semibold text-white/45">{motm.teamName}</p>
+            <p className="whitespace-normal text-[10px] font-semibold leading-4 text-white/45 [overflow-wrap:anywhere]">{motm.teamName}</p>
             {showFinalizedAt && motm.finalizedAt && <p className="text-[8px] font-black uppercase tracking-wider text-amber-200/60">{motm.finalizedAt === 'penalties' ? 'After penalties' : `After ${motm.finalizedAt}′`}</p>}
           </div>
         </div>

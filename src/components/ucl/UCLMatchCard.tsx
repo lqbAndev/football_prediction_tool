@@ -15,6 +15,7 @@ interface UCLMatchCardProps {
   awayTeam: Team;
   onPredict: (matchId: string) => void;
   onSelectTeam?: (teamId: string) => void;
+  liveMinute?: number;
 }
 
 const StadiumIcon = () => (
@@ -32,10 +33,12 @@ export const UCLMatchCard: React.FC<UCLMatchCardProps> = ({
   awayTeam,
   onPredict,
   onSelectTeam,
+  liveMinute,
 }) => {
   const [isPredicting, setIsPredicting] = useState(false);
   const predictTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isCompleted = match.status === 'completed';
+  const isLive = typeof liveMinute === 'number';
   const homeTheme = getClubTheme(homeTeam.id);
 
   useEffect(() => () => {
@@ -63,7 +66,7 @@ export const UCLMatchCard: React.FC<UCLMatchCardProps> = ({
         </div>
         <div className="flex min-w-0 items-center justify-end gap-1.5 sm:gap-2">
           <span className={`rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${isCompleted ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300' : 'border-white/10 bg-white/5 text-white/40'}`}>
-            {isCompleted ? 'FT' : 'Pending'}
+            {isLive ? `${liveMinute >= 90 ? '90+' : liveMinute}'` : isCompleted ? 'FT' : 'Pending'}
           </span>
           <img src={badgeUclImg} alt="UEFA Champions League badge" className="h-5 w-5 shrink-0 object-contain opacity-85 sm:h-6 sm:w-6" />
         </div>
@@ -72,7 +75,7 @@ export const UCLMatchCard: React.FC<UCLMatchCardProps> = ({
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4 py-5 sm:gap-5 sm:px-6">
         <button type="button" onClick={() => onSelectTeam?.(homeTeam.id)} className="group min-w-0 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300">
           <img src={homeTeam.logo} alt={homeTeam.name} className="mx-auto h-12 w-12 object-contain transition group-hover:scale-105 sm:h-16 sm:w-16" />
-          <span className="mt-2 block truncate text-lg font-black text-white group-hover:text-sky-200">{homeTeam.name}</span>
+          <span className="mt-2 block min-h-10 whitespace-normal text-base font-black leading-5 text-white [overflow-wrap:anywhere] group-hover:text-sky-200 sm:text-lg">{homeTeam.name}</span>
           <span className="text-[9px] font-bold uppercase tracking-widest text-cyan-400">Home</span>
         </button>
 
@@ -89,7 +92,7 @@ export const UCLMatchCard: React.FC<UCLMatchCardProps> = ({
 
         <button type="button" onClick={() => onSelectTeam?.(awayTeam.id)} className="group min-w-0 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
           <img src={awayTeam.logo} alt={awayTeam.name} className="mx-auto h-12 w-12 object-contain transition group-hover:scale-105 sm:h-16 sm:w-16" />
-          <span className="mt-2 block truncate text-lg font-black text-white group-hover:text-sky-200">{awayTeam.name}</span>
+          <span className="mt-2 block min-h-10 whitespace-normal text-base font-black leading-5 text-white [overflow-wrap:anywhere] group-hover:text-sky-200 sm:text-lg">{awayTeam.name}</span>
           <span className="text-[9px] font-bold uppercase tracking-widest text-sky-300">Away</span>
         </button>
       </div>

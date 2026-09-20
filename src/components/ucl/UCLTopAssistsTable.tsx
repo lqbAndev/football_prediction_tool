@@ -30,9 +30,9 @@ export const UCLTopAssistsTable = ({ topAssists, onSelectTeam, onSelectPlayer }:
               <button type="button" onClick={() => onSelectPlayer?.(entry.playerId, entry.playerName, entry.teamId, entry.teamName)} className={`flex w-full min-w-0 items-center gap-3 rounded-2xl border border-white/[0.08] px-3 py-3 text-left transition hover:bg-white/[0.065] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 ${index === 0 ? 'bg-sky-300/[0.07]' : ''}`}>
                 <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border font-mono text-sm font-black ${rankStyle(index + 1)}`}>{index + 1}</span>
                 <div className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-black text-white">{entry.playerName}</span>
+                  <span className="block whitespace-normal text-sm font-black leading-5 text-white [overflow-wrap:anywhere]">{entry.playerName}</span>
                   <span className="mt-1 flex max-w-full items-center gap-1.5 text-[10px] text-white/55">
-                    {entry.teamLogo && <img src={entry.teamLogo} alt="" className="h-4 w-4 shrink-0 object-contain" />}<span className="truncate">{entry.teamName}</span>
+                    {entry.teamLogo && <img src={entry.teamLogo} alt="" className="h-4 w-4 shrink-0 object-contain" />}<span className="whitespace-normal leading-4 [overflow-wrap:anywhere]">{entry.teamName}</span>
                   </span>
                 </div>
                 <span className="shrink-0 text-right"><span className="block font-mono text-2xl font-black text-sky-300">{entry.assists}</span><span className="block text-[8px] uppercase tracking-wider text-white/45">Assists</span></span>

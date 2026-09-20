@@ -76,9 +76,8 @@ export const UCLPenaltyModal: React.FC<UCLPenaltyModalProps> = ({ tie, teamsById
         role="dialog"
         aria-modal="true"
         aria-labelledby="ucl-penalty-title"
-        className="fixed bottom-0 left-0 right-0 z-[9999] flex max-h-[88dvh] flex-col overflow-y-auto rounded-t-[24px] border border-white/10 bg-[linear-gradient(160deg,rgba(5,17,48,0.99),rgba(2,8,25,0.99))] shadow-[0_-4px_48px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.04)] sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-[min(560px,calc(100vw-2rem))] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[24px]"
+        className="fixed left-1/2 top-1/2 z-[9999] flex max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-[560px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-[24px] border border-white/10 bg-[linear-gradient(160deg,rgba(5,17,48,0.99),rgba(2,8,25,0.99))] shadow-[0_24px_80px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.04)]"
       >
-        <div className="mx-auto mb-1 mt-3 h-1 w-10 shrink-0 rounded-full bg-white/15 sm:hidden" />
 
         <header className="sticky top-0 z-10 flex items-center gap-3 rounded-t-[24px] border-b border-white/[0.08] bg-[rgba(5,15,42,0.97)] px-4 py-4 backdrop-blur-xl sm:px-6">
           <div className="flex min-w-0 flex-1 items-center justify-center gap-2 overflow-hidden">

@@ -53,7 +53,7 @@ export const UCLHeroBranding: React.FC<UCLHeroBrandingProps> = ({
 
         <div className="relative z-10 flex flex-col items-center justify-between gap-5 lg:flex-row lg:gap-12">
           {/* Left: Official Pure White Tournament Logo & Typography */}
-          <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:gap-6 sm:text-left lg:flex-1 lg:min-w-0">
+          <div className="flex w-full min-w-0 flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:gap-6 sm:text-left lg:flex-1">
             {/* Pure White UCL Starball Emblem (Single clean logo, no overlapping badges!) */}
             <div className="relative shrink-0 flex items-center justify-center p-3 rounded-2xl bg-white/[0.04] border border-white/10 shadow-[0_0_30px_rgba(255,255,255,0.15)]">
               <img
@@ -64,20 +64,20 @@ export const UCLHeroBranding: React.FC<UCLHeroBrandingProps> = ({
             </div>
 
             {/* Typography */}
-            <div className="space-y-3 min-w-0">
-              <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-500/15 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-cyan-300 sm:text-xs sm:tracking-[0.25em]">
+            <div className="w-full min-w-0 max-w-full space-y-3 overflow-hidden">
+              <div className="inline-flex w-full max-w-full flex-wrap items-center justify-center gap-2 rounded-2xl border border-cyan-400/30 bg-cyan-500/15 px-3 py-1 text-center text-[9px] font-bold uppercase leading-4 tracking-[0.08em] text-cyan-300 sm:w-auto sm:justify-start sm:text-left sm:text-xs sm:tracking-[0.2em]">
                 <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
                 <span>Season 2026/27 · Swiss System & Knockout</span>
               </div>
 
-              <h1 className="text-2xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-cyan-400 drop-shadow-[0_0_30px_rgba(0,240,255,0.3)] sm:text-5xl xl:text-6xl">
+              <h1 className="w-full max-w-full whitespace-normal text-[1.65rem] font-black leading-[1.05] tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-cyan-400 drop-shadow-[0_0_30px_rgba(0,240,255,0.3)] [overflow-wrap:anywhere] sm:text-5xl xl:text-6xl">
                 UEFA CHAMPIONS LEAGUE
               </h1>
 
               {/* Slogan Banner */}
-              <div className="inline-flex max-w-full items-center gap-2 rounded-2xl border border-amber-400/40 bg-gradient-to-r from-amber-500/20 via-cyan-500/15 to-amber-500/20 px-3 py-2 text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+              <div className="inline-flex w-full max-w-full flex-wrap items-center justify-center gap-2 rounded-2xl border border-amber-400/40 bg-gradient-to-r from-amber-500/20 via-cyan-500/15 to-amber-500/20 px-3 py-2 text-center text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.2)] sm:w-auto sm:justify-start sm:text-left">
                 <img src={uclCupImg} alt="" className="h-5 w-5 shrink-0 object-contain" />
-                <span className="text-[10px] font-black uppercase tracking-[0.08em] text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-white to-cyan-200 sm:text-sm sm:tracking-widest">
+                <span className="min-w-0 whitespace-normal text-[10px] font-black uppercase leading-4 tracking-[0.06em] text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-white to-cyan-200 sm:text-sm sm:tracking-wider">
                   FINAL: MADRID 27 - ROAD TO Estadio Metropolitano
                 </span>
               </div>
@@ -121,7 +121,7 @@ export const UCLHeroBranding: React.FC<UCLHeroBrandingProps> = ({
       </div>
 
       {/* ── 4 Key Competition Status Counters (Clickable Interactive Cards) ── */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 min-[430px]:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         {/* 1. League Phase Matches (Clicks to scroll to League Phase) */}
         <div
           onClick={() => onNavigateSection?.('league-phase')}

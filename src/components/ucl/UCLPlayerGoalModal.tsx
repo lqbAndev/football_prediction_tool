@@ -257,7 +257,7 @@ export const UCLPlayerGoalModal: React.FC<UCLPlayerGoalModalProps> = ({
   const currentTeam = teamsById[teamId];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
+    <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto p-4 [padding-bottom:max(1rem,env(safe-area-inset-bottom))] [padding-top:max(1rem,env(safe-area-inset-top))]">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/80 backdrop-blur-xl transition-opacity"
@@ -269,9 +269,8 @@ export const UCLPlayerGoalModal: React.FC<UCLPlayerGoalModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="ucl-player-goals-title"
-        className="relative z-20 flex max-h-[82dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-[28px] border-t border-cyan-400/25 bg-gradient-to-b from-[#00143D] via-[#000B29] to-[#00081E] shadow-[0_-18px_60px_rgba(0,6,20,0.7)] sm:max-h-[85vh] sm:rounded-[32px] sm:border"
+        className="relative z-20 flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-[28px] border border-cyan-400/25 bg-gradient-to-b from-[#00143D] via-[#000B29] to-[#00081E] shadow-[0_24px_80px_rgba(0,6,20,0.72)] sm:max-h-[85dvh] sm:rounded-[32px]"
       >
-        <div className="mx-auto mt-3 h-1 w-12 shrink-0 rounded-full bg-white/20 sm:hidden" />
         {/* Header */}
         <div className="relative flex items-center justify-between border-b border-white/10 bg-white/[0.02] p-4 sm:p-7">
           <div className="flex min-w-0 items-center gap-3 sm:gap-4">
@@ -283,7 +282,7 @@ export const UCLPlayerGoalModal: React.FC<UCLPlayerGoalModalProps> = ({
               />
             )}
             <div className="min-w-0">
-              <h3 id="ucl-player-goals-title" className="truncate text-lg font-black text-white sm:text-2xl">{playerName}</h3>
+              <h3 id="ucl-player-goals-title" className="whitespace-normal text-lg font-black leading-tight text-white [overflow-wrap:anywhere] sm:text-2xl">{playerName}</h3>
               <p className="text-xs sm:text-sm text-white/60 font-semibold">{teamName}</p>
             </div>
           </div>

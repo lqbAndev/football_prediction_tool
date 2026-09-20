@@ -1,20 +1,23 @@
 import React from 'react';
-import type { LeagueStanding } from '../../types/leagueConfig';
+import { CircleHelp } from 'lucide-react';
+import type { UCLLeagueStanding } from '../../utils/uclStandings';
 import type { Team } from '../../types/tournament';
 import { getClubTheme } from '../../data/competitions/ucl2627/clubThemes';
 import uclBallSideImg from '../../img/CUP COMPETITION/UCL/ball/ucl_ball_26-27_side.png';
 import patchUclImg from '../../img/CUP COMPETITION/UCL/patch_ucl.png';
 
 interface UCLStandingsTableProps {
-  standings: LeagueStanding[];
+  standings: UCLLeagueStanding[];
   teamsById: Record<string, Team>;
   onSelectTeam?: (teamId: string) => void;
+  onExplainRank?: (teamId: string) => void;
 }
 
 export const UCLStandingsTable: React.FC<UCLStandingsTableProps> = ({
   standings,
   teamsById,
   onSelectTeam,
+  onExplainRank,
 }) => {
   const getZoneStyle = (position: number) => {
     if (position <= 8) {
@@ -59,6 +62,9 @@ export const UCLStandingsTable: React.FC<UCLStandingsTableProps> = ({
           <p className="text-xs sm:text-sm text-white/50 mt-1">
             Single 36-team table · Top 8 advance to R16 · 9-24 enter Play-offs · 25-36 eliminated
           </p>
+          <p className="mt-2 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-300/70">
+            {standings[0]?.rankingPhase === 'final' ? 'MD 8/8 · Final UEFA ranking' : `MD ${Math.max(0, ...standings.map((row) => row.played))}/8 · Provisional`}
+          </p>
         </div>
 
         {/* 3 Explicit Zone Indicators */}
@@ -87,17 +93,17 @@ export const UCLStandingsTable: React.FC<UCLStandingsTableProps> = ({
           const zone = getZoneStyle(row.position);
           const theme = getClubTheme(row.teamId);
           return (
-            <button
-              key={row.teamId}
-              type="button"
-              onClick={() => onSelectTeam?.(row.teamId)}
+            <React.Fragment key={row.teamId}>
+            {(row.position === 9 || row.position === 25) && <div className="flex items-center gap-2 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-white/35"><span className="h-px flex-1 bg-white/10" /><span>{row.position === 9 ? 'Play-off line' : 'Elimination line'}</span><span className="h-px flex-1 bg-white/10" /></div>}
+            <article
               className={`w-full rounded-2xl border border-white/10 p-3 text-left transition active:scale-[0.99] ${zone.rowBorder}`}
             >
               <div className="flex items-center gap-3">
                 <span className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border font-mono text-xs font-black ${zone.badgeBg}`}>{row.position}</span>
                 {team?.logo && <img src={team.logo} alt="" className="h-9 w-9 shrink-0 object-contain" />}
-                <span className="min-w-0 flex-1 truncate font-black text-white">{team?.name || row.teamId}</span>
+                <button type="button" onClick={() => onSelectTeam?.(row.teamId)} className="min-h-11 min-w-0 flex-1 whitespace-normal text-left font-black leading-5 text-white [overflow-wrap:anywhere] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300">{team?.name || row.teamId}</button>
                 <span className="font-mono text-xl font-black text-sky-200">{row.points}</span>
+                <button type="button" onClick={() => onExplainRank?.(row.teamId)} aria-label={`Why is ${team?.name || row.teamId} ranked ${row.position}?`} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-300/[0.07] text-cyan-200 transition hover:bg-cyan-300/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"><CircleHelp className="h-4 w-4" /></button>
               </div>
               <div className="mt-3 grid grid-cols-4 gap-2 border-t border-white/10 pt-2.5 text-center text-[10px]">
                 <span className="text-white/45">Pld <b className="ml-1 font-mono text-white">{row.played}</b></span>
@@ -105,7 +111,8 @@ export const UCLStandingsTable: React.FC<UCLStandingsTableProps> = ({
                 <span className="text-white/45">GD <b className={`ml-1 font-mono ${row.goalDifference > 0 ? 'text-emerald-300' : row.goalDifference < 0 ? 'text-rose-300' : 'text-white'}`}>{row.goalDifference > 0 ? `+${row.goalDifference}` : row.goalDifference}</b></span>
                 <span className={`truncate font-bold ${theme.countryText}`}>{theme.countryCode}</span>
               </div>
-            </button>
+            </article>
+            </React.Fragment>
           );
         })}
       </div>
@@ -125,6 +132,7 @@ export const UCLStandingsTable: React.FC<UCLStandingsTableProps> = ({
               <th className="py-3 px-3 text-center font-mono font-black">GD</th>
               <th className="py-3 px-4 text-center font-mono font-black text-cyan-400 text-sm">Pts</th>
               <th className="py-3 px-4 text-center hidden md:table-cell">Form</th>
+              <th className="py-3 px-2 text-center"><span className="sr-only">Ranking explanation</span></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5 text-lg font-bold">
@@ -136,7 +144,7 @@ export const UCLStandingsTable: React.FC<UCLStandingsTableProps> = ({
               return (
                 <tr
                   key={row.teamId}
-                  className={`transition-colors hover:bg-white/[0.06] ${zone.rowBorder}`}
+                  className={`transition-colors hover:bg-white/[0.06] ${row.position === 9 || row.position === 25 ? 'border-t-2 border-t-white/25' : ''} ${zone.rowBorder}`}
                 >
                   {/* Position Badge */}
                   <td className="py-3 px-4 text-center font-mono font-black">
@@ -241,6 +249,9 @@ export const UCLStandingsTable: React.FC<UCLStandingsTableProps> = ({
                         <span className="text-white/30 text-xs">-</span>
                       )}
                     </div>
+                  </td>
+                  <td className="px-2 py-3 text-center">
+                    <button type="button" onClick={() => onExplainRank?.(row.teamId)} aria-label={`Why is ${team?.name || row.teamId} ranked ${row.position}?`} className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-300/[0.06] text-cyan-200/75 transition hover:bg-cyan-300/15 hover:text-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"><CircleHelp className="h-4 w-4" /></button>
                   </td>
                 </tr>
               );

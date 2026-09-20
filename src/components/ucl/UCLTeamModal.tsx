@@ -47,7 +47,7 @@ export const UCLTeamModal: React.FC<UCLTeamModalProps> = ({ isOpen, team, onClos
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
+    <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto p-4 [padding-bottom:max(1rem,env(safe-area-inset-bottom))] [padding-top:max(1rem,env(safe-area-inset-top))]">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/80 backdrop-blur-xl transition-opacity"
@@ -55,8 +55,7 @@ export const UCLTeamModal: React.FC<UCLTeamModalProps> = ({ isOpen, team, onClos
       />
 
       {/* Modal Window */}
-      <div className="relative z-20 flex max-h-[82dvh] w-full max-w-4xl flex-col overflow-hidden rounded-t-[28px] border-t border-white/15 bg-gradient-to-b from-[#00133B] via-[#000B29] to-[#00081E] shadow-[0_-18px_60px_rgba(0,6,20,0.65)] sm:max-h-[88vh] sm:rounded-3xl sm:border">
-        <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-white/20 sm:hidden" />
+      <div className="relative z-20 flex max-h-[calc(100dvh-2rem)] w-full max-w-4xl flex-col overflow-hidden rounded-[28px] border border-white/15 bg-gradient-to-b from-[#00133B] via-[#000B29] to-[#00081E] shadow-[0_24px_80px_rgba(0,6,20,0.72)] sm:max-h-[88dvh] sm:rounded-3xl">
         {/* Top Club Header with Glow */}
         <div className="relative flex items-start justify-between border-b border-white/10 bg-white/[0.02] p-4 sm:items-center sm:p-8">
           {/* Subtle Ambient Background Light */}
@@ -92,7 +91,7 @@ export const UCLTeamModal: React.FC<UCLTeamModalProps> = ({ isOpen, team, onClos
                 </span>
               </div>
 
-              <h2 className="truncate text-xl font-black tracking-wide text-white sm:text-4xl">
+              <h2 className="whitespace-normal text-xl font-black leading-tight tracking-wide text-white [overflow-wrap:anywhere] sm:text-4xl">
                 {team.name}
               </h2>
 

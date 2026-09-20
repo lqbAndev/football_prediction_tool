@@ -68,7 +68,7 @@ export const UCLChampionModal: React.FC<UCLChampionModalProps> = ({
   if (!isOpen || !champion) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4" aria-live="polite">
+    <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto p-4 [padding-bottom:max(1rem,env(safe-area-inset-bottom))] [padding-top:max(1rem,env(safe-area-inset-top))]" aria-live="polite">
       <div className="pointer-events-none absolute inset-0 z-10 motion-reduce:hidden">
         <ReactConfetti
           width={dimensions.width}
@@ -89,10 +89,9 @@ export const UCLChampionModal: React.FC<UCLChampionModalProps> = ({
         aria-modal="true"
         aria-labelledby="ucl-champion-title"
         aria-describedby="ucl-champion-description"
-        className="relative z-20 max-h-[88dvh] w-full max-w-xl overflow-y-auto rounded-t-[28px] border-t border-white/10 bg-[#050d1d] p-1.5 text-white shadow-[0_32px_120px_rgba(0,6,20,0.8),0_0_50px_rgba(125,211,252,0.12)] sm:rounded-[32px] sm:border"
+        className="relative z-20 max-h-[calc(100dvh-2rem)] w-full max-w-xl overflow-y-auto rounded-[28px] border border-white/10 bg-[#050d1d] p-1.5 text-white shadow-[0_32px_120px_rgba(0,6,20,0.8),0_0_50px_rgba(125,211,252,0.12)] sm:max-h-[88dvh] sm:rounded-[32px]"
       >
-        <div className="relative overflow-hidden rounded-t-[22px] bg-[radial-gradient(circle_at_50%_0%,rgba(125,211,252,0.18),transparent_42%),linear-gradient(180deg,#071329_0%,#020817_100%)] px-4 pb-5 pt-4 text-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] sm:rounded-[26px] sm:px-10 sm:pb-10 sm:pt-6">
-          <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-white/20 sm:hidden" />
+        <div className="relative overflow-hidden rounded-[22px] bg-[radial-gradient(circle_at_50%_0%,rgba(125,211,252,0.18),transparent_42%),linear-gradient(180deg,#071329_0%,#020817_100%)] px-4 pb-5 pt-4 text-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] sm:rounded-[26px] sm:px-10 sm:pb-10 sm:pt-6">
           <img src={uclBallImg} alt="" className="pointer-events-none absolute -right-16 -top-14 h-52 w-52 object-contain opacity-[0.045]" />
 
           <div className="flex items-center justify-between">

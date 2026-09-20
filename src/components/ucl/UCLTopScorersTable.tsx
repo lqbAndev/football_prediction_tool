@@ -56,7 +56,7 @@ export const UCLTopScorersTable: React.FC<UCLTopScorersTableProps> = ({
               <button key={entry.playerId} type="button" onClick={() => onSelectPlayer?.(entry.playerId, entry.playerName, entry.teamId, entry.teamName)} className={`flex w-full items-center gap-3 rounded-2xl border border-white/[0.08] px-3 py-2.5 text-left transition active:scale-[0.99] ${rowStyle(rank)}`}>
                 <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border font-mono text-sm font-black ${rankStyle(rank)}`}>{rank}</span>
                 {team?.logo && <img src={team.logo} alt="" className="h-8 w-8 shrink-0 object-contain" />}
-                <span className="min-w-0 flex-1"><span className="block truncate text-sm font-black text-white">{entry.playerName}</span><span className="block truncate text-[10px] text-white/45">{entry.teamName}{penaltyGoals > 0 ? ` · ${penaltyGoals} pen` : ''}</span></span>
+                <span className="min-w-0 flex-1"><span className="block whitespace-normal text-sm font-black leading-5 text-white [overflow-wrap:anywhere]">{entry.playerName}</span><span className="block whitespace-normal text-[10px] leading-4 text-white/45 [overflow-wrap:anywhere]">{entry.teamName}{penaltyGoals > 0 ? ` · ${penaltyGoals} pen` : ''}</span></span>
                 <span className="font-mono text-2xl font-black text-amber-300">{entry.goals}</span>
               </button>
             );
