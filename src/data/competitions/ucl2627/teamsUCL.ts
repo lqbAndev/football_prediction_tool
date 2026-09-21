@@ -306,8 +306,8 @@ export const UCL_TEAMS: Team[] = [
     stadium: 'Estadio Metropolitano, Madrid',
     logo: atleticoLogo,
     players: [
-      { id: 'atm-gk1', name: "Juan Musso", position: 'GK' },
-      { id: 'atm-gk2', name: "Jan Oblak", position: 'GK' },
+      { id: 'atm-gk1', name: "Jan Oblak", position: 'GK' },
+      { id: 'atm-gk2', name: "Juan Musso", position: 'GK' },
       { id: 'atm-df1', name: "José María Giménez", position: 'DF' },
       { id: 'atm-df2', name: "Dávid Hancko", position: 'DF' },
       { id: 'atm-df3', name: "Marc Pubill", position: 'DF' },

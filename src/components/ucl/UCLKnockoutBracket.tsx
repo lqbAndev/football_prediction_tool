@@ -12,6 +12,7 @@ import uclMvpCupImg from '../../img/CUP COMPETITION/UCL/ucl_mvp_cup.png';
 import { UCLMorphIcon } from './UCLMorphIcon';
 import { UCLMatchTimeline } from './UCLMatchTimeline';
 import { UCLGoalLine } from './UCLGoalLine';
+import { UCLFinalLive } from './UCLFinalLive';
 
 interface UCLKnockoutBracketProps {
   playoffs: TwoLegMatch[];
@@ -26,6 +27,7 @@ interface UCLKnockoutBracketProps {
   onResolvePenalties: (roundKey: string, matchId: string) => void;
   simulationPhase: 'regulation' | 'aet' | 'penalties';
   onSelectTeam?: (teamId: string) => void;
+  onUpdateFinal: (match: TwoLegMatch) => void;
 }
 
 type BracketView = 'pathway1' | 'pathway2' | 'finals';
@@ -58,6 +60,7 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
   onResolvePenalties,
   simulationPhase,
   onSelectTeam,
+  onUpdateFinal,
 }) => {
   const [activeView, setActiveView] = useState<BracketView>('pathway1');
   const [activeMobileRound, setActiveMobileRound] = useState<PathwayRound>('playoffs');
@@ -522,7 +525,15 @@ export const UCLKnockoutBracket: React.FC<UCLKnockoutBracketProps> = ({
           <h3 className="mt-2 text-4xl font-black tracking-tight text-white sm:text-6xl">The Final <span className="text-amber-200">2027</span></h3>
           <p className="mt-2 text-sm text-white/45">One match. Two finalists. One champion of Europe.</p>
           <div className="mt-7 text-left">
-            {finalMatch ? renderTieCard(finalMatch, 'final') : (
+            {finalMatch ? (
+              <UCLFinalLive
+                match={finalMatch}
+                homeTeam={teamsById[finalMatch.homeTeamId]}
+                awayTeam={teamsById[finalMatch.awayTeamId]}
+                onUpdate={onUpdateFinal}
+                onSelectTeam={onSelectTeam}
+              />
+            ) : (
               <div className="rounded-2xl border border-dashed border-white/15 bg-black/20 py-12 text-center text-sm text-white/35">
                 Complete both semi-finals to unlock the final.
               </div>

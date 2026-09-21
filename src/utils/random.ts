@@ -2,6 +2,7 @@ import type {
   GroupMatch,
   KnockoutMatch,
   MatchScorers,
+  MatchStoppageTime,
   PenaltyShootout,
   PenaltyShootoutKick,
   PlayerProfile,
@@ -10,6 +11,7 @@ import type {
   TournamentScenario,
 } from '../types/tournament';
 import { computeMatchMOTM } from './motm';
+import { createMatchStoppageTime, formatStoppageMinute, stoppageSortMinute } from './matchClock';
 
 const clamp = (value: number, minimum: number, maximum: number) =>
   Math.min(maximum, Math.max(minimum, value));
@@ -217,17 +219,7 @@ const GOAL_MINUTE_BUCKETS_EXTRA_TIME: GoalMinuteBucket[] = [
 
 /* ═══════════════════ STOPPAGE TIME FORMATTING ═══════════════════ */
 
-/**
- * Determines whether a minute falls in stoppage time and formats accordingly.
- * - Minutes 45 → "45'"
- * - Minutes 46-52 in first half context → "45+1'" to "45+7'"
- * - Minutes 90 → "90'"
- * - Minutes 91-97 in regulation context → "90+1'" to "90+7'"
- * - ET: 105 → "105'", 106-112 → "105+1'" to "105+7'"
- * - ET: 120 → "120'", 121-127 → "120+1'" to "120+7'"
- *
- * We handle this by checking normal vs stoppage ranges.
- */
+/** Formats late-period events against the one stoppage profile generated for the match. */
 interface MinuteInfo {
   sortMinute: number;
   displayMinute: string;
@@ -236,33 +228,30 @@ interface MinuteInfo {
 const STOPPAGE_CHANCE_FIRST_HALF = 0.12;
 const STOPPAGE_CHANCE_SECOND_HALF = 0.18;
 
-const formatMinuteForRegulation = (minute: number): MinuteInfo => {
-  // First half stoppage time (minute 46-52 → 45+1' to 45+7')
-  if (minute >= 46 && minute <= 52 && Math.random() < STOPPAGE_CHANCE_FIRST_HALF) {
-    const added = randomInt(1, 5);
-    return { sortMinute: 45 + added * 0.1, displayMinute: `45+${added}'` };
+const formatMinuteForRegulation = (minute: number, stoppage: MatchStoppageTime): MinuteInfo => {
+  // Only late first-half events may move into 45+; second-half minutes never do.
+  if (minute >= 42 && minute <= 45 && Math.random() < STOPPAGE_CHANCE_FIRST_HALF) {
+    const added = randomInt(1, stoppage.firstHalf);
+    return { sortMinute: stoppageSortMinute(45, added), displayMinute: formatStoppageMinute(45, added) };
   }
 
-  // Second half stoppage time (minute 91-97 → 90+1' to 90+7')
   if (minute >= 86 && minute <= 90 && Math.random() < STOPPAGE_CHANCE_SECOND_HALF) {
-    const added = randomInt(1, 7);
-    return { sortMinute: 90 + added * 0.1, displayMinute: `90+${added}'` };
+    const added = randomInt(1, stoppage.secondHalf);
+    return { sortMinute: stoppageSortMinute(90, added), displayMinute: formatStoppageMinute(90, added) };
   }
 
   return { sortMinute: minute, displayMinute: `${minute}'` };
 };
 
-const formatMinuteForExtraTime = (minute: number): MinuteInfo => {
-  // ET first half stoppage (minute ~105 → 105+1' etc.)
-  if (minute >= 104 && minute <= 106 && Math.random() < 0.1) {
-    const added = randomInt(1, 3);
-    return { sortMinute: 105 + added * 0.1, displayMinute: `105+${added}'` };
+const formatMinuteForExtraTime = (minute: number, stoppage: MatchStoppageTime): MinuteInfo => {
+  if (stoppage.extraTimeFirstHalf > 0 && minute >= 103 && minute <= 105 && Math.random() < 0.1) {
+    const added = randomInt(1, stoppage.extraTimeFirstHalf);
+    return { sortMinute: stoppageSortMinute(105, added), displayMinute: formatStoppageMinute(105, added) };
   }
 
-  // ET second half stoppage (minute ~119-120 → 120+1' etc.)
   if (minute >= 118 && minute <= 120 && Math.random() < 0.15) {
-    const added = randomInt(1, 4);
-    return { sortMinute: 120 + added * 0.1, displayMinute: `120+${added}'` };
+    const added = randomInt(1, stoppage.extraTimeSecondHalf);
+    return { sortMinute: stoppageSortMinute(120, added), displayMinute: formatStoppageMinute(120, added) };
   }
 
   return { sortMinute: minute, displayMinute: `${minute}'` };
@@ -378,12 +367,14 @@ const deduplicateDisplayMinutes = (timeline: TimelineEvent[]): void => {
         const base = parseInt(stoppageMatch[1], 10);
         const added = parseInt(stoppageMatch[2], 10);
         event.displayMinute = `${base}+${added + count}'`;
+        event.sortMinute = base + (added + count) / 10;
       } else {
         // Normal format: "67'" → "68'", "69'", etc.
         const normalMatch = key.match(/^(\d+)'$/);
         if (normalMatch) {
           const minute = parseInt(normalMatch[1], 10);
           event.displayMinute = `${minute + count}'`;
+          event.sortMinute = minute + count;
         }
       }
     }
@@ -396,7 +387,8 @@ export const buildRegulationTimeline = (
   awayTeam: Team,
   homeGoals: number,
   awayGoals: number,
-): { scorers: MatchScorers; timeline: TimelineEvent[] } => {
+): { scorers: MatchScorers; timeline: TimelineEvent[]; stoppageTime: MatchStoppageTime } => {
+  const stoppageTime = createMatchStoppageTime(false);
   const { homeMinutes, awayMinutes, combinedTimeline } = allocateGoalMinutes(
     homeGoals,
     awayGoals,
@@ -417,7 +409,7 @@ export const buildRegulationTimeline = (
 
   const timeline: TimelineEvent[] = combinedTimeline.map(({ minute, side }) => {
     const scorer = scorerLookup.get(`${side}-${minute}`)!;
-    const minuteInfo = formatMinuteForRegulation(minute);
+    const minuteInfo = formatMinuteForRegulation(minute, stoppageTime);
     const penalty = isPenaltyGoal();
 
     return {
@@ -438,6 +430,7 @@ export const buildRegulationTimeline = (
   return {
     scorers: { home: homeScorers, away: awayScorers },
     timeline,
+    stoppageTime,
   };
 };
 
@@ -448,7 +441,10 @@ export const buildKnockoutTimeline = (
   regulationAwayGoals: number,
   extraTimeHomeGoals: number,
   extraTimeAwayGoals: number,
-): { scorers: MatchScorers; timeline: TimelineEvent[] } => {
+): { scorers: MatchScorers; timeline: TimelineEvent[]; stoppageTime: MatchStoppageTime } => {
+  // This builder models a knockout match that may reach extra time. ET additional
+  // time exists independently of whether either side scores in those periods.
+  const stoppageTime = createMatchStoppageTime(true);
   // Regulation portion
   const regAlloc = allocateGoalMinutes(
     regulationHomeGoals,
@@ -480,7 +476,7 @@ export const buildKnockoutTimeline = (
 
   const regTimeline: TimelineEvent[] = regAlloc.combinedTimeline.map(({ minute, side }) => {
     const scorer = regLookup.get(`${side}-${minute}`)!;
-    const minuteInfo = formatMinuteForRegulation(minute);
+    const minuteInfo = formatMinuteForRegulation(minute, stoppageTime);
     return {
       sortMinute: minuteInfo.sortMinute,
       displayMinute: minuteInfo.displayMinute,
@@ -500,7 +496,7 @@ export const buildKnockoutTimeline = (
 
   const etTimeline: TimelineEvent[] = etAlloc.combinedTimeline.map(({ minute, side }) => {
     const scorer = etLookup.get(`${side}-${minute}`)!;
-    const minuteInfo = formatMinuteForExtraTime(minute);
+    const minuteInfo = formatMinuteForExtraTime(minute, stoppageTime);
     return {
       sortMinute: minuteInfo.sortMinute,
       displayMinute: minuteInfo.displayMinute,
@@ -519,6 +515,7 @@ export const buildKnockoutTimeline = (
   return {
     scorers: { home: homeScorers, away: awayScorers },
     timeline: allTimeline,
+    stoppageTime,
   };
 };
 

@@ -125,6 +125,7 @@ export const simulateKnockoutLeg1 = (match: TwoLegMatch, homeTeam: Team, awayTea
       timeline: sim.timeline,
       motm: sim.motm,
       playerRatings: sim.playerRatings,
+      stoppageTime: sim.stoppageTime,
     },
     aggregate: { homeScore: sim.awayScore, awayScore: sim.homeScore },
   };
@@ -174,6 +175,7 @@ export const simulateKnockoutLeg2 = (match: TwoLegMatch, homeTeam: Team, awayTea
       timeline: sim.timeline,
       motm,
       playerRatings: sim.playerRatings,
+      stoppageTime: sim.stoppageTime,
     },
     aggregate: { homeScore: aggHome, awayScore: aggAway },
     winnerId,
@@ -236,6 +238,11 @@ export const simulateExtraTime = (match: TwoLegMatch, homeTeam: Team, awayTeam: 
       playerRatings,
       ratingsIncludeExtraTime: true,
       motm,
+      stoppageTime: {
+        ...(match.leg2.stoppageTime || generated.stoppageTime),
+        extraTimeFirstHalf: generated.stoppageTime.extraTimeFirstHalf,
+        extraTimeSecondHalf: generated.stoppageTime.extraTimeSecondHalf,
+      },
     },
     aggregate: { homeScore: newAggHome, awayScore: newAggAway },
     winnerId,

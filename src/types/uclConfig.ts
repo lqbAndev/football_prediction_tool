@@ -14,7 +14,7 @@ export interface UclConfig {
   storageKey: string;
 }
 
-import type { MatchScorers, TimelineEvent } from './tournament';
+import type { MatchScorers, MatchStoppageTime, TimelineEvent } from './tournament';
 
 export type UCLMOTMFinalizedAt = '90' | '120' | 'penalties';
 
@@ -86,6 +86,7 @@ export interface TwoLegMatch {
     timeline?: TimelineEvent[];
     motm?: UCLMatchMOTM | null;
     playerRatings?: Record<string, number>;
+    stoppageTime?: MatchStoppageTime;
   };
   leg2: {
     homeScore: number | null;
@@ -103,6 +104,7 @@ export interface TwoLegMatch {
     timeline?: TimelineEvent[];
     motm?: UCLMatchMOTM | null;
     playerRatings?: Record<string, number>;
+    stoppageTime?: MatchStoppageTime;
   };
   aggregate: {
     homeScore: number | null;

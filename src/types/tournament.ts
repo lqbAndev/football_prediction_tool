@@ -53,7 +53,7 @@ export interface MatchScorers {
 
 /** A single event in the match timeline, sorted chronologically */
 export interface TimelineEvent {
-  /** Actual minute for sorting (e.g. 45 for 45', 46 for 45+1', 91 for 90+1') */
+  /** Chronological minute for sorting (e.g. 45.1 for 45+1', 90.3 for 90+3'). */
   sortMinute: number;
   /** Display string such as "23'", "45+2'", "90+1'" */
   displayMinute: string;
@@ -72,6 +72,14 @@ export interface TimelineEvent {
   assistPlayerName?: string;
   /** Phase: 'regulation' | 'extra-time' */
   phase: 'regulation' | 'extra-time';
+}
+
+/** Additional time announced independently for each match period. */
+export interface MatchStoppageTime {
+  firstHalf: number;
+  secondHalf: number;
+  extraTimeFirstHalf: number;
+  extraTimeSecondHalf: number;
 }
 
 /** Penalty shootout detail for each kick */

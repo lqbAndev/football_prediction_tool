@@ -5,7 +5,7 @@
  * home/away fixtures, qualification zones, and optional home advantage.
  */
 
-import type { MatchScorers, Team } from './tournament';
+import type { MatchScorers, MatchStoppageTime, Team } from './tournament';
 
 export interface QualificationZone {
   /** Zone identifier (e.g., 'champions-league', 'europa-league', 'relegation') */
@@ -77,6 +77,8 @@ export interface LeagueMatch {
   } | null;
   /** Per-match player ratings generated from the simulated match performance. */
   playerRatings?: Record<string, number>;
+  /** Announced additional time for this match's periods. */
+  stoppageTime?: MatchStoppageTime;
 }
 
 /**

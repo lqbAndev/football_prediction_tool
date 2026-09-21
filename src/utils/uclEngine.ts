@@ -1,4 +1,4 @@
-import type { Team, MatchScorers, TimelineEvent } from '../types/tournament';
+import type { Team, MatchScorers, MatchStoppageTime, TimelineEvent } from '../types/tournament';
 import type { UCLMatchMOTM } from '../types/uclConfig';
 import { buildRegulationTimeline } from './random';
 import { calculateUCLMatchMOTM } from './uclMotm';
@@ -193,6 +193,7 @@ export const simulateUCLMatch = (
   timeline: TimelineEvent[];
   motm: UCLMatchMOTM | null;
   playerRatings: Record<string, number>;
+  stoppageTime: MatchStoppageTime;
 } => {
   const { homeScore: hScore, awayScore: aScore } = sampleUCLScoreline(homeTeam, awayTeam, options);
 
@@ -220,5 +221,5 @@ export const simulateUCLMatch = (
         finalizedAt: '90',
       });
 
-  return { homeScore: hScore, awayScore: aScore, scorers, timeline, motm, playerRatings };
+  return { homeScore: hScore, awayScore: aScore, scorers, timeline, motm, playerRatings, stoppageTime: generated.stoppageTime };
 };

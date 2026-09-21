@@ -19,6 +19,7 @@ import { calculateUCLStandings, explainUCLRank } from '../utils/uclStandings';
 import { computeUclRecapStats } from '../utils/uclRecapStats';
 import { calculateUCLMatchMOTM } from '../utils/uclMotm';
 import { loadUCLState, saveUCLState, clearUCLState } from '../utils/uclStorage';
+import type { UCLSavedState } from '../utils/uclStorage';
 import type { LeagueMatch, LeagueStanding } from '../types/leagueConfig';
 import type { UCLLeagueStanding } from '../utils/uclStandings';
 import type { TwoLegMatch } from '../types/uclConfig';
@@ -64,10 +65,24 @@ const getCompletedRoundWinners = (
   matches: TwoLegMatch[],
   expectedTieCount: number,
 ): string[] | null => {
+  const isFullyResolved = (match: TwoLegMatch) => {
+    const status = match.tieStatus || (match.isCompleted ? 'completed' : 'pending');
+    const aggregateIsLevel = match.aggregate.homeScore !== null
+      && match.aggregate.awayScore !== null
+      && match.aggregate.homeScore === match.aggregate.awayScore;
+
+    return (
+      match.isCompleted &&
+      status === 'completed' &&
+      Boolean(match.winnerId) &&
+      (!aggregateIsLevel || Boolean(match.leg2.penalties))
+    );
+  };
+
   if (
     expectedTieCount <= 0 ||
     matches.length !== expectedTieCount ||
-    !matches.every((match) => match.isCompleted)
+    !matches.every(isFullyResolved)
   ) {
     return null;
   }
@@ -77,6 +92,22 @@ const getCompletedRoundWinners = (
     .filter((winnerId): winnerId is string => Boolean(winnerId));
 
   return winners.length === expectedTieCount ? winners : null;
+};
+
+const normalizeSavedKnockoutProgress = (state: UCLSavedState | null): UCLSavedState | null => {
+  if (!state) return null;
+
+  const playoffsComplete = Boolean(getCompletedRoundWinners(state.playoffs, 8));
+  const roundOf16 = playoffsComplete ? state.roundOf16 : [];
+  const roundOf16Complete = Boolean(getCompletedRoundWinners(roundOf16, 8));
+  const quarterfinals = roundOf16Complete ? state.quarterfinals : [];
+  const quarterfinalsComplete = Boolean(getCompletedRoundWinners(quarterfinals, 4));
+  const semifinals = quarterfinalsComplete ? state.semifinals : [];
+  const semifinalsComplete = Boolean(getCompletedRoundWinners(semifinals, 2));
+  const finalMatch = semifinalsComplete ? state.finalMatch : null;
+  const champion = finalMatch?.isCompleted && finalMatch.winnerId ? state.champion : null;
+
+  return { ...state, roundOf16, quarterfinals, semifinals, finalMatch, champion };
 };
 
 const restoreLeagueMatchMOTM = (matches: LeagueMatch[]): LeagueMatch[] =>
@@ -121,6 +152,7 @@ const simulateLeagueFixture = (match: LeagueMatch): LeagueMatch => {
     timeline: sim.timeline,
     motm: sim.motm,
     playerRatings: sim.playerRatings,
+    stoppageTime: sim.stoppageTime,
   };
 };
 
@@ -184,7 +216,7 @@ export const UCLApp: React.FC = () => {
   const navigate = useNavigate();
 
   // ── Persistent State Initialization (Fix F5 reset bug) ──
-  const savedState = useMemo(() => loadUCLState(), []);
+  const savedState = useMemo(() => normalizeSavedKnockoutProgress(loadUCLState()), []);
 
   const [leagueMatches, setLeagueMatches] = useState<LeagueMatch[]>(() =>
     savedState ? restoreLeagueMatchMOTM(savedState.leagueMatches) : generatePresetSwissDraw(UCL_TEAMS)
@@ -248,6 +280,36 @@ export const UCLApp: React.FC = () => {
     if (drawFeedbackTimer.current) clearTimeout(drawFeedbackTimer.current);
   }, []);
 
+  // Keep downstream rounds locked if a restored or transitional state contains
+  // an unresolved upstream tie (especially an aggregate draw awaiting penalties).
+  useEffect(() => {
+    if (!getCompletedRoundWinners(playoffs, 8)) {
+      if (roundOf16.length) setRoundOf16([]);
+      if (quarterfinals.length) setQuarterfinals([]);
+      if (semifinals.length) setSemifinals([]);
+      if (finalMatch) setFinalMatch(null);
+      if (champion) setChampion(null);
+      return;
+    }
+    if (!getCompletedRoundWinners(roundOf16, 8)) {
+      if (quarterfinals.length) setQuarterfinals([]);
+      if (semifinals.length) setSemifinals([]);
+      if (finalMatch) setFinalMatch(null);
+      if (champion) setChampion(null);
+      return;
+    }
+    if (!getCompletedRoundWinners(quarterfinals, 4)) {
+      if (semifinals.length) setSemifinals([]);
+      if (finalMatch) setFinalMatch(null);
+      if (champion) setChampion(null);
+      return;
+    }
+    if (!getCompletedRoundWinners(semifinals, 2)) {
+      if (finalMatch) setFinalMatch(null);
+      if (champion) setChampion(null);
+    }
+  }, [champion, finalMatch, playoffs, quarterfinals, roundOf16, semifinals]);
+
   // Save state to localStorage whenever simulation progresses
   useEffect(() => {
     saveUCLState({
@@ -297,10 +359,13 @@ export const UCLApp: React.FC = () => {
   const visibleLeagueMatches = useMemo(() => {
     if (!finalMatchdayLive) return leagueMatches;
     const liveById = new Map(finalMatchdayLive.finalMatches.map((match) => [match.id, match]));
+    const liveSortMinute = finalMatchdayLive.minute <= 90
+      ? finalMatchdayLive.minute
+      : 90 + (finalMatchdayLive.minute - 90) / 10;
     return leagueMatches.map((match) => {
       const final = liveById.get(match.id);
       if (!final) return match;
-      const timeline = (final.timeline ?? []).filter((event) => event.sortMinute <= finalMatchdayLive.minute);
+      const timeline = (final.timeline ?? []).filter((event) => event.sortMinute <= liveSortMinute);
       return {
         ...final,
         homeScore: timeline.filter((event) => event.side === 'home').length,
@@ -456,12 +521,16 @@ export const UCLApp: React.FC = () => {
 
   useEffect(() => {
     if (!finalMatchdayLive || finalMatchdayLive.paused) return;
-    if (finalMatchdayLive.minute >= 95) {
+    const finalMinute = 90 + Math.max(0, ...finalMatchdayLive.finalMatches.map((match) => match.stoppageTime?.secondHalf || 0));
+    if (finalMatchdayLive.minute >= finalMinute) {
       finishFinalMatchdayLive();
       return;
     }
     const timer = window.setTimeout(() => {
-      setFinalMatchdayLive((live) => live ? { ...live, minute: Math.min(95, live.minute + 5) } : null);
+      setFinalMatchdayLive((live) => live ? {
+        ...live,
+        minute: Math.min(finalMinute, live.minute < 90 ? Math.min(90, live.minute + 5) : live.minute + 1),
+      } : null);
     }, 900);
     return () => window.clearTimeout(timer);
   }, [finalMatchdayLive]);
@@ -486,6 +555,7 @@ export const UCLApp: React.FC = () => {
           timeline: sim.timeline,
           motm: sim.motm,
           playerRatings: sim.playerRatings,
+          stoppageTime: sim.stoppageTime,
         } as LeagueMatch;
       });
 
@@ -529,6 +599,7 @@ export const UCLApp: React.FC = () => {
           timeline: sim.timeline,
           motm: sim.motm,
           playerRatings: sim.playerRatings,
+          stoppageTime: sim.stoppageTime,
         } as LeagueMatch;
       });
 
@@ -586,71 +657,41 @@ export const UCLApp: React.FC = () => {
   const handleSimulateLeg2 = (roundKey: string, matchId: string) => {
     setKnockoutSimPhase('regulation');
     if (roundKey === 'playoffs') {
-      setPlayoffs((prev) => {
-        const updated = prev.map((m) => {
-          if (m.id !== matchId) return m;
-          const h = UCL_TEAMS_BY_ID[m.homeTeamId];
-          const a = UCL_TEAMS_BY_ID[m.awayTeamId];
-          return simulateKnockoutLeg2(m, h, a);
-        });
-
-        // Strict: ONLY generate RO16 once ALL 8 Play-off ties are 100% completed!
-        const winners = getCompletedRoundWinners(updated, 8);
-        if (winners) {
-          const top8Ids = standings.slice(0, 8).map((s) => s.teamId);
-          if (top8Ids.length === 8) setRoundOf16(generateRoundOf16(top8Ids, winners));
-        }
-
-        return updated;
+      const updated = playoffs.map((m) => {
+        if (m.id !== matchId) return m;
+        const h = UCL_TEAMS_BY_ID[m.homeTeamId];
+        const a = UCL_TEAMS_BY_ID[m.awayTeamId];
+        return simulateKnockoutLeg2(m, h, a);
       });
+      setPlayoffs(updated);
+      advanceCompletedRound(roundKey, updated);
     } else if (roundKey === 'roundOf16') {
-      setRoundOf16((prev) => {
-        const updated = prev.map((m) => {
-          if (m.id !== matchId) return m;
-          const h = UCL_TEAMS_BY_ID[m.homeTeamId];
-          const a = UCL_TEAMS_BY_ID[m.awayTeamId];
-          return simulateKnockoutLeg2(m, h, a);
-        });
-
-        const winners = getCompletedRoundWinners(updated, 8);
-        if (winners) {
-          setQuarterfinals(generateQuarterFinals(winners));
-        }
-
-        return updated;
+      const updated = roundOf16.map((m) => {
+        if (m.id !== matchId) return m;
+        const h = UCL_TEAMS_BY_ID[m.homeTeamId];
+        const a = UCL_TEAMS_BY_ID[m.awayTeamId];
+        return simulateKnockoutLeg2(m, h, a);
       });
+      setRoundOf16(updated);
+      advanceCompletedRound(roundKey, updated);
     } else if (roundKey === 'quarterfinals') {
-      setQuarterfinals((prev) => {
-        const updated = prev.map((m) => {
-          if (m.id !== matchId) return m;
-          const h = UCL_TEAMS_BY_ID[m.homeTeamId];
-          const a = UCL_TEAMS_BY_ID[m.awayTeamId];
-          return simulateKnockoutLeg2(m, h, a);
-        });
-
-        const winners = getCompletedRoundWinners(updated, 4);
-        if (winners) {
-          setSemifinals(generateSemiFinals(winners));
-        }
-
-        return updated;
+      const updated = quarterfinals.map((m) => {
+        if (m.id !== matchId) return m;
+        const h = UCL_TEAMS_BY_ID[m.homeTeamId];
+        const a = UCL_TEAMS_BY_ID[m.awayTeamId];
+        return simulateKnockoutLeg2(m, h, a);
       });
+      setQuarterfinals(updated);
+      advanceCompletedRound(roundKey, updated);
     } else if (roundKey === 'semifinals') {
-      setSemifinals((prev) => {
-        const updated = prev.map((m) => {
-          if (m.id !== matchId) return m;
-          const h = UCL_TEAMS_BY_ID[m.homeTeamId];
-          const a = UCL_TEAMS_BY_ID[m.awayTeamId];
-          return simulateKnockoutLeg2(m, h, a);
-        });
-
-        const winners = getCompletedRoundWinners(updated, 2);
-        if (winners) {
-          setFinalMatch(generateFinal(winners));
-        }
-
-        return updated;
+      const updated = semifinals.map((m) => {
+        if (m.id !== matchId) return m;
+        const h = UCL_TEAMS_BY_ID[m.homeTeamId];
+        const a = UCL_TEAMS_BY_ID[m.awayTeamId];
+        return simulateKnockoutLeg2(m, h, a);
       });
+      setSemifinals(updated);
+      advanceCompletedRound(roundKey, updated);
     } else if (roundKey === 'final') {
       if (!finalMatch) return;
       const h = UCL_TEAMS_BY_ID[finalMatch.homeTeamId];
@@ -705,19 +746,18 @@ export const UCLApp: React.FC = () => {
     };
 
     const updateRound = (
+      matches: TwoLegMatch[],
       setter: React.Dispatch<React.SetStateAction<TwoLegMatch[]>>
     ) => {
-      setter((previous) => {
-        const updated = previous.map(resolveTie);
-        advanceCompletedRound(roundKey, updated);
-        return updated;
-      });
+      const updated = matches.map(resolveTie);
+      setter(updated);
+      advanceCompletedRound(roundKey, updated);
     };
 
-    if (roundKey === 'playoffs') updateRound(setPlayoffs);
-    else if (roundKey === 'roundOf16') updateRound(setRoundOf16);
-    else if (roundKey === 'quarterfinals') updateRound(setQuarterfinals);
-    else if (roundKey === 'semifinals') updateRound(setSemifinals);
+    if (roundKey === 'playoffs') updateRound(playoffs, setPlayoffs);
+    else if (roundKey === 'roundOf16') updateRound(roundOf16, setRoundOf16);
+    else if (roundKey === 'quarterfinals') updateRound(quarterfinals, setQuarterfinals);
+    else if (roundKey === 'semifinals') updateRound(semifinals, setSemifinals);
     else if (roundKey === 'final' && finalMatch) {
       const resolvedFinal = resolveTie(finalMatch);
       setFinalMatch(resolvedFinal);
@@ -910,7 +950,7 @@ export const UCLApp: React.FC = () => {
                 className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border px-6 py-3 text-xs font-black uppercase tracking-widest transition-all sm:w-auto ${currentMatchdayDone && !canReplayFinalMatchday ? 'cursor-default border-emerald-500/40 bg-emerald-500/15 text-emerald-300' : finalMatchdayLive ? 'cursor-wait border-rose-300/25 bg-rose-300/10 text-rose-200' : 'border-transparent bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-[0_0_20px_rgba(0,240,255,0.4)] hover:from-cyan-400 hover:to-blue-500 active:scale-95'}`}
               >
                 <UCLMorphIcon icon={canReplayFinalMatchday ? RefreshIcon : currentMatchdayDone ? Check : PlayIcon} size={17} strokeWidth={2.2} />
-                <span>{finalMatchdayLive ? `Matchday 8 Live · ${finalMatchdayLive.minute >= 90 ? '90+' : finalMatchdayLive.minute}'` : canReplayFinalMatchday ? 'Replay Final Matchday Live' : currentMatchdayDone ? `Matchday ${currentMatchday} Completed` : currentMatchday === 8 && leagueMatches.filter((match) => match.matchweek < 8).every((match) => match.status === 'completed') ? 'Launch Final Matchday Live' : `Simulate Matchday ${currentMatchday}`}</span>
+                <span>{finalMatchdayLive ? `Matchday 8 Live · ${finalMatchdayLive.minute > 90 ? `90+${finalMatchdayLive.minute - 90}` : finalMatchdayLive.minute}'` : canReplayFinalMatchday ? 'Replay Final Matchday Live' : currentMatchdayDone ? `Matchday ${currentMatchday} Completed` : currentMatchday === 8 && leagueMatches.filter((match) => match.matchweek < 8).every((match) => match.status === 'completed') ? 'Launch Final Matchday Live' : `Simulate Matchday ${currentMatchday}`}</span>
               </button>
             </div>
           </div>
@@ -1028,6 +1068,13 @@ export const UCLApp: React.FC = () => {
               }
               simulationPhase={knockoutSimPhase}
               onSelectTeam={setSelectedTeamId}
+              onUpdateFinal={(updatedFinal) => {
+                setFinalMatch(updatedFinal);
+                setKnockoutSimPhase(updatedFinal.leg2.penalties ? 'penalties' : updatedFinal.leg2.extraTime ? 'aet' : 'regulation');
+                if (updatedFinal.winnerId) {
+                  setChampion(UCL_TEAMS_BY_ID[updatedFinal.winnerId] || null);
+                }
+              }}
             />
           )}
         </section>

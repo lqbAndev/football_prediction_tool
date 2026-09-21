@@ -39,6 +39,16 @@ const isOptionalBoolean = (value: unknown) => value === undefined || typeof valu
 const isOptionalNumber = (value: unknown, min: number, max: number) =>
   value === undefined || isIntegerBetween(value, min, max);
 
+const isStoppageTime = (value: unknown) => {
+  if (!isRecord(value)) return false;
+  return (
+    isIntegerBetween(value.firstHalf, 0, 15) &&
+    isIntegerBetween(value.secondHalf, 0, 15) &&
+    isIntegerBetween(value.extraTimeFirstHalf, 0, 10) &&
+    isIntegerBetween(value.extraTimeSecondHalf, 0, 10)
+  );
+};
+
 const isGoalEvent = (value: unknown): value is GoalEvent => {
   if (!isRecord(value)) return false;
   return (
@@ -62,7 +72,7 @@ const isMatchScorers = (value: unknown): value is MatchScorers => {
 const isTimelineEvent = (value: unknown): value is TimelineEvent => {
   if (!isRecord(value)) return false;
   return (
-    isIntegerBetween(value.sortMinute, 0, 150) &&
+    typeof value.sortMinute === 'number' && Number.isFinite(value.sortMinute) && value.sortMinute >= 0 && value.sortMinute <= 150 &&
     isSafeString(value.displayMinute, 16) &&
     isSafeString(value.playerName) &&
     isSafeString(value.playerId) &&
@@ -107,7 +117,8 @@ const hasValidOptionalMatchDetails = (value: UnknownRecord) =>
   (value.scorers === undefined || isMatchScorers(value.scorers)) &&
   (value.timeline === undefined || isTimeline(value.timeline)) &&
   (value.motm === undefined || isMotm(value.motm)) &&
-  (value.playerRatings === undefined || isPlayerRatings(value.playerRatings));
+  (value.playerRatings === undefined || isPlayerRatings(value.playerRatings)) &&
+  (value.stoppageTime === undefined || isStoppageTime(value.stoppageTime));
 
 const isLeagueMatch = (value: unknown): value is LeagueMatch => {
   if (!isRecord(value)) return false;
@@ -161,6 +172,7 @@ const isLeg = (value: unknown) => {
     !isOptionalNumber(value.etHomeGoals, 0, MAX_SCORE) ||
     !isOptionalNumber(value.etAwayGoals, 0, MAX_SCORE) ||
     !isOptionalBoolean(value.ratingsIncludeExtraTime) ||
+    (value.stoppageTime !== undefined && !isStoppageTime(value.stoppageTime)) ||
     (value.etScorers !== undefined && !isMatchScorers(value.etScorers)) ||
     (value.etTimeline !== undefined && !isTimeline(value.etTimeline)) ||
     (value.penalties !== undefined && !isPenaltyShootout(value.penalties)) ||
