@@ -6,7 +6,7 @@ const randomInt = (minimum: number, maximum: number) =>
 export const createMatchStoppageTime = (includeExtraTime = false): MatchStoppageTime => ({
   firstHalf: randomInt(1, 5),
   secondHalf: randomInt(3, 8),
-  extraTimeFirstHalf: includeExtraTime ? randomInt(0, 2) : 0,
+  extraTimeFirstHalf: includeExtraTime ? randomInt(1, 2) : 0,
   extraTimeSecondHalf: includeExtraTime ? randomInt(1, 3) : 0,
 });
 

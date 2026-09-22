@@ -27,7 +27,7 @@ export const UCLFinalMatchdayLive: React.FC<Props> = ({ minute, paused, standing
     .sort((left, right) => right.event.sortMinute - left.event.sortMinute)
     .slice(0, 4), [matches]);
   const finalMinute = 90 + Math.max(0, ...matches.map((match) => match.stoppageTime?.secondHalf || 0));
-  const displayMinute = minute > 90 ? `90+${minute - 90}'` : `${minute}'`;
+  const displayMinute = minute > 90 ? `90+${minute - 90}' · staggered finishes` : `${minute}'`;
   const progress = Math.min(100, Math.round((minute / Math.max(90, finalMinute)) * 100));
 
   return (
@@ -45,7 +45,15 @@ export const UCLFinalMatchdayLive: React.FC<Props> = ({ minute, paused, standing
         <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">{matches.map((match) => {
           const home = teamsById[match.homeTeamId];
           const away = teamsById[match.awayTeamId];
-          return <article key={match.id} className="rounded-xl border border-white/[0.07] bg-white/[0.035] p-2.5"><div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-2 gap-y-1.5 text-xs"><span className="min-w-0 whitespace-normal font-bold leading-4 [overflow-wrap:anywhere]">{home?.shortName}</span><span className="font-mono font-black text-cyan-200">{match.homeScore ?? 0}</span><span className="min-w-0 whitespace-normal font-bold leading-4 [overflow-wrap:anywhere]">{away?.shortName}</span><span className="font-mono font-black text-cyan-200">{match.awayScore ?? 0}</span></div></article>;
+          const matchAddedTime = match.stoppageTime?.secondHalf || 0;
+          const currentAddedTime = Math.max(0, minute - 90);
+          const matchClock = minute <= 90
+            ? `${minute}'`
+            : currentAddedTime >= matchAddedTime
+            ? `FT · 90+${matchAddedTime}'`
+            : `90+${currentAddedTime}'`;
+          const isFinished = minute > 90 && currentAddedTime >= matchAddedTime;
+          return <article key={match.id} className={`rounded-xl border p-2.5 ${isFinished ? 'border-emerald-300/15 bg-emerald-300/[0.035]' : 'border-white/[0.07] bg-white/[0.035]'}`}><div className="mb-2 flex justify-end"><span className={`rounded-full px-1.5 py-0.5 font-mono text-[8px] font-black ${isFinished ? 'bg-emerald-300/10 text-emerald-200' : 'bg-rose-300/10 text-rose-200'}`}>{matchClock}</span></div><div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-2 gap-y-1.5 text-xs"><span className="min-w-0 whitespace-normal font-bold leading-4 [overflow-wrap:anywhere]">{home?.shortName}</span><span className="font-mono font-black text-cyan-200">{match.homeScore ?? 0}</span><span className="min-w-0 whitespace-normal font-bold leading-4 [overflow-wrap:anywhere]">{away?.shortName}</span><span className="font-mono font-black text-cyan-200">{match.awayScore ?? 0}</span></div></article>;
         })}</div>
       </div>
 

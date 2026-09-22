@@ -9,7 +9,7 @@ import badgeUclImg from '../../img/CUP COMPETITION/UCL/badge_ucl.png';
 import uclBallImg from '../../img/CUP COMPETITION/UCL/ball/ucl_ball_26-27.png';
 import uclMvpCupImg from '../../img/CUP COMPETITION/UCL/ucl_mvp_cup.png';
 
-type LivePhase = 'pending' | 'regulation' | 'half-time' | 'awaiting-extra-time' | 'extra-time' | 'awaiting-penalties' | 'penalties' | 'completed';
+type LivePhase = 'pending' | 'regulation' | 'half-time' | 'awaiting-extra-time' | 'extra-time' | 'extra-time-interval' | 'awaiting-penalties' | 'penalties' | 'completed';
 
 interface Props {
   match: TwoLegMatch;
@@ -40,6 +40,7 @@ export const UCLFinalLive: React.FC<Props> = ({ match, homeTeam, awayTeam, onUpd
   const [clockIndex, setClockIndex] = useState(-1);
   const [paused, setPaused] = useState(false);
   const [halfTimePassed, setHalfTimePassed] = useState(() => match.leg2.status === 'completed');
+  const [extraTimeHalfPassed, setExtraTimeHalfPassed] = useState(() => Boolean(match.leg2.extraTime));
   const [revealedKicks, setRevealedKicks] = useState(() => match.leg2.penalties?.kicks.length || 0);
 
   useEffect(() => {
@@ -47,16 +48,19 @@ export const UCLFinalLive: React.FC<Props> = ({ match, homeTeam, awayTeam, onUpd
     setPhase(phaseFromMatch(match));
     setClockIndex(-1);
     setHalfTimePassed(match.leg2.status === 'completed');
+    setExtraTimeHalfPassed(Boolean(match.leg2.extraTime));
     setRevealedKicks(match.leg2.penalties?.kicks.length || 0);
   }, [match.id]);
 
   const stoppage = result.leg2.stoppageTime || createMatchStoppageTime(result.leg2.extraTime);
+  const usesExtraTimeClock = phase === 'extra-time' || phase === 'extra-time-interval' || phase === 'awaiting-penalties';
   const clock = useMemo(
-    () => phase === 'extra-time' ? buildExtraTimeClock(stoppage) : buildRegulationClock(stoppage),
-    [phase, stoppage.firstHalf, stoppage.secondHalf, stoppage.extraTimeFirstHalf, stoppage.extraTimeSecondHalf],
+    () => usesExtraTimeClock ? buildExtraTimeClock(stoppage) : buildRegulationClock(stoppage),
+    [usesExtraTimeClock, stoppage.firstHalf, stoppage.secondHalf, stoppage.extraTimeFirstHalf, stoppage.extraTimeSecondHalf],
   );
   const currentClock = clock[Math.max(0, clockIndex)];
   const regulationHalfEndIndex = 45 + stoppage.firstHalf - 1;
+  const extraTimeHalfEndIndex = 15 + stoppage.extraTimeFirstHalf - 1;
   const clockLimit = clockIndex < 0 ? 0 : currentClock?.sortMinute ?? 0;
   const isActive = phase === 'regulation' || phase === 'extra-time' || phase === 'penalties';
 
@@ -93,13 +97,19 @@ export const UCLFinalLive: React.FC<Props> = ({ match, homeTeam, awayTeam, onUpd
       setPhase('half-time');
       return;
     }
+    if (phase === 'extra-time' && !extraTimeHalfPassed && clockIndex >= extraTimeHalfEndIndex) {
+      setExtraTimeHalfPassed(true);
+      setPaused(true);
+      setPhase('extra-time-interval');
+      return;
+    }
     if (clockIndex >= clock.length - 1) {
       completeCurrentPhase();
       return;
     }
     const timer = window.setTimeout(() => setClockIndex((index) => index + 1), 210);
     return () => window.clearTimeout(timer);
-  }, [clock.length, clockIndex, halfTimePassed, isActive, paused, phase, regulationHalfEndIndex, result, revealedKicks]);
+  }, [clock.length, clockIndex, extraTimeHalfEndIndex, extraTimeHalfPassed, halfTimePassed, isActive, paused, phase, regulationHalfEndIndex, result, revealedKicks]);
 
   const startFinal = () => {
     const next = simulateKnockoutLeg2(match, homeTeam, awayTeam);
@@ -115,11 +125,17 @@ export const UCLFinalLive: React.FC<Props> = ({ match, homeTeam, awayTeam, onUpd
     setResult(next);
     setPhase('extra-time');
     setClockIndex(-1);
+    setExtraTimeHalfPassed(false);
     setPaused(false);
   };
 
   const beginSecondHalf = () => {
     setPhase('regulation');
+    setPaused(false);
+  };
+
+  const beginExtraTimeSecondHalf = () => {
+    setPhase('extra-time');
     setPaused(false);
   };
 
@@ -139,6 +155,13 @@ export const UCLFinalLive: React.FC<Props> = ({ match, homeTeam, awayTeam, onUpd
       setPhase('half-time');
       return;
     }
+    if (phase === 'extra-time' && !extraTimeHalfPassed) {
+      setClockIndex(extraTimeHalfEndIndex);
+      setExtraTimeHalfPassed(true);
+      setPaused(true);
+      setPhase('extra-time-interval');
+      return;
+    }
     if (phase === 'penalties') {
       setRevealedKicks(result.leg2.penalties?.kicks.length || 0);
     } else {
@@ -152,7 +175,7 @@ export const UCLFinalLive: React.FC<Props> = ({ match, homeTeam, awayTeam, onUpd
   const visibleTimeline = useMemo(() => {
     if (phase === 'pending') return [];
     if (phase === 'regulation' || phase === 'half-time') return regulationEvents.filter((event) => event.sortMinute <= clockLimit);
-    if (phase === 'extra-time') return [...regulationEvents, ...extraTimeEvents.filter((event) => event.sortMinute <= clockLimit)];
+    if (phase === 'extra-time' || phase === 'extra-time-interval') return [...regulationEvents, ...extraTimeEvents.filter((event) => event.sortMinute <= clockLimit)];
     return [...regulationEvents, ...extraTimeEvents].sort((left, right) => left.sortMinute - right.sortMinute);
   }, [clockLimit, extraTimeEvents, phase, regulationEvents]);
 
@@ -215,6 +238,7 @@ export const UCLFinalLive: React.FC<Props> = ({ match, homeTeam, awayTeam, onUpd
 
         {phase === 'half-time' && <DecisionPanel tone="cyan" title={`${stoppage.firstHalf ? `45+${stoppage.firstHalf}'` : "45'"} complete · Half-time`} body={`First-half score: ${score.home ?? 0}–${score.away ?? 0}. The live clock is paused and the second half will begin at 46′.`} action="Begin Second Half" onClick={beginSecondHalf} />}
         {phase === 'awaiting-extra-time' && <DecisionPanel tone="amber" title={`${stoppage.secondHalf ? `90+${stoppage.secondHalf}'` : "90'"} complete · Level score`} body="The final pauses here. Extra time starts at 91′; only stoppage after 105′ and 120′ uses the + format." action="Begin Extra Time Live" onClick={beginExtraTime} />}
+        {phase === 'extra-time-interval' && <DecisionPanel tone="cyan" title={`105+${stoppage.extraTimeFirstHalf}' complete · Extra-time interval`} body={`Extra-time score: ${score.home ?? 0}–${score.away ?? 0}. The clock is paused; the second extra-time period will begin at 106′.`} action="Begin Second Extra-Time Period" onClick={beginExtraTimeSecondHalf} />}
         {phase === 'awaiting-penalties' && <DecisionPanel tone="rose" title={`${stoppage.extraTimeSecondHalf ? `120+${stoppage.extraTimeSecondHalf}'` : "120'"} complete · Still level`} body="The final will now be decided by a live, kick-by-kick shootout inside this match card." action="Begin Penalty Shootout Live" onClick={beginPenalties} />}
 
         {phase !== 'pending' && <section className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-3 sm:p-5"><div className="flex items-center justify-between gap-3"><p className="text-[10px] font-black uppercase tracking-[0.16em] text-cyan-200">Match timeline · team by team</p><span className="font-mono text-xs font-black text-white/45">{clockLabel}</span></div><div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_120px_minmax(0,1fr)]">{renderTeamTimeline(homeTeam, 'home', 'amber')}<div className="flex min-h-24 flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/[0.035] px-3 py-4 text-center"><span className="rounded-full border border-rose-300/25 bg-rose-300/10 px-2 py-1 text-[9px] font-black uppercase text-rose-200">{status}</span><span className="my-3 h-8 w-px bg-gradient-to-b from-transparent via-white/35 to-transparent" /><p className="font-mono text-xl font-black">{showPenalties ? `${penaltyScore.home}–${penaltyScore.away}` : `${score.home ?? 0}–${score.away ?? 0}`}</p><p className="mt-1 text-[9px] font-black uppercase tracking-wider text-white/35">{clockLabel}</p></div>{renderTeamTimeline(awayTeam, 'away', 'cyan')}</div></section>}

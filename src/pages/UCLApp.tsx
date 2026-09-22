@@ -43,7 +43,6 @@ import { BackToTopButton } from '../components/BackToTopButton';
 import { UCLMorphIcon } from '../components/ucl/UCLMorphIcon';
 import { UCLWhyRankModal } from '../components/ucl/UCLWhyRankModal';
 import { UCLMatchdayRecap } from '../components/ucl/UCLMatchdayRecap';
-import { UCLPathToMadrid } from '../components/ucl/UCLPathToMadrid';
 import { UCLFinalMatchdayLive } from '../components/ucl/UCLFinalMatchdayLive';
 
 // Assets & Icons
@@ -1032,8 +1031,6 @@ export const UCLApp: React.FC = () => {
               Two-leg aggregate ties from Play-offs through Semi-Finals · Single Final at Estadio Metropolitano
             </p>
           </div>
-
-          {(isKnockoutUnlocked || Boolean(finalMatchdayLive)) && <UCLPathToMadrid standings={standings} teamsById={UCL_TEAMS_BY_ID} playoffs={playoffs} roundOf16={roundOf16} quarterfinals={quarterfinals} semifinals={semifinals} finalMatch={finalMatch} />}
 
           {!isKnockoutUnlocked ? (
             <div className="py-24 text-center rounded-3xl border-2 border-dashed border-white/15 bg-[#000E2F]/40 p-8">
