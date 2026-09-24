@@ -71,7 +71,7 @@ export const buildUCLPlayerRatings = (
       ? team.players.find(candidate => candidate.id === event.assistPlayerId) : undefined;
     if (assist) {
       const count = assistCounts.get(assist.id) || 0;
-      if (count < 2) ratings[assist.id] += 0.35;
+      ratings[assist.id] += count < 2 ? 0.35 : 0.15;
       assistCounts.set(assist.id, count + 1);
     }
   });

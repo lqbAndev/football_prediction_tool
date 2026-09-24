@@ -247,7 +247,7 @@ export const computeUclRecapStats = (
         const assist = resolvePlayer(event.teamId, event.assistPlayerId, event.assistPlayerName);
         if (assist) {
           const count = assistCounts.get(assist.playerId) || 0;
-          if (count < 2) ratings[assist.playerId] += 0.35;
+          ratings[assist.playerId] += count < 2 ? 0.35 : 0.15;
           assistCounts.set(assist.playerId, count + 1);
         }
       }

@@ -5,6 +5,7 @@ import { calculateUCLMatchMOTM } from '../src/utils/uclMotm';
 import { computeUclRecapStats } from '../src/utils/uclRecapStats';
 import { ensureExtraTimeDetails, simulateExtraTime, simulatePenalties } from '../src/utils/uclKnockout';
 import { loadUCLState, saveUCLState } from '../src/utils/uclStorage';
+import { UCL_TEAMS } from '../src/data/competitions/ucl2627';
 import type { Team, TimelineEvent } from '../src/types/tournament';
 import type { LeagueMatch } from '../src/types/leagueConfig';
 import type { TwoLegMatch } from '../src/types/uclConfig';
@@ -64,25 +65,73 @@ run('Assists exclude the scorer; GK assists are reachable; penalties never have 
   assert.equal(penalty.assistPlayerId, undefined);
   assert.equal(penalty.isOwnGoal, undefined);
 });
-run('Assist rating cap is shared between regulation and ET', () => {
+run('Third assist still lifts rating during ET, at a lower rate', () => {
   const regulation = [assisted, { ...assisted, sortMinute: 70, displayMinute: "70'" }];
   const base = withRandom(() => 0.5, () => buildUCLPlayerRatings(home, away, 2, 0, []));
   const updated = withRandom(() => 0.5, () => buildUCLPlayerRatings(home, away, 2, 0, regulation));
   assert.equal(updated[home.players[8].id], Number((base[home.players[8].id] + 0.7).toFixed(1)));
   const extra = { ...assisted, phase: 'extra-time' as const, sortMinute: 105, displayMinute: "105'" };
   const extended = buildUCLPlayerRatings(home, away, 3, 0, [extra], { playerRatings: updated, homeScore: 2, awayScore: 0, timeline: regulation });
-  assert.equal(extended[home.players[8].id], updated[home.players[8].id]);
+  assert.equal(extended[home.players[8].id], Number((updated[home.players[8].id] + 0.15).toFixed(1)));
 });
 run('MOTM recognizes a reserve assister, excludes OG players and counts OG in decisive score position', () => {
   const input = { homeTeam: home, awayTeam: away, homeScore: 1, awayScore: 0,
     timeline: [assisted], playerRatings: { ...ratings, [home.players[8].id]: 10 }, finalizedAt: '90' as const };
   const motm = calculateUCLMatchMOTM(input)!;
   assert.equal(motm.playerId, home.players[8].id);
-  assert.equal(motm.breakdown.assistPoints, 2.5);
+  assert.equal(motm.breakdown.assistPoints, 3.25);
+  assert.equal(motm.breakdown.decisivePoints, 1.5);
   const og = { ...event('home', 10), playerId: away.players[1].id, playerName: away.players[1].name, isOwnGoal: true };
   assert.notEqual(calculateUCLMatchMOTM({ ...input, timeline: [og], playerRatings: { ...ratings, [away.players[1].id]: 10 } })?.playerId, away.players[1].id);
   const decisive = calculateUCLMatchMOTM({ ...input, homeScore: 2, awayScore: 1, timeline: [og, event('away', 20), event('home', 30)], playerRatings: { ...ratings, [home.players[9].id]: 10 } })!;
   assert.equal(decisive.breakdown.decisivePoints, 2);
+});
+run('Three assists can win MOTM over individual scorers', () => {
+  const creator = home.players[8];
+  const goals = [9, 10, 11].map((index, offset) => ({
+    ...event('home', 20 + offset * 30),
+    playerId: home.players[index].id,
+    playerName: home.players[index].name,
+    assistPlayerId: creator.id,
+    assistPlayerName: creator.name,
+  }));
+  const timeline = [...goals, event('away', 60)];
+  const playerRatings = withRandom(() => 0.5, () => buildUCLPlayerRatings(home, away, 3, 1, timeline));
+  const motm = calculateUCLMatchMOTM({
+    homeTeam: home, awayTeam: away, homeScore: 3, awayScore: 1,
+    timeline, playerRatings, finalizedAt: '90',
+  })!;
+  assert.equal(motm.playerId, creator.id);
+  assert.equal(motm.breakdown.assistPoints, 9.75);
+  assert.equal(motm.breakdown.decisivePoints, 1.5);
+});
+run('Two assists can beat a goal when the creator also has a stronger rating', () => {
+  const creator = home.players[8];
+  const timeline = [9, 10].map((index, offset) => ({
+    ...event('home', 20 + offset * 40),
+    playerId: home.players[index].id,
+    playerName: home.players[index].name,
+    assistPlayerId: creator.id,
+    assistPlayerName: creator.name,
+  }));
+  const motm = calculateUCLMatchMOTM({
+    homeTeam: home, awayTeam: away, homeScore: 2, awayScore: 0,
+    timeline, playerRatings: { ...ratings, [creator.id]: 7.5 }, finalizedAt: '90',
+  })!;
+  assert.equal(motm.playerId, creator.id);
+  assert.equal(motm.breakdown.assistPoints, 6.5);
+  assert.equal(motm.breakdown.decisivePoints, 1.5);
+});
+run('Extra-time creator receives the assist and decisive bonuses', () => {
+  const extraTimeGoal = { ...assisted, sortMinute: 110, displayMinute: "110'", phase: 'extra-time' as const };
+  const motm = calculateUCLMatchMOTM({
+    homeTeam: home, awayTeam: away, homeScore: 1, awayScore: 0,
+    timeline: [extraTimeGoal], playerRatings: { ...ratings, [home.players[8].id]: 10 },
+    finalizedAt: '120',
+  })!;
+  assert.equal(motm.playerId, home.players[8].id);
+  assert.equal(motm.breakdown.assistPoints, 4.25);
+  assert.equal(motm.breakdown.decisivePoints, 1.5);
 });
 run('Assists contribute to POTS/Best XI points in timeline and scorer fallback; OG is not a player goal', () => {
   const result = computeUclRecapStats([{ ...match, timeline: [assisted] }], [], [home, away]);
@@ -180,7 +229,11 @@ run('Saved states preserve attribution on reload and old states remain compatibl
     setItem: (_key: string, value: string) => { raw = value; }, getItem: () => raw,
   } });
   try {
-    const matches = Array.from({ length: 144 }, (_, i) => ({ ...match, id: `match-${i}`, timeline: [assisted] }));
+    const [homeTeamId, awayTeamId] = UCL_TEAMS.map(team => team.id);
+    const matches = Array.from({ length: 144 }, (_, i) => ({
+      ...match, id: `match-${i}`, homeTeamId, awayTeamId,
+      timeline: [{ ...assisted, teamId: homeTeamId }],
+    }));
     saveUCLState({ leagueMatches: matches, currentMatchday: 1, playoffs: [], roundOf16: [], quarterfinals: [], semifinals: [], finalMatch: null, champion: null });
     assert.deepEqual(loadUCLState()?.leagueMatches, matches);
     saveUCLState({ leagueMatches: matches.map(({ timeline, ...old }) => old), currentMatchday: 1, playoffs: [], roundOf16: [], quarterfinals: [], semifinals: [], finalMatch: null, champion: null });

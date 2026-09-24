@@ -157,7 +157,8 @@ export const calculateUCLMatchMOTM = ({
     candidate.breakdown.goalPoints += 6 + positionBonus + penaltyAdjustment + extraTimeBonus;
     if (!event.isPenalty && event.assistPlayerId && event.assistPlayerId !== event.playerId) {
       const assist = getCandidate(event.teamId, event.assistPlayerId);
-      if (assist) assist.breakdown.assistPoints = (assist.breakdown.assistPoints || 0) + 2.5;
+      if (assist) assist.breakdown.assistPoints = (assist.breakdown.assistPoints || 0)
+        + 3.25 + (event.phase === 'extra-time' ? 1 : 0);
     }
   });
 
@@ -172,6 +173,10 @@ export const calculateUCLMatchMOTM = ({
     if (decisiveGoal && !decisiveGoal.isOwnGoal) {
       const candidate = getCandidate(decisiveGoal.teamId, decisiveGoal.playerId);
       if (candidate) candidate.breakdown.decisivePoints += 2;
+      if (!decisiveGoal.isPenalty && decisiveGoal.assistPlayerId && decisiveGoal.assistPlayerId !== decisiveGoal.playerId) {
+        const assist = getCandidate(decisiveGoal.teamId, decisiveGoal.assistPlayerId);
+        if (assist) assist.breakdown.decisivePoints += 1.5;
+      }
     }
   }
 
@@ -245,6 +250,7 @@ export const calculateUCLMatchMOTM = ({
     totalScore(right) - totalScore(left) ||
     right.rating - left.rating ||
     right.breakdown.decisivePoints - left.breakdown.decisivePoints ||
+    (right.breakdown.assistPoints || 0) - (left.breakdown.assistPoints || 0) ||
     right.breakdown.goalPoints - left.breakdown.goalPoints ||
     right.breakdown.shootoutPoints - left.breakdown.shootoutPoints ||
     left.playerId.localeCompare(right.playerId),
