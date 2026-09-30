@@ -18,6 +18,7 @@ import {
 import { calculateUCLStandings, explainUCLRank } from '../utils/uclStandings';
 import { computeUclRecapStats } from '../utils/uclRecapStats';
 import { calculateUCLMatchMOTM } from '../utils/uclMotm';
+import { advanceFinalMatchdayMinute, formatFinalMatchdayMinute } from '../utils/uclFinalMatchdayClock';
 import { loadUCLState, saveUCLState, clearUCLState } from '../utils/uclStorage';
 import type { UCLSavedState } from '../utils/uclStorage';
 import type { LeagueMatch, LeagueStanding } from '../types/leagueConfig';
@@ -266,6 +267,7 @@ export const UCLApp: React.FC = () => {
     finalMatches: LeagueMatch[];
     minute: number;
     paused: boolean;
+    halfTimeReached: boolean;
   } | null>(null);
   const drawFeedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -379,6 +381,10 @@ export const UCLApp: React.FC = () => {
   const standings: UCLLeagueStanding[] = useMemo(
     () => calculateUCLStandings(visibleLeagueMatches, UCL_TEAMS, Boolean(finalMatchdayLive)),
     [finalMatchdayLive, visibleLeagueMatches],
+  );
+  const preFinalMatchdayStandings = useMemo(
+    () => calculateUCLStandings(leagueMatches.filter((match) => match.matchweek < 8), UCL_TEAMS),
+    [leagueMatches],
   );
 
   const rankExplanation = useMemo(
@@ -502,8 +508,16 @@ export const UCLApp: React.FC = () => {
 
   const handleResetAll = () => {
     clearUCLState();
-    handleRealDraw();
+    setLeagueMatches(generatePresetSwissDraw(UCL_TEAMS));
     setCurrentMatchday(1);
+    setFinalMatchdayLive(null);
+    resetKnockout();
+    setDrawError(null);
+    setDrawFeedback(null);
+    if (drawFeedbackTimer.current) clearTimeout(drawFeedbackTimer.current);
+    setSelectedTeamId(null);
+    setRankExplanationTeamId(null);
+    setSelectedPlayerGoal(null);
     setIsResetModalOpen(false);
   };
 
@@ -519,7 +533,13 @@ export const UCLApp: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!finalMatchdayLive || finalMatchdayLive.paused) return;
+    if (!finalMatchdayLive) return;
+    const firstHalfLimit = 45 + Math.max(0, ...finalMatchdayLive.finalMatches.map((match) => match.stoppageTime?.firstHalf || 0)) / 10;
+    if (finalMatchdayLive.minute >= firstHalfLimit && !finalMatchdayLive.halfTimeReached) {
+      setFinalMatchdayLive((live) => live ? { ...live, paused: true, halfTimeReached: true } : null);
+      return;
+    }
+    if (finalMatchdayLive.paused) return;
     const finalMinute = 90 + Math.max(0, ...finalMatchdayLive.finalMatches.map((match) => match.stoppageTime?.secondHalf || 0));
     if (finalMatchdayLive.minute >= finalMinute) {
       finishFinalMatchdayLive();
@@ -528,9 +548,9 @@ export const UCLApp: React.FC = () => {
     const timer = window.setTimeout(() => {
       setFinalMatchdayLive((live) => live ? {
         ...live,
-        minute: Math.min(finalMinute, live.minute < 90 ? Math.min(90, live.minute + 5) : live.minute + 1),
+        minute: advanceFinalMatchdayMinute(live.minute, firstHalfLimit, finalMinute),
       } : null);
-    }, 900);
+    }, 1200);
     return () => window.clearTimeout(timer);
   }, [finalMatchdayLive]);
 
@@ -577,7 +597,7 @@ export const UCLApp: React.FC = () => {
         .map(simulateLeagueFixture);
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       setCurrentMatchday(8);
-      setFinalMatchdayLive({ finalMatches, minute: 0, paused: prefersReducedMotion });
+      setFinalMatchdayLive({ finalMatches, minute: 0, paused: prefersReducedMotion, halfTimeReached: false });
       return;
     }
     setLeagueMatches((prev) => {
@@ -949,7 +969,7 @@ export const UCLApp: React.FC = () => {
                 className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border px-6 py-3 text-xs font-black uppercase tracking-widest transition-all sm:w-auto ${currentMatchdayDone && !canReplayFinalMatchday ? 'cursor-default border-emerald-500/40 bg-emerald-500/15 text-emerald-300' : finalMatchdayLive ? 'cursor-wait border-rose-300/25 bg-rose-300/10 text-rose-200' : 'border-transparent bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-[0_0_20px_rgba(0,240,255,0.4)] hover:from-cyan-400 hover:to-blue-500 active:scale-95'}`}
               >
                 <UCLMorphIcon icon={canReplayFinalMatchday ? RefreshIcon : currentMatchdayDone ? Check : PlayIcon} size={17} strokeWidth={2.2} />
-                <span>{finalMatchdayLive ? `Matchday 8 Live · ${finalMatchdayLive.minute > 90 ? `90+${finalMatchdayLive.minute - 90}` : finalMatchdayLive.minute}'` : canReplayFinalMatchday ? 'Replay Final Matchday Live' : currentMatchdayDone ? `Matchday ${currentMatchday} Completed` : currentMatchday === 8 && leagueMatches.filter((match) => match.matchweek < 8).every((match) => match.status === 'completed') ? 'Launch Final Matchday Live' : `Simulate Matchday ${currentMatchday}`}</span>
+                <span>{finalMatchdayLive ? `Matchday 8 Live · ${formatFinalMatchdayMinute(finalMatchdayLive.minute)}` : canReplayFinalMatchday ? 'Replay Final Matchday Live' : currentMatchdayDone ? `Matchday ${currentMatchday} Completed` : currentMatchday === 8 && leagueMatches.filter((match) => match.matchweek < 8).every((match) => match.status === 'completed') ? 'Launch Final Matchday Live' : `Simulate Matchday ${currentMatchday}`}</span>
               </button>
             </div>
           </div>
@@ -958,7 +978,9 @@ export const UCLApp: React.FC = () => {
             <UCLFinalMatchdayLive
               minute={finalMatchdayLive.minute}
               paused={finalMatchdayLive.paused}
+              halfTime={finalMatchdayLive.minute >= 45 && finalMatchdayLive.minute < 46 && finalMatchdayLive.paused && finalMatchdayLive.halfTimeReached}
               standings={standings}
+              startingStandings={preFinalMatchdayStandings}
               matches={visibleLeagueMatches.filter((match) => match.matchweek === 8)}
               teamsById={UCL_TEAMS_BY_ID}
               onTogglePause={() => setFinalMatchdayLive((live) => live ? { ...live, paused: !live.paused } : null)}
@@ -1006,13 +1028,14 @@ export const UCLApp: React.FC = () => {
 
           <UCLTopScorersTable
             topScorers={recapStats.topScorers}
+            eliminatedTeamIds={eliminatedTeamIds}
             penaltyGoalsByPlayer={penaltyGoalsByPlayer}
             onSelectTeam={setSelectedTeamId}
             onSelectPlayer={(playerId, playerName, teamId, teamName) =>
               setSelectedPlayerGoal({ playerId, playerName, teamId, teamName })
             }
           />
-          <UCLTopAssistsTable topAssists={recapStats.topAssists} onSelectTeam={setSelectedTeamId} onSelectPlayer={(playerId, playerName, teamId, teamName) => setSelectedPlayerGoal({ playerId, playerName, teamId, teamName, stat: 'assists' })} />
+          <UCLTopAssistsTable topAssists={recapStats.topAssists} eliminatedTeamIds={eliminatedTeamIds} onSelectTeam={setSelectedTeamId} onSelectPlayer={(playerId, playerName, teamId, teamName) => setSelectedPlayerGoal({ playerId, playerName, teamId, teamName, stat: 'assists' })} />
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════

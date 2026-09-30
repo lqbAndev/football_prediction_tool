@@ -3,7 +3,8 @@ import { ChevronRight, FastForward, Pause, Play, TimerReset } from 'lucide-react
 import type { TwoLegMatch, UCLPenaltyKick } from '../../types/uclConfig';
 import type { Team, TimelineEvent } from '../../types/tournament';
 import { buildExtraTimeClock, buildRegulationClock, createMatchStoppageTime } from '../../utils/matchClock';
-import { simulateExtraTime, simulateKnockoutLeg2, simulatePenalties } from '../../utils/uclKnockout';
+import { applyPenaltyShootout, simulateExtraTime, simulateKnockoutLeg2, startLivePenaltyShootout, takeNextLivePenaltyKick } from '../../utils/uclKnockout';
+import type { UCLLivePenaltyState } from '../../utils/uclKnockout';
 import patchUclImg from '../../img/CUP COMPETITION/UCL/patch_ucl.png';
 import badgeUclImg from '../../img/CUP COMPETITION/UCL/badge_ucl.png';
 import uclBallImg from '../../img/CUP COMPETITION/UCL/ball/ucl_ball_26-27.png';
@@ -41,7 +42,7 @@ export const UCLFinalLive: React.FC<Props> = ({ match, homeTeam, awayTeam, onUpd
   const [paused, setPaused] = useState(false);
   const [halfTimePassed, setHalfTimePassed] = useState(() => match.leg2.status === 'completed');
   const [extraTimeHalfPassed, setExtraTimeHalfPassed] = useState(() => Boolean(match.leg2.extraTime));
-  const [revealedKicks, setRevealedKicks] = useState(() => match.leg2.penalties?.kicks.length || 0);
+  const [shootout, setShootout] = useState<UCLLivePenaltyState | null>(null);
 
   useEffect(() => {
     setResult(match);
@@ -49,7 +50,7 @@ export const UCLFinalLive: React.FC<Props> = ({ match, homeTeam, awayTeam, onUpd
     setClockIndex(-1);
     setHalfTimePassed(match.leg2.status === 'completed');
     setExtraTimeHalfPassed(Boolean(match.leg2.extraTime));
-    setRevealedKicks(match.leg2.penalties?.kicks.length || 0);
+    setShootout(null);
   }, [match.id]);
 
   const stoppage = result.leg2.stoppageTime || createMatchStoppageTime(result.leg2.extraTime);
@@ -73,22 +74,31 @@ export const UCLFinalLive: React.FC<Props> = ({ match, homeTeam, awayTeam, onUpd
       onUpdate(result);
       setPaused(true);
       setPhase(result.tieStatus === 'aet' ? 'awaiting-penalties' : 'completed');
-    } else if (phase === 'penalties') {
-      onUpdate(result);
-      setPaused(true);
-      setPhase('completed');
     }
+  };
+
+  const completeShootout = (completed: UCLLivePenaltyState) => {
+    const next = applyPenaltyShootout(result, homeTeam, awayTeam, {
+      homeScore: completed.homeScore,
+      awayScore: completed.awayScore,
+      kicks: completed.kicks,
+    });
+    setResult(next);
+    onUpdate(next);
+    setShootout(null);
+    setPaused(true);
+    setPhase('completed');
   };
 
   useEffect(() => {
     if (!isActive || paused) return;
     if (phase === 'penalties') {
-      const kicks = result.leg2.penalties?.kicks || [];
-      if (revealedKicks >= kicks.length) {
-        completeCurrentPhase();
+      if (!shootout) return;
+      if (shootout.complete) {
+        completeShootout(shootout);
         return;
       }
-      const timer = window.setTimeout(() => setRevealedKicks((count) => count + 1), 780);
+      const timer = window.setTimeout(() => setShootout(takeNextLivePenaltyKick(shootout, homeTeam, awayTeam)), 780);
       return () => window.clearTimeout(timer);
     }
     if (phase === 'regulation' && !halfTimePassed && clockIndex >= regulationHalfEndIndex) {
@@ -109,7 +119,7 @@ export const UCLFinalLive: React.FC<Props> = ({ match, homeTeam, awayTeam, onUpd
     }
     const timer = window.setTimeout(() => setClockIndex((index) => index + 1), 210);
     return () => window.clearTimeout(timer);
-  }, [clock.length, clockIndex, extraTimeHalfEndIndex, extraTimeHalfPassed, halfTimePassed, isActive, paused, phase, regulationHalfEndIndex, result, revealedKicks]);
+  }, [clock.length, clockIndex, extraTimeHalfEndIndex, extraTimeHalfPassed, halfTimePassed, isActive, paused, phase, regulationHalfEndIndex, result, shootout]);
 
   const startFinal = () => {
     const next = simulateKnockoutLeg2(match, homeTeam, awayTeam);
@@ -140,10 +150,8 @@ export const UCLFinalLive: React.FC<Props> = ({ match, homeTeam, awayTeam, onUpd
   };
 
   const beginPenalties = () => {
-    const next = simulatePenalties(result, homeTeam, awayTeam);
-    setResult(next);
+    setShootout(startLivePenaltyShootout());
     setPhase('penalties');
-    setRevealedKicks(0);
     setPaused(false);
   };
 
@@ -163,7 +171,17 @@ export const UCLFinalLive: React.FC<Props> = ({ match, homeTeam, awayTeam, onUpd
       return;
     }
     if (phase === 'penalties') {
-      setRevealedKicks(result.leg2.penalties?.kicks.length || 0);
+      if (!shootout) return;
+      let next = shootout;
+      for (let index = 0; index < 200 && !next.complete; index++) {
+        next = takeNextLivePenaltyKick(next, homeTeam, awayTeam);
+      }
+      if (!next.complete) {
+        setShootout(next);
+        return;
+      }
+      completeShootout(next);
+      return;
     } else {
       setClockIndex(clock.length - 1);
     }
@@ -185,8 +203,8 @@ export const UCLFinalLive: React.FC<Props> = ({ match, homeTeam, awayTeam, onUpd
         home: visibleTimeline.filter((event) => event.side === 'home').length,
         away: visibleTimeline.filter((event) => event.side === 'away').length,
       };
-  const kicks = result.leg2.penalties?.kicks || [];
-  const visibleKicks = kicks.slice(0, phase === 'completed' ? kicks.length : revealedKicks);
+  const kicks = shootout?.kicks || result.leg2.penalties?.kicks || [];
+  const visibleKicks = kicks;
   const penaltyScore = visibleKicks.reduce((total, kick) => ({
     home: total.home + (kick.team === 'home' && kick.scored ? 1 : 0),
     away: total.away + (kick.team === 'away' && kick.scored ? 1 : 0),
@@ -194,14 +212,14 @@ export const UCLFinalLive: React.FC<Props> = ({ match, homeTeam, awayTeam, onUpd
   const showPenalties = phase === 'penalties' || (phase === 'completed' && kicks.length > 0);
   const status = phase === 'completed' ? 'FT' : isActive ? (paused ? 'Paused' : 'Live') : phase === 'pending' ? 'Pending' : 'Decision';
   const clockLabel = phase === 'penalties'
-    ? `Kick ${Math.min(revealedKicks + 1, kicks.length)} / ${kicks.length}`
+    ? shootout?.complete ? 'Shootout decided' : `Kick ${kicks.length + 1}${kicks.length >= 10 ? ' · Sudden death' : ' · First five'}`
     : phase === 'completed'
     ? 'Full time'
     : clockIndex < 0
     ? "0'"
     : currentClock?.displayMinute;
   const progress = phase === 'penalties'
-    ? (revealedKicks / Math.max(1, kicks.length)) * 100
+    ? shootout?.complete ? 100 : Math.min(95, (kicks.length / 10) * 100)
     : ((clockIndex + 1) / Math.max(1, clock.length)) * 100;
 
   const renderTeamTimeline = (team: Team, side: 'home' | 'away', accent: 'amber' | 'cyan') => {

@@ -102,7 +102,7 @@ export const UCLRecap: React.FC<UCLRecapProps> = ({ stats, champion, runnerUp, k
         </header>
 
         <nav className="sticky top-2 z-20 -mt-7 mb-8 flex gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-[#061126]/95 p-1.5 shadow-lg backdrop-blur sm:static sm:mt-0" aria-label="Recap sections">
-          {[['ucl-recap-story', 'Story'], ['ucl-recap-awards', 'Awards'], ['ucl-recap-xi', 'Best XI'], ['ucl-recap-records', 'Records']].map(([id, label]) => (
+          {[['ucl-recap-story', 'Story'], ['ucl-recap-champion-report', 'Champion report'], ['ucl-recap-awards', 'Awards'], ['ucl-recap-xi', 'Best XI'], ['ucl-recap-records', 'Records']].map(([id, label]) => (
             <a key={id} href={`#${id}`} className="min-h-10 shrink-0 rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-white/60 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300">{label}</a>
           ))}
         </nav>
@@ -159,6 +159,29 @@ export const UCLRecap: React.FC<UCLRecapProps> = ({ stats, champion, runnerUp, k
             </div>
           )}
         </section>
+
+        {stats.championReport && <section id="ucl-recap-champion-report" className="mb-12 scroll-mt-20 sm:mb-16" aria-labelledby="ucl-champion-report-title">
+          <div className="mb-5 flex items-center gap-3"><img src={champion.logo} alt="" className="h-11 w-11 object-contain" /><div><p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">Champion dossier</p><h2 id="ucl-champion-report-title" className="text-xl font-black sm:text-2xl">{champion.name} · Season in numbers</h2></div></div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {[
+              ['Matches', stats.championReport.matches],
+              ['W · D · L', `${stats.championReport.wins} · ${stats.championReport.draws} · ${stats.championReport.losses}`],
+              ['Goals scored', stats.championReport.goalsFor],
+              ['Conceded', stats.championReport.goalsAgainst],
+            ].map(([label, value]) => <div key={label} className="rounded-xl border border-amber-300/15 bg-amber-300/[0.05] p-3"><p className="text-[10px] font-bold uppercase tracking-wider text-white/50">{label}</p><p className="mt-1 font-mono text-xl font-black text-amber-200">{value}</p></div>)}
+          </div>
+          <p className="mt-3 text-xs leading-5 text-white/50">W–D–L and goals count match scores after extra time; penalty shootout kicks are excluded. Shootout wins: {stats.championReport.shootoutWins}.</p>
+          <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.025] p-4 sm:p-5">
+            <h3 className="text-sm font-black uppercase tracking-wider text-cyan-200">By stage</h3>
+            <div className="mt-3 divide-y divide-white/10">{stats.championReport.stages.map((stage) => <div key={stage.stage} className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-4 py-2.5 text-xs"><span className="font-bold text-white/85">{stage.stage}</span><span className="font-mono text-white/55">{stage.matches} matches</span><span className="font-mono font-bold text-white">{stage.goalsFor} GF · {stage.goalsAgainst} GA</span></div>)}</div>
+          </div>
+          <details className="mt-5 rounded-2xl border border-white/10 bg-white/[0.025] p-4 sm:p-5">
+            <summary className="cursor-pointer text-sm font-black uppercase tracking-wider text-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300">Full squad · Goals, assists and rating</summary>
+            <p className="mt-3 text-xs leading-5 text-white/50">All registered players are listed. Rating is the simulation average, not a verified appearance or minutes-played rating.</p>
+            <div className="mt-4 space-y-2 md:hidden">{stats.championReport.players.map((player) => <div key={player.playerId} className="rounded-xl border border-white/10 bg-black/20 p-3"><div className="flex items-center justify-between gap-2"><p className="min-w-0 break-words text-sm font-black">{player.name}</p><span className="text-[10px] font-bold text-white/50">{player.position}</span></div><p className="mt-2 font-mono text-xs text-white/75">{player.goals} G · {player.assists} A · {player.motmAwards} MOTM · {player.simulatedRating?.toFixed(2) ?? '—'} rating</p></div>)}</div>
+            <div className="mt-4 hidden overflow-x-auto md:block"><table className="w-full min-w-[560px] text-left text-sm"><thead className="border-b border-white/10 text-[10px] uppercase tracking-wider text-white/50"><tr><th className="pb-3">Player</th><th className="pb-3">Pos</th><th className="pb-3">Goals</th><th className="pb-3">Assists</th><th className="pb-3">MOTM</th><th className="pb-3">Sim. rating</th></tr></thead><tbody className="divide-y divide-white/10">{stats.championReport.players.map((player) => <tr key={player.playerId}><td className="py-2.5 font-bold">{player.name}</td><td className="text-white/55">{player.position}</td><td className="font-mono">{player.goals}</td><td className="font-mono">{player.assists}</td><td className="font-mono">{player.motmAwards}</td><td className="font-mono">{player.simulatedRating?.toFixed(2) ?? '—'}</td></tr>)}</tbody></table></div>
+          </details>
+        </section>}
 
         <section id="ucl-recap-awards" className="mb-12 scroll-mt-20 sm:mb-16" aria-labelledby="awards-title">
           <div className="mb-6 flex items-end justify-between gap-4">

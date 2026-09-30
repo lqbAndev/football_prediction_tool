@@ -29,6 +29,65 @@ const getPenaltyConversionRate = (team: Team, opponent: Team, position?: Team['p
   return clamp(0.72 + teamQuality + opponentGoalkeeping + positionAdjustment, 0.68, 0.77);
 };
 
+export interface UCLLivePenaltyState extends UCLPenaltyShootout {
+  firstSide: 'home' | 'away';
+  complete: boolean;
+}
+
+export const startLivePenaltyShootout = (): UCLLivePenaltyState => ({
+  homeScore: 0,
+  awayScore: 0,
+  kicks: [],
+  firstSide: Math.random() < 0.5 ? 'home' : 'away',
+  complete: false,
+});
+
+/** Draw only the next kick; no future result is sampled or stored. */
+export const takeNextLivePenaltyKick = (
+  state: UCLLivePenaltyState,
+  homeTeam: Team,
+  awayTeam: Team,
+  random: () => number = Math.random,
+): UCLLivePenaltyState => {
+  if (state.complete) return state;
+  const side = state.kicks.length % 2 === 0
+    ? state.firstSide
+    : state.firstSide === 'home' ? 'away' : 'home';
+  const team = side === 'home' ? homeTeam : awayTeam;
+  const opponent = side === 'home' ? awayTeam : homeTeam;
+  const preferred = team.players.filter((player) => player.position === 'FW' || player.position === 'MF');
+  const pool = preferred.length >= 3 ? preferred : team.players;
+  const previousKicks = state.kicks.filter((kick) => kick.team === side).length;
+  const player = pool[previousKicks % pool.length];
+  if (!player) throw new Error(`No penalty taker available for ${team.name}`);
+  const scored = random() < getPenaltyConversionRate(team, opponent, player.position);
+  const kick: UCLPenaltyKick = {
+    team: side,
+    playerId: player.id,
+    playerName: player.name,
+    scored,
+    outcome: scored ? 'goal' : random() < 0.7 ? 'saved' : 'off-target',
+    round: Math.floor(state.kicks.length / 2) + 1,
+  };
+  const kicks = [...state.kicks, kick];
+  const homeScore = state.homeScore + (side === 'home' && scored ? 1 : 0);
+  const awayScore = state.awayScore + (side === 'away' && scored ? 1 : 0);
+  const homeKicks = kicks.filter((item) => item.team === 'home').length;
+  const awayKicks = kicks.length - homeKicks;
+  const regulationDecided = kicks.length <= 10 && (
+    homeScore > awayScore + Math.max(0, 5 - awayKicks) ||
+    awayScore > homeScore + Math.max(0, 5 - homeKicks)
+  );
+  const pairedKicksDecided = homeKicks === awayKicks && homeScore !== awayScore;
+  return {
+    ...state,
+    homeScore,
+    awayScore,
+    kicks,
+    complete: regulationDecided || (kicks.length >= 10 && pairedKicksDecided),
+  };
+};
+
 /**
  * ═══════════════════════════════════════════════════════════════
  *  HELPER: PENALTY SHOOTOUT GENERATOR (From WC26 random.ts)
@@ -296,9 +355,9 @@ export const ensureExtraTimeDetails = (
   };
 };
 
-export const simulatePenalties = (match: TwoLegMatch, homeTeam: Team, awayTeam: Team): TwoLegMatch => {
+export const applyPenaltyShootout = (match: TwoLegMatch, homeTeam: Team, awayTeam: Team, pens: UCLPenaltyShootout): TwoLegMatch => {
+  if (pens.homeScore === pens.awayScore) throw new Error('Cannot resolve a tied penalty shootout');
   match = ensureExtraTimeDetails(match, homeTeam, awayTeam);
-  const pens = simulatePenaltyShootout(homeTeam, awayTeam);
   const winnerId = pens.homeScore > pens.awayScore ? homeTeam.id : awayTeam.id;
   const fullTimeline = [...(match.leg2.timeline || []), ...(match.leg2.etTimeline || [])]
     .sort((left, right) => left.sortMinute - right.sortMinute);
@@ -326,6 +385,9 @@ export const simulatePenalties = (match: TwoLegMatch, homeTeam: Team, awayTeam: 
     isCompleted: true,
   };
 };
+
+export const simulatePenalties = (match: TwoLegMatch, homeTeam: Team, awayTeam: Team): TwoLegMatch =>
+  applyPenaltyShootout(match, homeTeam, awayTeam, simulatePenaltyShootout(homeTeam, awayTeam));
 
 /**
  * ═══════════════════════════════════════════════════════════════

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { LeagueMatch } from '../../types/leagueConfig';
+import { formatFinalMatchdayMinute } from '../../utils/uclFinalMatchdayClock';
 import type { Team } from '../../types/tournament';
 import { getClubTheme } from '../../data/competitions/ucl2627/clubThemes';
 import { Check, Play as PlayIcon } from 'lucide';
@@ -66,7 +67,7 @@ export const UCLMatchCard: React.FC<UCLMatchCardProps> = ({
         </div>
         <div className="flex min-w-0 items-center justify-end gap-1.5 sm:gap-2">
           <span className={`rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${isCompleted ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300' : 'border-white/10 bg-white/5 text-white/40'}`}>
-            {isLive ? `${liveMinute >= 90 ? '90+' : liveMinute}'` : isCompleted ? 'FT' : 'Pending'}
+            {isLive ? formatFinalMatchdayMinute(liveMinute) : isCompleted ? 'FT' : 'Pending'}
           </span>
           <img src={badgeUclImg} alt="UEFA Champions League badge" className="h-5 w-5 shrink-0 object-contain opacity-85 sm:h-6 sm:w-6" />
         </div>

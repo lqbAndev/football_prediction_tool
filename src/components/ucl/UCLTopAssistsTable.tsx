@@ -3,6 +3,7 @@ import type { UCLTopAssistEntry } from '../../utils/uclRecapStats';
 
 interface UCLTopAssistsTableProps {
   topAssists: UCLTopAssistEntry[];
+  eliminatedTeamIds?: ReadonlySet<string>;
   onSelectTeam?: (teamId: string) => void;
   onSelectPlayer?: (playerId: string, playerName: string, teamId: string, teamName: string) => void;
 }
@@ -11,7 +12,7 @@ const rankStyle = (rank: number) => rank === 1
   ? 'border-sky-300/60 bg-sky-300 text-[#030815]'
   : rank <= 3 ? 'border-sky-300/25 bg-sky-300/10 text-sky-200' : 'border-white/15 bg-white/5 text-white/55';
 
-export const UCLTopAssistsTable = ({ topAssists, onSelectTeam, onSelectPlayer }: UCLTopAssistsTableProps) => {
+export const UCLTopAssistsTable = ({ topAssists, eliminatedTeamIds, onSelectTeam, onSelectPlayer }: UCLTopAssistsTableProps) => {
   const entries = topAssists.slice(0, 15);
   return (
     <section id="ucl-top-assists" aria-labelledby="ucl-top-assists-title" className="scroll-mt-20 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#071329] via-[#050d1d] to-[#020817] p-4 shadow-[0_24px_70px_rgba(0,6,20,0.38)] sm:p-8">
@@ -31,8 +32,9 @@ export const UCLTopAssistsTable = ({ topAssists, onSelectTeam, onSelectPlayer }:
                 <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border font-mono text-sm font-black ${rankStyle(index + 1)}`}>{index + 1}</span>
                 <div className="min-w-0 flex-1">
                   <span className="block whitespace-normal text-sm font-black leading-5 text-white [overflow-wrap:anywhere]">{entry.playerName}</span>
+                  {eliminatedTeamIds?.has(entry.teamId) && <span className="mt-1 inline-block rounded border border-white/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white/55">Eliminated</span>}
                   <span className="mt-1 flex max-w-full items-center gap-1.5 text-[10px] text-white/55">
-                    {entry.teamLogo && <img src={entry.teamLogo} alt="" className="h-4 w-4 shrink-0 object-contain" />}<span className="whitespace-normal leading-4 [overflow-wrap:anywhere]">{entry.teamName}</span>
+                    {entry.teamLogo && <img src={entry.teamLogo} alt="" className={`h-4 w-4 shrink-0 object-contain ${eliminatedTeamIds?.has(entry.teamId) ? 'grayscale opacity-45' : ''}`} />}<span className={`whitespace-normal leading-4 [overflow-wrap:anywhere] ${eliminatedTeamIds?.has(entry.teamId) ? 'opacity-55' : ''}`}>{entry.teamName}</span>
                   </span>
                 </div>
                 <span className="shrink-0 text-right"><span className="block font-mono text-2xl font-black text-sky-300">{entry.assists}</span><span className="block text-[8px] uppercase tracking-wider text-white/45">Assists</span></span>
@@ -53,8 +55,8 @@ export const UCLTopAssistsTable = ({ topAssists, onSelectTeam, onSelectPlayer }:
                     }
                   }} className={`group cursor-pointer transition hover:bg-white/[0.065] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300 ${index === 0 ? 'bg-sky-300/[0.07]' : ''}`}>
                     <td className="px-4 py-4 text-center"><span className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border font-mono text-base font-black ${rankStyle(index + 1)}`}>{index + 1}</span></td>
-                    <td className="px-4 py-4 text-lg font-black text-white">{entry.playerName}</td>
-                    <td className="px-4 py-4"><button type="button" onClick={event => { event.stopPropagation(); onSelectTeam?.(entry.teamId); }} className="flex items-center gap-3 rounded text-left text-base font-bold text-white/65 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">{entry.teamLogo && <img src={entry.teamLogo} alt="" className="h-8 w-8 shrink-0 object-contain" />}<span>{entry.teamName}</span></button></td>
+                    <td className="px-4 py-4 text-lg font-black text-white">{entry.playerName}{eliminatedTeamIds?.has(entry.teamId) && <span className="ml-2 rounded border border-white/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white/55">Eliminated</span>}</td>
+                    <td className="px-4 py-4"><button type="button" onClick={event => { event.stopPropagation(); onSelectTeam?.(entry.teamId); }} className="flex items-center gap-3 rounded text-left text-base font-bold text-white/65 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">{entry.teamLogo && <img src={entry.teamLogo} alt="" className={`h-8 w-8 shrink-0 object-contain ${eliminatedTeamIds?.has(entry.teamId) ? 'grayscale opacity-45' : ''}`} />}<span className={eliminatedTeamIds?.has(entry.teamId) ? 'opacity-55' : ''}>{entry.teamName}</span></button></td>
                     <td className="px-4 py-4 text-center font-mono text-2xl font-black text-sky-300">{entry.assists}</td>
                   </tr>
                 ))}

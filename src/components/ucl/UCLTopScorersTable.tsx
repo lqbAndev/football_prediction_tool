@@ -5,6 +5,7 @@ import uclBallImg from '../../img/CUP COMPETITION/UCL/ball/ucl_ball_26-27.png';
 interface UCLTopScorersTableProps {
   topScorers: TopScorerEntry[];
   penaltyGoalsByPlayer?: Record<string, number>;
+  eliminatedTeamIds?: ReadonlySet<string>;
   onSelectTeam?: (teamId: string) => void;
   onSelectPlayer?: (playerId: string, playerName: string, teamId: string, teamName: string) => void;
 }
@@ -26,6 +27,7 @@ const rowStyle = (rank: number) => {
 export const UCLTopScorersTable: React.FC<UCLTopScorersTableProps> = ({
   topScorers,
   penaltyGoalsByPlayer = {},
+  eliminatedTeamIds,
   onSelectTeam,
   onSelectPlayer,
 }) => {
@@ -53,10 +55,10 @@ export const UCLTopScorersTable: React.FC<UCLTopScorersTableProps> = ({
             const rank = index + 1;
             const penaltyGoals = penaltyGoalsByPlayer[entry.playerId] || 0;
             return (
-              <button key={entry.playerId} type="button" onClick={() => onSelectPlayer?.(entry.playerId, entry.playerName, entry.teamId, entry.teamName)} className={`flex w-full items-center gap-3 rounded-2xl border border-white/[0.08] px-3 py-2.5 text-left transition active:scale-[0.99] ${rowStyle(rank)}`}>
+              <button key={entry.playerId} type="button" onClick={() => onSelectPlayer?.(entry.playerId, entry.playerName, entry.teamId, entry.teamName)} className={`flex w-full items-center gap-3 rounded-2xl border border-white/[0.08] px-3 py-2.5 text-left transition active:scale-[0.99] ${rowStyle(rank)} ${eliminatedTeamIds?.has(entry.teamId) ? 'border-white/[0.04] bg-white/[0.015]' : ''}`}>
                 <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border font-mono text-sm font-black ${rankStyle(rank)}`}>{rank}</span>
-                {team?.logo && <img src={team.logo} alt="" className="h-8 w-8 shrink-0 object-contain" />}
-                <span className="min-w-0 flex-1"><span className="block whitespace-normal text-sm font-black leading-5 text-white [overflow-wrap:anywhere]">{entry.playerName}</span><span className="block whitespace-normal text-[10px] leading-4 text-white/45 [overflow-wrap:anywhere]">{entry.teamName}{penaltyGoals > 0 ? ` · ${penaltyGoals} pen` : ''}</span></span>
+                {team?.logo && <img src={team.logo} alt="" className={`h-8 w-8 shrink-0 object-contain ${eliminatedTeamIds?.has(entry.teamId) ? 'grayscale opacity-45' : ''}`} />}
+                <span className="min-w-0 flex-1"><span className="block whitespace-normal text-sm font-black leading-5 text-white [overflow-wrap:anywhere]">{entry.playerName}</span><span className="block whitespace-normal text-[10px] leading-4 text-white/45 [overflow-wrap:anywhere]">{entry.teamName}{penaltyGoals > 0 ? ` · ${penaltyGoals} pen` : ''}</span>{eliminatedTeamIds?.has(entry.teamId) && <span className="mt-1 inline-block rounded border border-white/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white/55">Eliminated</span>}</span>
                 <span className="font-mono text-2xl font-black text-amber-300">{entry.goals}</span>
               </button>
             );
@@ -91,13 +93,14 @@ export const UCLTopScorersTable: React.FC<UCLTopScorersTableProps> = ({
                         openPlayer();
                       }
                     }}
-                    className={`group cursor-pointer transition duration-300 hover:bg-white/[0.065] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300 ${rowStyle(rank)}`}
+                    className={`group cursor-pointer transition duration-300 hover:bg-white/[0.065] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-300 ${rowStyle(rank)} ${eliminatedTeamIds?.has(entry.teamId) ? 'bg-white/[0.015]' : ''}`}
                   >
                     <td className="px-4 py-4 text-center">
                       <span className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border font-mono text-base font-black ${rankStyle(rank)}`}>{rank}</span>
                     </td>
                     <td className="px-4 py-4">
                       <span className="text-lg font-black text-white transition-colors group-hover:text-sky-200">{entry.playerName}</span>
+                      {eliminatedTeamIds?.has(entry.teamId) && <span className="ml-2 rounded border border-white/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white/55">Eliminated</span>}
                       {penaltyGoals > 0 && <span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-amber-300/70">{penaltyGoals} pen</span>}
                     </td>
                     <td className="px-4 py-4">
@@ -109,8 +112,8 @@ export const UCLTopScorersTable: React.FC<UCLTopScorersTableProps> = ({
                         }}
                         className="flex items-center gap-3 text-left text-base font-bold text-white/65 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                       >
-                        {team?.logo && <img src={team.logo} alt={`${entry.teamName} crest`} className="h-8 w-8 shrink-0 object-contain" />}
-                        <span>{entry.teamName}</span>
+                        {team?.logo && <img src={team.logo} alt={`${entry.teamName} crest`} className={`h-8 w-8 shrink-0 object-contain ${eliminatedTeamIds?.has(entry.teamId) ? 'grayscale opacity-45' : ''}`} />}
+                        <span className={eliminatedTeamIds?.has(entry.teamId) ? 'opacity-55' : ''}>{entry.teamName}</span>
                       </button>
                     </td>
                     <td className="px-4 py-4 text-center">

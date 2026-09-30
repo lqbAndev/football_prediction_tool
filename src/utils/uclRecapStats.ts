@@ -68,6 +68,27 @@ export interface UCLTopAssistEntry {
   goals: number;
 }
 
+export interface UCLChampionReport {
+  teamId: string;
+  matches: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  shootoutWins: number;
+  stages: Array<{ stage: string; matches: number; goalsFor: number; goalsAgainst: number }>;
+  players: Array<{
+    playerId: string;
+    name: string;
+    position: Team['players'][number]['position'];
+    goals: number;
+    assists: number;
+    motmAwards: number;
+    simulatedRating: number | null;
+  }>;
+}
+
 export interface UCLRecapStats {
   playerOfTheSeason: {
     playerId: string;
@@ -106,6 +127,7 @@ export interface UCLRecapStats {
     penaltyPercent: string;
   };
   bestXI: BestXIResult | null;
+  championReport: UCLChampionReport | null;
 }
 
 export interface UCLBestXIConstraints {
@@ -215,6 +237,8 @@ export const computeUclRecapStats = (
   const teamGoalsScored = new Map(teams.map((team) => [team.id, 0]));
   const teamGoalsConceded = new Map(teams.map((team) => [team.id, 0]));
   const teamMatchesPlayed = new Map(teams.map((team) => [team.id, 0]));
+  const teamResults = new Map(teams.map((team) => [team.id, { wins: 0, draws: 0, losses: 0 }]));
+  const stageTotals = new Map<string, Map<string, { stage: string; matches: number; goalsFor: number; goalsAgainst: number }>>();
   let totalGoals = 0;
   let totalPenalties = 0;
   let totalMatches = 0;
@@ -282,6 +306,23 @@ export const computeUclRecapStats = (
     teamGoalsConceded.set(awayTeam.id, (teamGoalsConceded.get(awayTeam.id) || 0) + match.homeScore);
     teamMatchesPlayed.set(homeTeam.id, (teamMatchesPlayed.get(homeTeam.id) || 0) + 1);
     teamMatchesPlayed.set(awayTeam.id, (teamMatchesPlayed.get(awayTeam.id) || 0) + 1);
+    const stageKey = match.stage.startsWith('League Phase') ? 'League Phase' : match.stage.split(' · ')[0];
+    const stage = ({ playoffs: 'Play-offs', roundOf16: 'Round of 16', quarterfinals: 'Quarter-finals', semifinals: 'Semi-finals' } as Record<string, string>)[stageKey] || stageKey;
+    const recordMatch = (teamId: string, scored: number, conceded: number) => {
+      const record = teamResults.get(teamId)!;
+      if (scored > conceded) record.wins += 1;
+      else if (scored < conceded) record.losses += 1;
+      else record.draws += 1;
+      const byStage = stageTotals.get(teamId) || new Map();
+      const total = byStage.get(stage) || { stage, matches: 0, goalsFor: 0, goalsAgainst: 0 };
+      total.matches += 1;
+      total.goalsFor += scored;
+      total.goalsAgainst += conceded;
+      byStage.set(stage, total);
+      stageTotals.set(teamId, byStage);
+    };
+    recordMatch(homeTeam.id, match.homeScore, match.awayScore);
+    recordMatch(awayTeam.id, match.awayScore, match.homeScore);
 
     if (!highestScoringMatch || matchGoals > highestScoringMatch.totalGoals) {
       highestScoringMatch = {
@@ -592,6 +633,30 @@ export const computeUclRecapStats = (
     goldenBootPlayerId: bestXIConstraints.goldenBootPlayerId,
     potsPlayerId: bestXIConstraints.potsPlayerId || playerOfTheSeason?.playerId,
   });
+  const championId = completedFinal?.winnerId;
+  const championTeam = championId ? teamMap.get(championId) : null;
+  const championRecord = championId ? teamResults.get(championId) : null;
+  const championReport: UCLChampionReport | null = championTeam && championRecord ? {
+    teamId: championTeam.id,
+    matches: teamMatchesPlayed.get(championTeam.id) || 0,
+    ...championRecord,
+    goalsFor: teamGoalsScored.get(championTeam.id) || 0,
+    goalsAgainst: teamGoalsConceded.get(championTeam.id) || 0,
+    shootoutWins: knockoutMatches.filter((tie) => tie.winnerId === championTeam.id && tie.leg2.penalties).length,
+    stages: [...(stageTotals.get(championTeam.id)?.values() || [])],
+    players: championTeam.players.map((player) => {
+      const stats = playerStats.get(`${championTeam.id}:${player.id}`)!;
+      return {
+        playerId: player.id,
+        name: player.name,
+        position: player.position,
+        goals: stats.goals,
+        assists: stats.assists,
+        motmAwards: stats.motmAwards,
+        simulatedRating: stats.ratingAppearances ? Number(averageRating(stats).toFixed(2)) : null,
+      };
+    }).sort((left, right) => right.goals - left.goals || right.assists - left.assists || right.motmAwards - left.motmAwards || left.name.localeCompare(right.name)),
+  } : null;
 
   const averagePerMatch = totalMatches > 0 ? (totalGoals / totalMatches).toFixed(2) : '0.00';
   const penaltyPercentValue = totalGoals > 0 ? Math.round((totalPenalties / totalGoals) * 100) : 0;
@@ -613,6 +678,7 @@ export const computeUclRecapStats = (
       penaltyPercent: `${penaltyPercentValue}%`,
     },
     bestXI,
+    championReport,
   };
 };
 
